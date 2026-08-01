@@ -37,10 +37,24 @@
             <span id="phase-text">Ready</span>
           </div>
           <div class="timer" id="timer">30:00</div>
+          <div class="round-meta" id="round-meta">Hole circle · no damage</div>
         </div>
 
         <div class="arena-wrap">
-          <div class="arena" id="arena" aria-label="Battle arena"></div>
+          <div class="arena" id="arena" aria-label="Battle arena">
+            <div class="arena-floor" aria-hidden="true"></div>
+            <svg class="arena-rim-svg" id="arena-rim" viewBox="0 0 100 100" aria-hidden="true">
+              <defs>
+                <linearGradient id="rimGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" stop-color="#5effef" />
+                  <stop offset="100%" stop-color="#2ec4b6" />
+                </linearGradient>
+              </defs>
+              <circle class="rim-track" cx="50" cy="50" r="42" />
+              <path id="rim-arc" class="rim-arc" fill="none" />
+              <path id="hole-arc" class="hole-arc" fill="none" />
+            </svg>
+          </div>
         </div>
 
         <footer class="hud">
@@ -65,9 +79,8 @@
     </div>
 
     <p class="host-hint">
-      Stream crop: the stage is locked to 9:16.
-      Use <code>?stream=1&amp;autostart=1</code> for OBS.
-      Demo speed: <code>?demo=45</code> (seconds of qualifying).
+      Stream crop is 9:16. Auto-stream (no OBS): <code>npm run go-live --prefix stream</code>.
+      Clean view: <code>?stream=1&amp;autostart=1</code>. Demo: <code>?demo=45</code>.
     </p>
 
     <script type="module" src="js/ui.js"></script>

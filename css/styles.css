@@ -224,10 +224,19 @@ body {
   color: var(--gold);
 }
 
+.round-meta {
+  margin-top: 2px;
+  font-size: clamp(11px, 2.4vw, 14px);
+  color: var(--muted);
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
 /* —— Arena —— */
 .arena-wrap {
   position: absolute;
-  inset: 28% 3% 18%;
+  inset: 30% 4% 17%;
   z-index: 2;
 }
 
@@ -236,28 +245,54 @@ body {
   width: 100%;
   height: 100%;
   border-radius: 50%;
-  background:
-    radial-gradient(circle at 50% 45%, rgba(46, 196, 182, 0.16), transparent 42%),
-    radial-gradient(circle at 50% 50%, rgba(18, 50, 71, 0.9), rgba(7, 16, 24, 0.2) 70%);
-  border: 2px solid rgba(46, 196, 182, 0.35);
-  box-shadow:
-    inset 0 0 60px rgba(0, 0, 0, 0.55),
-    0 0 40px rgba(46, 196, 182, 0.12);
-  overflow: hidden;
+  overflow: visible;
 }
 
-.arena::after {
-  content: "";
+.arena-floor {
   position: absolute;
   inset: 8%;
   border-radius: 50%;
-  border: 1px dashed rgba(230, 184, 74, 0.22);
-  pointer-events: none;
-  animation: ringSpin 40s linear infinite;
+  background:
+    radial-gradient(circle at 50% 45%, rgba(46, 196, 182, 0.14), transparent 50%),
+    radial-gradient(circle at 50% 50%, rgba(18, 50, 71, 0.95), rgba(7, 16, 24, 0.35) 72%);
+  box-shadow: inset 0 0 50px rgba(0, 0, 0, 0.55);
+  z-index: 0;
 }
 
-@keyframes ringSpin {
-  to { transform: rotate(360deg); }
+.arena-rim-svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 2;
+  pointer-events: none;
+  overflow: visible;
+}
+
+.arena-rim-svg .rim-track {
+  fill: none;
+  stroke: rgba(46, 196, 182, 0.12);
+  stroke-width: 2.2;
+}
+
+.arena-rim-svg .rim-arc {
+  stroke: url(#rimGrad);
+  stroke-width: 2.8;
+  stroke-linecap: butt;
+  filter: drop-shadow(0 0 4px rgba(46, 196, 182, 0.85));
+}
+
+.arena-rim-svg .hole-arc {
+  stroke: #ff4d6d;
+  stroke-width: 3.2;
+  stroke-linecap: round;
+  filter: drop-shadow(0 0 6px rgba(255, 77, 109, 0.95));
+  animation: holePulse 1.2s ease-in-out infinite;
+}
+
+@keyframes holePulse {
+  0%, 100% { opacity: 0.65; stroke-width: 2.8; }
+  50% { opacity: 1; stroke-width: 3.6; }
 }
 
 .fighter {
@@ -268,6 +303,7 @@ body {
   transition: opacity 0.25s ease;
   will-change: left, top, transform;
   filter: drop-shadow(0 3px 4px rgba(0, 0, 0, 0.55));
+  z-index: 3;
 }
 
 .fighter img {
@@ -278,27 +314,22 @@ body {
   display: block;
 }
 
-.fighter .hp {
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: -5px;
-  height: 3px;
-  background: rgba(0, 0, 0, 0.55);
-  overflow: hidden;
-}
-
-.fighter .hp > i {
-  display: block;
-  height: 100%;
-  background: linear-gradient(90deg, var(--danger), var(--gold), var(--teal));
-  width: 100%;
-  transform-origin: left center;
-}
-
 .fighter.pulse {
-  transform: translate(-50%, -50%) scale(1.18);
-  z-index: 3;
+  transform: translate(-50%, -50%) scale(1.14);
+  z-index: 4;
+}
+
+.fighter.falling {
+  z-index: 5;
+  filter: saturate(0.7) drop-shadow(0 0 8px rgba(255, 77, 109, 0.7));
+  animation: fallSpin 0.7s ease-in forwards;
+}
+
+@keyframes fallSpin {
+  to {
+    opacity: 0.35;
+    transform: translate(-50%, -50%) scale(0.7) rotate(25deg);
+  }
 }
 
 .fighter.eliminating {
