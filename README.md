@@ -13,6 +13,33 @@ Vertical **9:16** all-country flag battle for YouTube Shorts livestreams.
 
 Default: **32** finalist slots · heats of **48**.
 
+## Mobile only (no PC)
+
+Open the control hub on your phone:
+
+**`/control/`** → after GitHub Pages is on:  
+`https://<you>.github.io/Flagbattle/control/`
+
+### Path A — Easy (YouTube app screen share)
+
+1. Open **Easy** tab → **Open arena**
+2. YouTube app → **Go live** → **Share screen** → pick the browser
+3. Keep FLAG BATTLE on screen (use **Fullscreen**; phone stays awake)
+
+### Path B — Cloud (one-tap, no screen share)
+
+One-time on your phone (**Setup** tab):
+
+1. Google Cloud → enable **YouTube Data API v3**
+2. OAuth client type: **TVs and Limited Input devices**
+3. Paste Client ID + Secret → **Start device login** → approve at [google.com/device](https://www.google.com/device)
+4. Create a GitHub PAT with **Actions** (+ **Secrets** if pushing from the hub)
+5. Fill repo + PAT on **Cloud** tab → **Push secrets to GitHub**
+
+Every stream after that: **Cloud → Go live now**.
+
+GitHub Actions creates the YouTube broadcast and pushes 1080×1920 with FFmpeg (no OBS, no PC left on).
+
 ## Run locally (preview)
 
 ```bash
@@ -22,46 +49,22 @@ npx --yes serve -l 5173 .
 | Mode | URL |
 |------|-----|
 | Host controls | `/` |
+| Mobile control hub | `/control/` |
 | Clean stream view | `/?stream=1&autostart=1` |
+| Mobile stream helpers | `/?stream=1&autostart=1&mobile=1` |
 | Fast demo | `/?demo=45&stream=1&autostart=1` |
 
-## Auto-stream (no OBS)
-
-The `stream/` package **creates a YouTube Live broadcast via API** and pushes the arena with **Xvfb + Chrome + FFmpeg** — no streaming software.
-
-### One-time setup
-
-1. Google Cloud → enable **YouTube Data API v3** → create **OAuth Desktop** client.
-2. Copy credentials:
+## Desktop / server auto-stream
 
 ```bash
 cp stream/.env.example stream/.env
-# fill GOOGLE_CLIENT_ID + GOOGLE_CLIENT_SECRET
-```
-
-3. Authorize (saves refresh token):
-
-```bash
 npm install --prefix stream
+# Desktop OAuth:
 npm run auth --prefix stream
-```
-
-### Go live from your machine
-
-```bash
+# Or phone-friendly device code (TV OAuth client):
+npm run auth:device --prefix stream
 npm run go-live --prefix stream
-# or a short demo stream:
-npm run go-live:demo --prefix stream
 ```
-
-Optional flags: `--demo 90` · `--privacy unlisted` · `--title "…"`.
-
-### GitHub Actions workflow
-
-Workflow: [`.github/workflows/go-live.yml`](.github/workflows/go-live.yml)
-
-Add repo secrets: `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `GOOGLE_REFRESH_TOKEN`.  
-Then **Actions → Go Live — FLAG BATTLE → Run workflow**.
 
 ## Thumbnail
 
@@ -71,4 +74,4 @@ Then **Actions → Go Live — FLAG BATTLE → Run workflow**.
 
 - Vanilla HTML / CSS / JS arena
 - Flags from [flagcdn.com](https://flagcdn.com)
-- Auto-stream: `googleapis` + FFmpeg RTMP ingest
+- Mobile control hub + GitHub Actions / FFmpeg RTMP ingest

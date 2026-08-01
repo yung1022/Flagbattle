@@ -1,0 +1,242 @@
+:root {
+  --bg: #071018;
+  --panel: #0e1c28;
+  --ink: #f4f7fa;
+  --muted: #8fa6b8;
+  --gold: #e6b84a;
+  --teal: #2ec4b6;
+  --line: rgba(230, 184, 74, 0.28);
+  --danger: #ff4d6d;
+  --font-display: "Bebas Neue", Impact, sans-serif;
+  --font-body: "Manrope", system-ui, sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  min-height: 100%;
+  background:
+    radial-gradient(120% 60% at 50% -10%, rgba(46, 196, 182, 0.18), transparent 55%),
+    linear-gradient(180deg, #0c1c28, var(--bg));
+  color: var(--ink);
+  font-family: var(--font-body);
+}
+
+body {
+  padding: env(safe-area-inset-top) env(safe-area-inset-right)
+    calc(24px + env(safe-area-inset-bottom)) env(safe-area-inset-left);
+}
+
+.wrap {
+  width: min(100%, 520px);
+  margin: 0 auto;
+  padding: 20px 16px 40px;
+}
+
+.hero h1 {
+  font-family: var(--font-display);
+  font-size: clamp(48px, 14vw, 72px);
+  line-height: 0.9;
+  letter-spacing: 0.04em;
+  margin: 4px 0 10px;
+}
+
+.eyebrow {
+  color: var(--gold);
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  font-size: 12px;
+  margin: 0;
+}
+
+.lede,
+.hint,
+.note {
+  color: var(--muted);
+  line-height: 1.45;
+  font-size: 14px;
+}
+
+.tabs {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  margin: 22px 0 16px;
+}
+
+.tab {
+  border: 1px solid var(--line);
+  background: rgba(7, 16, 24, 0.65);
+  color: var(--muted);
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 12px 8px;
+  font-size: 12px;
+}
+
+.tab.active {
+  color: #1a1205;
+  background: linear-gradient(180deg, #e0b14a, #9a7420);
+  border-color: #f0d48a;
+}
+
+.panel {
+  display: none;
+  border: 1px solid var(--line);
+  background: rgba(14, 28, 40, 0.88);
+  padding: 16px;
+  animation: in 0.25s ease;
+}
+
+.panel.active {
+  display: block;
+}
+
+@keyframes in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.panel h2 {
+  font-family: var(--font-display);
+  letter-spacing: 0.06em;
+  font-size: 28px;
+  margin: 0 0 8px;
+}
+
+.steps {
+  margin: 12px 0 16px 1.1rem;
+  padding: 0;
+  color: var(--ink);
+  line-height: 1.5;
+  font-size: 14px;
+}
+
+.steps li {
+  margin-bottom: 8px;
+}
+
+.steps a {
+  color: var(--teal);
+}
+
+.field {
+  display: grid;
+  gap: 6px;
+  margin-bottom: 12px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.field input,
+.field select,
+.field textarea {
+  width: 100%;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: #071018;
+  color: var(--ink);
+  font: inherit;
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: 0;
+  text-transform: none;
+  padding: 12px;
+  border-radius: 0;
+}
+
+.actions {
+  display: grid;
+  gap: 8px;
+  margin: 14px 0;
+}
+
+.btn,
+a.btn {
+  display: block;
+  text-align: center;
+  text-decoration: none;
+  border: 1px solid var(--line);
+  background: linear-gradient(180deg, #1a3344, #0f2230);
+  color: var(--ink);
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  font-size: 13px;
+  padding: 14px 12px;
+  cursor: pointer;
+}
+
+.btn.primary,
+a.btn.primary {
+  background: linear-gradient(180deg, #e0b14a, #9a7420);
+  color: #1a1205;
+  border-color: #f0d48a;
+}
+
+.btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.linkish {
+  border: 0;
+  background: none;
+  color: var(--teal);
+  font: inherit;
+  font-weight: 800;
+  padding: 0;
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+.device-box {
+  margin: 12px 0;
+  padding: 14px;
+  border: 1px dashed rgba(255, 77, 109, 0.55);
+  background: rgba(255, 77, 109, 0.08);
+  text-align: center;
+}
+
+.user-code {
+  font-family: var(--font-display);
+  font-size: 42px;
+  letter-spacing: 0.14em;
+  color: var(--gold);
+  margin: 8px 0 12px;
+}
+
+.log {
+  min-height: 64px;
+  max-height: 180px;
+  overflow: auto;
+  white-space: pre-wrap;
+  word-break: break-word;
+  background: #050b11;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: #b7c9d6;
+  font-size: 12px;
+  padding: 10px;
+}
+
+.note code {
+  color: var(--gold);
+}
+
+a {
+  color: var(--teal);
+}

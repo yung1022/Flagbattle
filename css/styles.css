@@ -496,8 +496,12 @@ body {
   z-index: 20;
   font-size: 12px;
   color: #6d8496;
-  max-width: 260px;
+  max-width: 280px;
   line-height: 1.35;
+}
+
+.host-hint a {
+  color: #2ec4b6;
 }
 
 body.stream-mode .host-hint,
@@ -507,4 +511,24 @@ body.stream-mode .controls {
 
 body.stream-mode .hud {
   padding-bottom: 4%;
+}
+
+.mobile-fs-btn {
+  position: fixed;
+  right: 12px;
+  bottom: calc(12px + env(safe-area-inset-bottom));
+  z-index: 30;
+  border: 1px solid rgba(230, 184, 74, 0.45);
+  background: rgba(7, 16, 24, 0.82);
+  color: #f4f7fa;
+  font-family: var(--font-body);
+  font-weight: 800;
+  font-size: 12px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 10px 12px;
+}
+
+body.stream-mode:not(.mobile-mode) .mobile-fs-btn {
+  display: none;
 }

@@ -6,6 +6,7 @@
   "description": "Create a YouTube livestream and push FLAG BATTLE without OBS",
   "scripts": {
     "auth": "node src/auth.js",
+    "auth:device": "node src/auth-device.js",
     "go-live": "node src/run.js",
     "go-live:demo": "node src/run.js --demo 90"
   },

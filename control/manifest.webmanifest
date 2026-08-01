@@ -1,0 +1,17 @@
+{
+  "name": "FLAG BATTLE Go Live",
+  "short_name": "FlagBattle",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#071018",
+  "theme_color": "#071018",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "../assets/thumbnail.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

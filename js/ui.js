@@ -261,8 +261,14 @@ els.btnReset.addEventListener("click", () => {
   render();
 });
 
-if (new URLSearchParams(location.search).has("stream")) {
+const params = new URLSearchParams(location.search);
+const mobileMode = params.has("mobile") || params.has("stream");
+
+if (params.has("stream")) {
   document.body.classList.add("stream-mode");
+}
+if (params.has("mobile")) {
+  document.body.classList.add("mobile-mode");
 }
 
 game.onChange = render;
@@ -287,7 +293,55 @@ game.fighters = COUNTRIES.map((c, i) => {
 });
 render();
 
-if (new URLSearchParams(location.search).has("autostart")) {
+if (params.has("autostart")) {
   clearFighters();
   game.start();
 }
+
+/** Keep screen awake + offer fullscreen for phone screen-share streams. */
+async function enableMobileStreamHelpers() {
+  if (!mobileMode) return;
+
+  const stage = document.getElementById("stage");
+  const btn = document.createElement("button");
+  btn.type = "button";
+  btn.className = "mobile-fs-btn";
+  btn.textContent = "Fullscreen";
+  btn.addEventListener("click", async () => {
+    try {
+      const el = stage || document.documentElement;
+      if (!document.fullscreenElement && el.requestFullscreen) {
+        await el.requestFullscreen();
+      } else if (document.fullscreenElement && document.exitFullscreen) {
+        await document.exitFullscreen();
+      }
+      // iOS Safari video fullscreen fallback: scroll stage into view.
+      stage?.scrollIntoView({ block: "center" });
+    } catch {
+      /* ignore */
+    }
+    await requestWakeLock();
+  });
+  document.body.appendChild(btn);
+
+  await requestWakeLock();
+  document.addEventListener("visibilitychange", () => {
+    if (document.visibilityState === "visible") requestWakeLock();
+  });
+}
+
+let wakeLock = null;
+async function requestWakeLock() {
+  try {
+    if ("wakeLock" in navigator) {
+      wakeLock = await navigator.wakeLock.request("screen");
+      wakeLock.addEventListener("release", () => {
+        wakeLock = null;
+      });
+    }
+  } catch {
+    /* unsupported / denied */
+  }
+}
+
+enableMobileStreamHelpers();
