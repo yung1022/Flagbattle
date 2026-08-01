@@ -1,4 +1,6 @@
-/** Persist stream rankings + poll state (localStorage + optional live API). */
+/** Persist stream rankings + poll state (localStorage + live API + Pages data). */
+
+import { apiFetch, pagesDataUrl, resolveApiBase } from "./public.js";
 
 const STREAMS_KEY = "flagbattle.streams.v1";
 const LIVE_KEY = "flagbattle.live.v1";
@@ -41,56 +43,81 @@ export function getLiveSnapshot() {
 
 async function syncLive(payload) {
   if (typeof fetch !== "function") return;
-  await fetch("/api/live", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(payload),
-  });
+  // Game always posts to same-origin server when hosted locally.
+  try {
+    await fetch("/api/live", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+  } catch {
+    /* offline / Pages */
+  }
 }
 
 export async function fetchLiveFromApi() {
+  const fromApi = await apiFetch("/api/live");
+  if (fromApi) return fromApi;
   try {
-    const res = await fetch("/api/live", { cache: "no-store" });
-    if (!res.ok) return null;
-    return await res.json();
+    const res = await fetch(pagesDataUrl("live.json"), { cache: "no-store" });
+    if (res.ok) return await res.json();
   } catch {
-    return null;
+    /* ignore */
   }
+  return null;
 }
 
 export async function fetchStreamsFromApi() {
+  const fromApi = await apiFetch("/api/rankings");
+  if (Array.isArray(fromApi) && fromApi.length) return fromApi;
+
   try {
-    const res = await fetch("/api/rankings", { cache: "no-store" });
-    if (!res.ok) return null;
-    return await res.json();
+    const res = await fetch(pagesDataUrl("rankings.json"), { cache: "no-store" });
+    if (res.ok) {
+      const data = await res.json();
+      if (Array.isArray(data)) return data;
+    }
   } catch {
-    return null;
+    /* ignore */
   }
+
+  const live = await fetchLiveFromApi();
+  if (Array.isArray(live?.streams) && live.streams.length) return live.streams;
+  return null;
 }
 
 export async function submitPollVote(streamId, code, voterId) {
-  const body = { streamId, code, voterId };
-  try {
-    const res = await fetch("/api/poll/vote", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(body),
-    });
-    if (res.ok) return await res.json();
-  } catch {
-    /* fall through to local */
+  const body = JSON.stringify({ streamId, code, voterId });
+  const base = await resolveApiBase();
+  if (base) {
+    try {
+      const res = await fetch(`${base}/api/poll/vote`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body,
+      });
+      if (res.ok) return await res.json();
+    } catch {
+      /* fall through */
+    }
   }
   return localPollVote(streamId, code, voterId);
 }
 
 export async function fetchPoll(streamId) {
+  const fromApi = await apiFetch(
+    `/api/poll?streamId=${encodeURIComponent(streamId)}`
+  );
+  if (fromApi?.options || fromApi?.votes) return fromApi;
+
   try {
-    const res = await fetch(`/api/poll?streamId=${encodeURIComponent(streamId)}`, {
+    const safe = String(streamId).replace(/[^a-zA-Z0-9_-]/g, "");
+    const res = await fetch(pagesDataUrl(`polls/${safe}.json`), {
       cache: "no-store",
     });
     if (res.ok) return await res.json();
   } catch {
-    /* local */
+    /* ignore */
   }
   return getLocalPoll(streamId);
 }

@@ -33,7 +33,7 @@ if (params.has("demo")) {
   const sec = Number(params.get("demo")) || 45;
   CONFIG.qualifyingMs = sec * 1000;
   CONFIG.betweenRoundMs = 600;
-  CONFIG.intermissionMs = Math.min(CONFIG.intermissionMs, 8_000);
+  // Keep full 1:00 intermission even in demo — viewers need the beat.
   CONFIG.holeSpeed = 2.4;
   CONFIG.holeWidth = 1.0;
   CONFIG.maxSpeed = 1.45;

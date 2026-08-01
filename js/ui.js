@@ -1,6 +1,7 @@
 import { FlagBattleGame, CONFIG, flagSizeForCount } from "./game.js";
 import { COUNTRIES } from "./countries.js";
 import { fetchPoll } from "./store.js";
+import { siteBase as resolveSiteBase } from "./public.js";
 
 const game = new FlagBattleGame();
 const params = new URLSearchParams(location.search);
@@ -44,23 +45,22 @@ const els = {
 
 /** Public site root for QR/links shown on the livestream (viewers can't click video). */
 function siteBase() {
-  const override =
-    params.get("site") ||
-    params.get("publicBase") ||
-    localStorage.getItem("flagbattle.siteBase");
-  if (override) return String(override).replace(/\/$/, "");
-  // GitHub Pages project sites live under /RepoName/
-  const parts = location.pathname.split("/").filter(Boolean);
-  if (location.hostname.endsWith("github.io") && parts.length) {
-    return `${location.origin}/${parts[0]}`;
-  }
-  return location.origin;
+  return resolveSiteBase(location.search);
 }
 
 function pageUrl(file, query = "") {
   const base = siteBase();
-  const q = query ? `?${query}` : "";
-  return `${base}/${file}${q}`;
+  const qs = new URLSearchParams(
+    typeof query === "string" && query ? query : ""
+  );
+  // Embed live API so GitHub Pages poll/rankings can reach the stream server.
+  const api =
+    params.get("api") ||
+    localStorage.getItem("flagbattle.apiBase") ||
+    "";
+  if (api && !qs.has("api")) qs.set("api", api.replace(/\/$/, ""));
+  const q = qs.toString();
+  return `${base}/${file}${q ? `?${q}` : ""}`;
 }
 
 function qrSrc(url) {

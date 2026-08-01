@@ -21,8 +21,9 @@
       </nav>
       <h1>RANKINGS</h1>
       <p class="lede">
-        Every stream’s qualifying rounds and final placement. Use
-        <code>node server.mjs</code> while streaming so pages stay in sync.
+        Stream history is saved on GitHub Pages under
+        <code>data/rankings.json</code>. Live streams also sync through the
+        public API when the go-live tunnel is up.
       </p>
       <div id="list"></div>
     </main>
@@ -33,12 +34,14 @@
         fetchStreamsFromApi,
         fetchLiveFromApi,
       } from "./js/store.js";
+      import { resolveApiBase } from "./js/public.js";
 
       const params = new URLSearchParams(location.search);
       const focusId = params.get("id");
       const root = document.getElementById("list");
 
       async function load() {
+        await resolveApiBase();
         let streams = listStreams();
         const apiStreams = await fetchStreamsFromApi();
         if (Array.isArray(apiStreams) && apiStreams.length) {
