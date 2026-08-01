@@ -13,7 +13,7 @@
     <link rel="stylesheet" href="css/site.css" />
   </head>
   <body>
-    <main class="wrap">
+    <main class="wrap wrap-wide">
       <nav class="nav">
         <a href="./">Arena</a>
         <a href="poll.html">Final poll</a>
@@ -24,12 +24,43 @@
         <button type="button" class="btn primary" id="btn-refresh">Refresh</button>
       </div>
       <p class="lede">
-        Stream history is saved on GitHub Pages under
-        <code>data/rankings.json</code>. Live streams also sync through the
-        public API when the go-live tunnel is up.
+        Season sheet: every country’s place in each battle (<strong>nq</strong> =
+        did not qualify for the Final). Points: <strong>50</strong> for 1st,
+        <strong>49</strong> for 2nd, … <strong>1</strong> for 50th.
       </p>
       <div class="meta" id="status">Loading…</div>
-      <div id="list"></div>
+
+      <div class="tabs" role="tablist">
+        <button type="button" class="tab active" data-tab="points">Points</button>
+        <button type="button" class="tab" data-tab="sheet">Battle sheet</button>
+        <button type="button" class="tab" data-tab="streams">Streams</button>
+      </div>
+
+      <section id="panel-points" class="tab-panel">
+        <div class="card">
+          <h2>POINTS LEADERBOARD</h2>
+          <div class="meta">
+            Sum of all finished Finals. Top 50 places score
+            <code>51 − rank</code> points.
+          </div>
+          <div id="points-list"></div>
+        </div>
+      </section>
+
+      <section id="panel-sheet" class="tab-panel" hidden>
+        <div class="card">
+          <h2>BATTLE SHEET</h2>
+          <div class="meta">
+            Rows = countries · Columns = battles (oldest → newest). Scroll
+            horizontally on small screens.
+          </div>
+          <div class="sheet-scroll" id="sheet-host"></div>
+        </div>
+      </section>
+
+      <section id="panel-streams" class="tab-panel" hidden>
+        <div id="list"></div>
+      </section>
     </main>
     <script type="module">
       import {
@@ -39,12 +70,37 @@
         fetchLiveFromApi,
       } from "./js/store.js";
       import { resolveApiBase } from "./js/public.js";
+      import { COUNTRIES } from "./js/countries.js";
+      import {
+        buildSeasonSheet,
+        buildPointsLeaderboard,
+        pointsForRank,
+      } from "./js/rankings-stats.js";
 
       const params = new URLSearchParams(location.search);
       const focusId = params.get("id");
       const root = document.getElementById("list");
       const statusEl = document.getElementById("status");
       const btnRefresh = document.getElementById("btn-refresh");
+      const pointsList = document.getElementById("points-list");
+      const sheetHost = document.getElementById("sheet-host");
+
+      let cachedStreams = [];
+
+      document.querySelectorAll(".tab").forEach((tab) => {
+        tab.addEventListener("click", () => {
+          document.querySelectorAll(".tab").forEach((t) => t.classList.remove("active"));
+          tab.classList.add("active");
+          const id = tab.dataset.tab;
+          document.getElementById("panel-points").hidden = id !== "points";
+          document.getElementById("panel-sheet").hidden = id !== "sheet";
+          document.getElementById("panel-streams").hidden = id !== "streams";
+        });
+      });
+
+      if (focusId) {
+        document.querySelector('.tab[data-tab="streams"]')?.click();
+      }
 
       async function load() {
         btnRefresh.disabled = true;
@@ -60,9 +116,12 @@
               (b.startedAt || "").localeCompare(a.startedAt || "")
             );
           }
+          cachedStreams = streams;
           const live = await fetchLiveFromApi();
-          render(streams, live?.live || null);
-          statusEl.textContent = `Updated ${new Date().toLocaleString()} · ${streams.length} stream${streams.length === 1 ? "" : "s"}`;
+          renderSeason(streams);
+          renderStreams(streams, live?.live || null);
+          const finals = streams.filter((s) => s.final?.ranking?.length).length;
+          statusEl.textContent = `Updated ${new Date().toLocaleString()} · ${streams.length} stream${streams.length === 1 ? "" : "s"} · ${finals} finished Final${finals === 1 ? "" : "s"}`;
         } catch (err) {
           statusEl.textContent = `Could not refresh: ${err.message || err}`;
         } finally {
@@ -70,7 +129,104 @@
         }
       }
 
-      function render(streams, live) {
+      function renderSeason(streams) {
+        const board = buildPointsLeaderboard(streams, COUNTRIES);
+        pointsList.innerHTML = "";
+        if (!board.some((r) => r.points > 0 || r.finishes > 0)) {
+          pointsList.innerHTML = `<p class="empty">No finished Finals yet — points appear after a battle completes Last Flag Standing.</p>`;
+        } else {
+          for (const row of board) {
+            if (row.points === 0 && row.finishes === 0) continue;
+            pointsList.appendChild(pointsRow(row));
+          }
+          const zero = board.filter((r) => r.points === 0 && r.finishes === 0);
+          if (zero.length) {
+            const note = document.createElement("div");
+            note.className = "meta";
+            note.style.marginTop = "12px";
+            note.textContent = `${zero.length} countries still at 0 pts (nq every battle so far). See Battle sheet for full grid.`;
+            pointsList.appendChild(note);
+          }
+        }
+
+        const sheet = buildSeasonSheet(streams, COUNTRIES);
+        renderSheet(sheet);
+      }
+
+      function pointsRow(row) {
+        const div = document.createElement("div");
+        div.className = "rank-row points-row";
+        const best =
+          row.best != null ? `#${row.best}` : "nq";
+        div.innerHTML = `
+          <span class="rank-num">#${row.rank}</span>
+          <img src="${row.img}" alt="" />
+          <span class="points-name">${row.name}</span>
+          <strong class="points-total">${row.points}</strong>
+          <span class="meta points-meta">${row.finishes} final${row.finishes === 1 ? "" : "s"} · best ${best}</span>
+        `;
+        return div;
+      }
+
+      function renderSheet(sheet) {
+        sheetHost.innerHTML = "";
+        if (!sheet.battles.length) {
+          sheetHost.innerHTML = `<p class="empty">No battles recorded yet.</p>`;
+          return;
+        }
+
+        const table = document.createElement("table");
+        table.className = "sheet";
+        const thead = document.createElement("thead");
+        const headRow = document.createElement("tr");
+        headRow.innerHTML = `<th class="sticky-col">Country</th><th class="pts-col">Pts</th>`;
+        for (const b of sheet.battles) {
+          const th = document.createElement("th");
+          th.title = `${b.id}${b.winner ? ` · ${b.winner}` : ""}${b.hasFinal ? "" : " · no final yet"}`;
+          th.innerHTML = `<span>${b.label}</span>`;
+          headRow.appendChild(th);
+        }
+        thead.appendChild(headRow);
+        table.appendChild(thead);
+
+        const tbody = document.createElement("tbody");
+        for (const row of sheet.rows) {
+          const tr = document.createElement("tr");
+          const nameTd = document.createElement("td");
+          nameTd.className = "sticky-col country-cell";
+          nameTd.innerHTML = `<img src="${row.img}" alt="" /><span>${row.name}</span>`;
+          tr.appendChild(nameTd);
+
+          const ptsTd = document.createElement("td");
+          ptsTd.className = "pts-col";
+          ptsTd.textContent = String(row.points);
+          tr.appendChild(ptsTd);
+
+          for (const result of row.results) {
+            const td = document.createElement("td");
+            if (result === "nq") {
+              td.className = "cell-nq";
+              td.textContent = "nq";
+            } else if (result === "—") {
+              td.className = "cell-pending";
+              td.textContent = "—";
+            } else {
+              td.className = "cell-rank";
+              if (result === 1) td.classList.add("cell-gold");
+              else if (result === 2) td.classList.add("cell-silver");
+              else if (result === 3) td.classList.add("cell-bronze");
+              td.textContent = String(result);
+              td.title = `${pointsForRank(result)} pts`;
+            }
+            tr.appendChild(td);
+          }
+          tbody.appendChild(tr);
+        }
+        table.appendChild(tbody);
+        sheetHost.appendChild(table);
+      }
+
+      function renderStreams(streams, live) {
         root.innerHTML = "";
         if (live?.streamId) {
           const banner = document.createElement("div");
@@ -81,7 +237,9 @@
           root.appendChild(banner);
         }
 
-        const focus = focusId ? streams.find((s) => s.id === focusId) || getStream(focusId) : null;
+        const focus = focusId
+          ? streams.find((s) => s.id === focusId) || getStream(focusId)
+          : null;
         if (focus) root.appendChild(renderStream(focus, true));
 
         if (!streams.length && !focus) {
@@ -114,7 +272,9 @@
         toggle.textContent = open ? "Hide details" : "Show round rankings";
         toggle.addEventListener("click", () => {
           rounds.hidden = !rounds.hidden;
-          toggle.textContent = rounds.hidden ? "Show round rankings" : "Hide details";
+          toggle.textContent = rounds.hidden
+            ? "Show round rankings"
+            : "Hide details";
           if (!rounds.dataset.built) {
             buildDetails(rounds, s);
             rounds.dataset.built = "1";
@@ -161,10 +321,11 @@
       function rankRow(row) {
         const div = document.createElement("div");
         div.className = "rank-row";
+        const pts = pointsForRank(row.rank);
         div.innerHTML = `
           <span class="rank-num">#${row.rank}</span>
           <img src="${row.img || `https://flagcdn.com/w80/${row.code}.png`}" alt="" />
-          <span>${row.name}</span>
+          <span>${row.name}${pts ? ` · ${pts} pts` : ""}</span>
         `;
         return div;
       }
