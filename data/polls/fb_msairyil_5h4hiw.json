@@ -378,7 +378,7 @@
     }
   ],
   "votes": {
-    "mc": 0,
+    "mc": 1,
     "pg": 0,
     "gy": 0,
     "lu": 0,
@@ -454,6 +454,8 @@
     "pw": 0,
     "br": 0
   },
-  "voters": {},
-  "updatedAt": 1785599650424
+  "voters": {
+    "v_pzetjihe": "mc"
+  },
+  "updatedAt": 1785599999742
 }
