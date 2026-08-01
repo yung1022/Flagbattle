@@ -26,11 +26,13 @@ const els = {
   intermissionTitle: document.getElementById("intermission-title"),
   intermissionSub: document.getElementById("intermission-sub"),
   intermissionTimer: document.getElementById("intermission-timer"),
+  streamLink: document.getElementById("stream-link"),
 };
 
 const fighterEls = new Map();
 let lastBoardKey = "";
 let lastEventAt = 0;
+let lastSize = 0;
 
 function formatMs(ms) {
   const total = Math.ceil(ms / 1000);
@@ -45,7 +47,7 @@ function ensureFighterEl(f) {
   el = document.createElement("div");
   el.className = "fighter";
   el.dataset.id = f.id;
-  el.innerHTML = `<img alt="${f.name}" src="${f.img}" loading="lazy" />`;
+  el.innerHTML = `<img alt="${f.name}" src="${f.img}" loading="lazy" decoding="async" />`;
   els.arena.appendChild(el);
   fighterEls.set(f.id, el);
   return el;
@@ -71,18 +73,18 @@ function describeArc(cx, cy, r, startRad, endRad) {
 function syncHole() {
   if (!els.rimArc || !els.holeArc) return;
   const { rotateDeg, widthDeg, radiusPct } = game.holeStyle();
-  const r = radiusPct; // viewBox 0..100, center 50 → radius matches CONFIG
+  const r = radiusPct;
   const cx = 50;
   const cy = 50;
   const hole = (widthDeg * Math.PI) / 180;
   const mid = (rotateDeg * Math.PI) / 180;
   const holeStart = mid - hole / 2;
   const holeEnd = mid + hole / 2;
-  // Solid rim = everything except the hole wedge.
   els.rimArc.setAttribute("d", describeArc(cx, cy, r, holeEnd, holeStart + Math.PI * 2));
   els.holeArc.setAttribute("d", describeArc(cx, cy, r, holeStart, holeEnd));
 }
 
+/** Hot path — positions only. */
 function syncArena() {
   syncHole();
   const visibleIds = new Set();
@@ -91,10 +93,14 @@ function syncArena() {
     game.standing().length + game.fighters.filter((f) => f.falling).length
   );
   const sizeBase = flagSizeForCount(count).px;
+  if (sizeBase !== lastSize) lastSize = sizeBase;
+
+  const w = els.arena.clientWidth || 1;
+  const h = els.arena.clientHeight || 1;
 
   for (const f of game.fighters) {
     const show =
-      game.phase === "intermission"
+      game.phase === "intermission" || game.phase === "qualifying_hold"
         ? f.alive
         : f.alive || f.falling;
     if (!show) {
@@ -104,7 +110,7 @@ function syncArena() {
         setTimeout(() => {
           existing.remove();
           fighterEls.delete(f.id);
-        }, 520);
+        }, 400);
       }
       continue;
     }
@@ -112,9 +118,10 @@ function syncArena() {
     visibleIds.add(f.id);
     const el = ensureFighterEl(f);
     el.style.setProperty("--size", `${sizeBase}px`);
-    el.style.left = `${f.x * 100}%`;
-    el.style.top = `${f.y * 100}%`;
-    el.classList.toggle("pulse", f.pulse > 0.2);
+    const x = f.x * w;
+    const y = f.y * h;
+    const scale = f.pulse > 0.2 ? 1.12 : 1;
+    el.style.transform = `translate3d(${x}px, ${y}px, 0) translate(-50%, -50%) scale(${scale})`;
     el.classList.toggle("falling", f.falling);
   }
 
@@ -130,6 +137,7 @@ function renderBoard() {
   const flags = game.boardFlags();
   const showQualifiedBoard =
     game.phase === "qualifying" ||
+    game.phase === "qualifying_hold" ||
     game.phase === "idle" ||
     game.phase === "between_rounds" ||
     game.phase === "intermission";
@@ -155,7 +163,9 @@ function renderBoard() {
     empty.textContent =
       game.phase === "intermission" && game.intermissionKind === "open"
         ? "Qualifying starts after intermission…"
-        : game.phase === "qualifying" || game.phase === "between_rounds"
+        : game.phase === "qualifying" ||
+            game.phase === "between_rounds" ||
+            game.phase === "qualifying_hold"
           ? "Waiting for first qualifier…"
           : game.phase === "idle"
             ? "Press Start — last flag in the circle qualifies"
@@ -175,7 +185,6 @@ function renderBoard() {
     row.appendChild(img);
   }
   els.boardTrack.appendChild(row);
-
   if (flags.length > 10) {
     const clone = row.cloneNode(true);
     clone.setAttribute("aria-hidden", "true");
@@ -200,7 +209,9 @@ function renderHud() {
   const fighting = game.standing().length;
   els.statCountries.textContent = String(COUNTRIES.length);
   els.statFighting.textContent = String(
-    game.phase === "intermission" ? game.fighters.filter((f) => f.alive).length : fighting
+    game.phase === "intermission"
+      ? game.fighters.filter((f) => f.alive).length
+      : fighting
   );
   els.statBoard.textContent = String(game.boardFlags().length);
 
@@ -211,6 +222,8 @@ function renderHud() {
         game.intermissionKind === "final"
           ? "Intermission · Final next"
           : "Intermission · Qualifying next";
+    else if (game.phase === "qualifying_hold")
+      els.roundMeta.textContent = "Slots full · waiting on clock";
     else if (game.phase === "final" || game.phase === "finished")
       els.roundMeta.textContent = `Final · Round ${game.round}`;
     else els.roundMeta.textContent = `Qualifying · Round ${game.round}`;
@@ -220,9 +233,17 @@ function renderHud() {
     els.phaseText.textContent = "Intermission";
     els.timer.textContent = formatMs(game.intermissionRemainingMs());
     els.timer.hidden = false;
-  } else if (game.phase === "qualifying" || game.phase === "between_rounds") {
+  } else if (
+    game.phase === "qualifying" ||
+    game.phase === "between_rounds" ||
+    game.phase === "qualifying_hold"
+  ) {
     els.phaseText.textContent =
-      game.phase === "between_rounds" ? "Qualifier locked" : "Qualifying";
+      game.phase === "between_rounds"
+        ? "Qualifier locked"
+        : game.phase === "qualifying_hold"
+          ? "Slots filled"
+          : "Qualifying";
     els.timer.textContent = formatMs(game.qualifyingRemainingMs());
     els.timer.hidden = false;
   } else if (game.phase === "final") {
@@ -243,9 +264,7 @@ function renderHud() {
     els.intermission.classList.toggle("show", show);
     if (show) {
       const opening = game.intermissionKind === "open";
-      els.intermissionTitle.textContent = opening
-        ? "GET READY"
-        : "FINAL INCOMING";
+      els.intermissionTitle.textContent = opening ? "GET READY" : "FINAL INCOMING";
       els.intermissionSub.textContent = opening
         ? `${COUNTRIES.length} countries · hole circle qualifying`
         : `${game.qualified.length} qualified · Last Flag Standing`;
@@ -253,8 +272,15 @@ function renderHud() {
     }
   }
 
+  if (els.streamLink && game.stream?.id) {
+    els.streamLink.hidden = false;
+    els.streamLink.href = `rankings.html?id=${encodeURIComponent(game.stream.id)}`;
+    els.streamLink.textContent = "Rankings";
+  }
+
   const busy =
     game.phase === "qualifying" ||
+    game.phase === "qualifying_hold" ||
     game.phase === "between_rounds" ||
     game.phase === "intermission" ||
     game.phase === "final";
@@ -277,12 +303,12 @@ function clearFighters() {
   fighterEls.clear();
   lastBoardKey = "";
   lastEventAt = 0;
+  lastSize = 0;
   els.feed.innerHTML = "";
 }
 
-function render() {
+function renderChrome() {
   renderBoard();
-  syncArena();
   renderFeed();
   renderHud();
 }
@@ -295,22 +321,19 @@ els.btnStart.addEventListener("click", () => {
 els.btnReset.addEventListener("click", () => {
   clearFighters();
   game.reset();
-  render();
+  syncArena();
+  renderChrome();
 });
 
 const params = new URLSearchParams(location.search);
 const mobileMode = params.has("mobile") || params.has("stream");
 
-if (params.has("stream")) {
-  document.body.classList.add("stream-mode");
-}
-if (params.has("mobile")) {
-  document.body.classList.add("mobile-mode");
-}
+if (params.has("stream")) document.body.classList.add("stream-mode");
+if (params.has("mobile")) document.body.classList.add("mobile-mode");
 
-game.onChange = render;
+game.onFrame = syncArena;
+game.onChange = renderChrome;
 game.reset();
-// Idle preview: scatter flags in the circle without running physics.
 game.fighters = COUNTRIES.map((c, i) => {
   const angle = (i / COUNTRIES.length) * Math.PI * 2;
   const radius = 0.12 + (i % 5) * 0.05;
@@ -328,17 +351,16 @@ game.fighters = COUNTRIES.map((c, i) => {
     pulse: 0,
   };
 });
-render();
+syncArena();
+renderChrome();
 
 if (params.has("autostart")) {
   clearFighters();
   game.start();
 }
 
-/** Keep screen awake + offer fullscreen for phone screen-share streams. */
 async function enableMobileStreamHelpers() {
   if (!mobileMode) return;
-
   const stage = document.getElementById("stage");
   const btn = document.createElement("button");
   btn.type = "button";
@@ -352,7 +374,6 @@ async function enableMobileStreamHelpers() {
       } else if (document.fullscreenElement && document.exitFullscreen) {
         await document.exitFullscreen();
       }
-      // iOS Safari video fullscreen fallback: scroll stage into view.
       stage?.scrollIntoView({ block: "center" });
     } catch {
       /* ignore */
@@ -360,7 +381,6 @@ async function enableMobileStreamHelpers() {
     await requestWakeLock();
   });
   document.body.appendChild(btn);
-
   await requestWakeLock();
   document.addEventListener("visibilitychange", () => {
     if (document.visibilityState === "visible") requestWakeLock();
@@ -377,7 +397,7 @@ async function requestWakeLock() {
       });
     }
   } catch {
-    /* unsupported / denied */
+    /* ignore */
   }
 }
 

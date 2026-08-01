@@ -1,0 +1,114 @@
+:root {
+  --bg: #071018;
+  --panel: #0e1c28;
+  --ink: #f4f7fa;
+  --muted: #8fa6b8;
+  --gold: #e6b84a;
+  --teal: #2ec4b6;
+  --line: rgba(230, 184, 74, 0.28);
+  --font-display: "Bebas Neue", Impact, sans-serif;
+  --font-body: "Manrope", system-ui, sans-serif;
+}
+
+* { box-sizing: border-box; }
+html, body {
+  margin: 0;
+  min-height: 100%;
+  background: linear-gradient(180deg, #0c1c28, var(--bg));
+  color: var(--ink);
+  font-family: var(--font-body);
+}
+a { color: var(--teal); }
+.wrap {
+  width: min(920px, 100%);
+  margin: 0 auto;
+  padding: 24px 16px 64px;
+}
+.nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 18px;
+}
+.nav a, .btn {
+  display: inline-block;
+  text-decoration: none;
+  border: 1px solid var(--line);
+  background: #122433;
+  color: var(--ink);
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  font-size: 12px;
+  padding: 10px 12px;
+  cursor: pointer;
+}
+.btn.primary {
+  background: linear-gradient(180deg, #e0b14a, #9a7420);
+  color: #1a1205;
+  border-color: #f0d48a;
+}
+h1 {
+  font-family: var(--font-display);
+  font-size: clamp(40px, 10vw, 64px);
+  letter-spacing: 0.04em;
+  margin: 0 0 8px;
+}
+.lede { color: var(--muted); margin-bottom: 20px; }
+.card {
+  border: 1px solid var(--line);
+  background: rgba(14, 28, 40, 0.9);
+  padding: 14px;
+  margin-bottom: 12px;
+}
+.card h2, .card h3 {
+  font-family: var(--font-display);
+  letter-spacing: 0.05em;
+  margin: 0 0 8px;
+}
+.meta { color: var(--muted); font-size: 13px; margin-bottom: 10px; }
+.rank-row {
+  display: grid;
+  grid-template-columns: 42px 36px 1fr;
+  gap: 10px;
+  align-items: center;
+  padding: 6px 0;
+  border-top: 1px solid rgba(255,255,255,0.06);
+  font-weight: 700;
+}
+.rank-row img {
+  width: 36px;
+  height: 24px;
+  object-fit: cover;
+  border: 1px solid rgba(255,255,255,0.2);
+}
+.rank-num { color: var(--gold); font-family: var(--font-display); font-size: 22px; }
+.poll-option {
+  display: grid;
+  grid-template-columns: 48px 1fr auto;
+  gap: 12px;
+  align-items: center;
+  padding: 12px;
+  margin-bottom: 10px;
+  border: 1px solid rgba(255,255,255,0.1);
+  background: #071018;
+  cursor: pointer;
+  width: 100%;
+  color: inherit;
+  text-align: left;
+  font: inherit;
+}
+.poll-option.selected { border-color: var(--gold); }
+.poll-option img { width: 48px; height: 32px; object-fit: cover; }
+.bar {
+  height: 8px;
+  background: rgba(255,255,255,0.08);
+  margin-top: 6px;
+}
+.bar > i {
+  display: block;
+  height: 100%;
+  background: linear-gradient(90deg, var(--teal), var(--gold));
+  width: 0%;
+}
+.empty { color: var(--muted); padding: 20px 0; }

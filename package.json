@@ -1,0 +1,11 @@
+{
+  "name": "flagbattle",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "node server.mjs",
+    "go-live": "npm run go-live --prefix stream",
+    "go-live:demo": "npm run go-live:demo --prefix stream"
+  }
+}

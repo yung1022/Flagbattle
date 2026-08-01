@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>FLAG BATTLE — Rankings</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Manrope:wght@600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="css/site.css" />
+  </head>
+  <body>
+    <main class="wrap">
+      <nav class="nav">
+        <a href="./">Arena</a>
+        <a href="poll.html">Final poll</a>
+        <a href="control/">Mobile go-live</a>
+      </nav>
+      <h1>RANKINGS</h1>
+      <p class="lede">
+        Every stream’s qualifying rounds and final placement. Use
+        <code>node server.mjs</code> while streaming so pages stay in sync.
+      </p>
+      <div id="list"></div>
+    </main>
+    <script type="module">
+      import {
+        listStreams,
+        getStream,
+        fetchStreamsFromApi,
+        fetchLiveFromApi,
+      } from "./js/store.js";
+
+      const params = new URLSearchParams(location.search);
+      const focusId = params.get("id");
+      const root = document.getElementById("list");
+
+      async function load() {
+        let streams = listStreams();
+        const apiStreams = await fetchStreamsFromApi();
+        if (Array.isArray(apiStreams) && apiStreams.length) {
+          const map = new Map(streams.map((s) => [s.id, s]));
+          for (const s of apiStreams) map.set(s.id, s);
+          streams = [...map.values()].sort((a, b) =>
+            (b.startedAt || "").localeCompare(a.startedAt || "")
+          );
+        }
+        const live = await fetchLiveFromApi();
+        if (live?.live?.streamId && !streams.find((s) => s.id === live.live.streamId)) {
+          // keep list as-is; live banner below
+        }
+        render(streams, live?.live || null);
+      }
+
+      function render(streams, live) {
+        root.innerHTML = "";
+        if (live?.streamId) {
+          const banner = document.createElement("div");
+          banner.className = "card";
+          banner.innerHTML = `<h2>LIVE NOW</h2>
+            <div class="meta">Phase: ${live.phase} · Round ${live.round || "—"} · Stream ${live.streamId}</div>
+            <a class="btn primary" href="poll.html?id=${encodeURIComponent(live.streamId)}">Open final poll</a>`;
+          root.appendChild(banner);
+        }
+
+        const focus = focusId ? streams.find((s) => s.id === focusId) || getStream(focusId) : null;
+        if (focus) root.appendChild(renderStream(focus, true));
+
+        if (!streams.length && !focus) {
+          root.innerHTML += `<p class="empty">No streams recorded yet. Start a battle on the arena page.</p>`;
+          return;
+        }
+
+        for (const s of streams) {
+          if (focus && s.id === focus.id) continue;
+          root.appendChild(renderStream(s, false));
+        }
+      }
+
+      function renderStream(s, open) {
+        const el = document.createElement("article");
+        el.className = "card";
+        const when = s.startedAt ? new Date(s.startedAt).toLocaleString() : "—";
+        const winner = s.winner?.name || s.final?.winner?.name || "In progress";
+        el.innerHTML = `
+          <h2>${winner}</h2>
+          <div class="meta">${when} · ${s.rounds?.length || 0} rounds · id ${s.id}
+            · <a href="poll.html?id=${encodeURIComponent(s.id)}">Poll</a>
+          </div>
+          <div class="rounds"></div>
+        `;
+        const rounds = el.querySelector(".rounds");
+        rounds.hidden = !open;
+        const toggle = document.createElement("button");
+        toggle.className = "btn";
+        toggle.textContent = open ? "Hide details" : "Show round rankings";
+        toggle.addEventListener("click", () => {
+          rounds.hidden = !rounds.hidden;
+          toggle.textContent = rounds.hidden ? "Show round rankings" : "Hide details";
+          if (!rounds.dataset.built) {
+            buildDetails(rounds, s);
+            rounds.dataset.built = "1";
+          }
+        });
+        el.appendChild(toggle);
+        if (open) {
+          buildDetails(rounds, s);
+          rounds.dataset.built = "1";
+        }
+        return el;
+      }
+
+      function buildDetails(host, s) {
+        host.innerHTML = "";
+        for (const round of s.rounds || []) {
+          const box = document.createElement("div");
+          box.style.marginTop = "14px";
+          const title =
+            round.type === "qualifying"
+              ? `Round ${round.round} — Qualifier: ${round.qualifier?.name || "—"}`
+              : `Round ${round.round}`;
+          box.innerHTML = `<h3>${title}</h3>`;
+          for (const row of (round.ranking || []).slice(0, 24)) {
+            box.appendChild(rankRow(row));
+          }
+          if ((round.ranking || []).length > 24) {
+            const more = document.createElement("div");
+            more.className = "meta";
+            more.textContent = `+${round.ranking.length - 24} more`;
+            box.appendChild(more);
+          }
+          host.appendChild(box);
+        }
+        if (s.final?.ranking?.length) {
+          const box = document.createElement("div");
+          box.style.marginTop = "14px";
+          box.innerHTML = `<h3>FINAL RANKING</h3>`;
+          for (const row of s.final.ranking) box.appendChild(rankRow(row));
+          host.appendChild(box);
+        }
+      }
+
+      function rankRow(row) {
+        const div = document.createElement("div");
+        div.className = "rank-row";
+        div.innerHTML = `
+          <span class="rank-num">#${row.rank}</span>
+          <img src="${row.img || `https://flagcdn.com/w80/${row.code}.png`}" alt="" />
+          <span>${row.name}</span>
+        `;
+        return div;
+      }
+
+      load();
+      setInterval(load, 5000);
+    </script>
+  </body>
+</html>
