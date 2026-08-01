@@ -70,6 +70,8 @@ async function main() {
     description: DESCRIPTION,
     privacyStatus: PRIVACY,
     thumbnailPath: THUMB,
+    tags: parseTags(process.env.YT_TAGS),
+    categoryId: process.env.YT_CATEGORY_ID || "20",
   });
   youtubeClient = live.youtube;
   broadcastId = live.broadcastId;
@@ -310,6 +312,14 @@ function startXvfb(displayNum, w, h) {
   });
 }
 
+function parseTags(raw) {
+  if (!raw || !String(raw).trim()) return undefined;
+  return String(raw)
+    .split(",")
+    .map((t) => t.trim())
+    .filter(Boolean);
+}
+
 function startChrome(displayNum, url, w, h) {
   const userData = fs.mkdtempSync(path.join("/tmp", "flagbattle-chrome-"));
   const proc = spawn(
@@ -323,10 +333,18 @@ function startChrome(displayNum, url, w, h) {
       "--no-default-browser-check",
       "--disable-infobars",
       "--disable-session-crashed-bubble",
-      "--disable-features=TranslateUI",
+      "--disable-features=TranslateUI,PaintHolding",
       "--autoplay-policy=no-user-gesture-required",
       "--no-sandbox",
-      "--disable-gpu",
+      // Prefer SwiftShader compositing over fully disabling GPU (smoother layers).
+      "--use-gl=angle",
+      "--use-angle=swiftshader-webgl",
+      "--enable-features=CanvasOopRasterization",
+      "--disable-background-timer-throttling",
+      "--disable-renderer-backgrounding",
+      "--disable-backgrounding-occluded-windows",
+      "--disable-ipc-flooding-protection",
+      "--memory-pressure-off",
       `--user-data-dir=${userData}`,
       url,
     ],
@@ -341,9 +359,28 @@ function startChrome(displayNum, url, w, h) {
 }
 
 function startFfmpeg(displayNum, rtmpUrl, w, h, fps) {
+  // Bitrate scales with resolution so 720p runners stay real-time.
+  const pixels = w * h;
+  const bitrate =
+    process.env.STREAM_BITRATE ||
+    (pixels >= 1080 * 1920 ? "4500k" : pixels >= 720 * 1280 ? "2500k" : "1800k");
+  const maxrate =
+    process.env.STREAM_MAXRATE ||
+    (String(bitrate).endsWith("k")
+      ? `${Math.round(Number(String(bitrate).slice(0, -1)) * 1.15)}k`
+      : bitrate);
+  const bufsize =
+    process.env.STREAM_BUFSIZE ||
+    (String(bitrate).endsWith("k")
+      ? `${Math.round(Number(String(bitrate).slice(0, -1)) * 2)}k`
+      : "4000k");
+  const preset = process.env.STREAM_PRESET || "ultrafast";
+
   // Silent AAC bed — YouTube requires an audio track.
   const args = [
     "-y",
+    "-thread_queue_size",
+    "512",
     "-f",
     "x11grab",
     "-draw_mouse",
@@ -356,35 +393,47 @@ function startFfmpeg(displayNum, rtmpUrl, w, h, fps) {
     `${displayNum}.0`,
     "-f",
     "lavfi",
+    "-thread_queue_size",
+    "512",
     "-i",
     "anullsrc=channel_layout=stereo:sample_rate=44100",
     "-c:v",
     "libx264",
     "-preset",
-    "veryfast",
+    preset,
     "-tune",
     "zerolatency",
     "-pix_fmt",
     "yuv420p",
     "-g",
     String(fps * 2),
+    "-keyint_min",
+    String(fps),
+    "-sc_threshold",
+    "0",
+    "-bf",
+    "0",
     "-b:v",
-    "4500k",
+    bitrate,
     "-maxrate",
-    "5000k",
+    maxrate,
     "-bufsize",
-    "10000k",
+    bufsize,
+    "-fps_mode",
+    "cfr",
     "-c:a",
     "aac",
     "-b:a",
     "128k",
+    "-ar",
+    "44100",
     "-shortest",
     "-f",
     "flv",
     rtmpUrl,
   ];
 
-  console.log("FFmpeg → YouTube RTMP");
+  console.log(`FFmpeg → YouTube RTMP (${w}x${h}@${fps} ${preset} ${bitrate})`);
   const proc = spawn("ffmpeg", args, {
     stdio: ["ignore", "pipe", "pipe"],
     env: { ...process.env, DISPLAY: displayNum },

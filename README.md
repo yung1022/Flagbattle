@@ -60,3 +60,13 @@ See [`control/`](control/) and [`stream/`](stream/). Repo Action secrets:
 - `GOOGLE_CLIENT_SECRET`
 - `GOOGLE_REFRESH_TOKEN`
 - Optional `GH_PAT` (contents write) for data commits that retrigger Pages
+
+### Automatic schedule
+
+GitHub Action **Go Live — FLAG BATTLE** runs every **4 hours** (UTC):
+
+- **Public** livestream
+- Full **30:00** qualifying (no demo shorten)
+- Runner stops after **40 minutes**
+- Discovery tags + Gaming category on the YouTube video
+- Capture at 720×1280 / `ultrafast` for smoother Actions encode
