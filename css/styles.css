@@ -366,9 +366,10 @@ body {
   transform: translate3d(0, 0, 0) translate(-50%, -50%);
   transition: opacity 0.2s ease;
   will-change: transform;
-  filter: drop-shadow(0 3px 4px rgba(0, 0, 0, 0.55));
   z-index: 3;
-  contain: layout style;
+  contain: layout style paint;
+  /* Cheap shadow — per-flag drop-shadow filters tank stream FPS */
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
 }
 
 .fighter img {
@@ -377,12 +378,13 @@ body {
   object-fit: cover;
   border: 1px solid rgba(255, 255, 255, 0.25);
   display: block;
+  pointer-events: none;
 }
 
 .fighter.falling {
   z-index: 5;
-  filter: saturate(0.7) drop-shadow(0 0 8px rgba(255, 77, 109, 0.7));
   opacity: 0.75;
+  box-shadow: 0 0 8px rgba(255, 77, 109, 0.7);
 }
 
 .fighter.eliminating {
@@ -746,6 +748,21 @@ body.stream-mode .controls {
 
 body.stream-mode .hud {
   padding-bottom: 0;
+}
+
+/* Cut paint cost for capture/encode — keep motion, drop decorative blur/filters */
+body.stream-mode .stage::before {
+  animation: none;
+  opacity: 0.55;
+}
+body.stream-mode .brand {
+  animation: none;
+}
+body.stream-mode .hole-arc {
+  animation: none;
+}
+body.stream-mode .board-track {
+  backdrop-filter: none;
 }
 
 .mobile-fs-btn {

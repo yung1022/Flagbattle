@@ -131,37 +131,51 @@ function syncHole() {
   els.holeArc.setAttribute("d", describeArc(cx, cy, r, holeStart, holeEnd));
 }
 
+let arenaSide = 0;
+let lastHoleKey = "";
+
 /** Keep the playfield a true square (physics unit circle ↔ pixels). */
-function layoutSquareArena() {
+function layoutSquareArena(force = false) {
   const wrap = els.arena?.parentElement;
-  if (!wrap || !els.arena) return;
+  if (!wrap || !els.arena) return arenaSide;
   const side = Math.min(wrap.clientWidth, wrap.clientHeight);
-  if (side <= 0) return;
+  if (side <= 0) return arenaSide;
+  if (!force && side === arenaSide) return arenaSide;
+  arenaSide = side;
   els.arena.style.width = `${side}px`;
   els.arena.style.height = `${side}px`;
+  return arenaSide;
 }
 
-/** Hot path — positions only. */
+/** Hot path — positions only. Avoid layout/SVG work every frame. */
 function syncArena() {
-  layoutSquareArena();
-  syncHole();
-  const visibleIds = new Set();
-  const count = Math.max(
-    1,
-    game.standing().length + game.fighters.filter((f) => f.falling).length
-  );
-  const sizeBase = flagSizeForCount(count).px;
-  if (sizeBase !== lastSize) lastSize = sizeBase;
+  const w = layoutSquareArena(false) || els.arena.clientWidth || 1;
+  const h = w;
 
-  // After square layout, w === h.
-  const w = els.arena.clientWidth || 1;
-  const h = els.arena.clientHeight || w;
+  const hole = game.holeStyle();
+  const holeKey = `${hole.rotateDeg.toFixed(1)}:${hole.widthDeg.toFixed(1)}:${hole.radiusPct}`;
+  if (holeKey !== lastHoleKey) {
+    lastHoleKey = holeKey;
+    syncHole();
+  }
+
+  let living = 0;
+  let falling = 0;
+  for (const f of game.fighters) {
+    if (f.falling) falling += 1;
+    else if (f.alive) living += 1;
+  }
+  const count = Math.max(1, living + falling);
+  const sizeBase = flagSizeForCount(count).px;
+  const sizeChanged = sizeBase !== lastSize;
+  if (sizeChanged) lastSize = sizeBase;
+
+  const showAllAlive =
+    game.phase === "intermission" || game.phase === "qualifying_hold";
+  const visibleIds = new Set();
 
   for (const f of game.fighters) {
-    const show =
-      game.phase === "intermission" || game.phase === "qualifying_hold"
-        ? f.alive
-        : f.alive || f.falling;
+    const show = showAllAlive ? f.alive : f.alive || f.falling;
     if (!show) {
       const existing = fighterEls.get(f.id);
       if (existing && !existing.classList.contains("eliminating")) {
@@ -176,18 +190,22 @@ function syncArena() {
 
     visibleIds.add(f.id);
     const el = ensureFighterEl(f);
-    el.style.setProperty("--size", `${sizeBase}px`);
+    if (sizeChanged) el.style.setProperty("--size", `${sizeBase}px`);
     const x = f.x * w;
     const y = f.y * h;
     const scale = f.pulse > 0.2 ? 1.12 : 1;
     el.style.transform = `translate3d(${x}px, ${y}px, 0) translate(-50%, -50%) scale(${scale})`;
-    el.classList.toggle("falling", f.falling);
+    if (el.classList.contains("falling") !== f.falling) {
+      el.classList.toggle("falling", f.falling);
+    }
   }
 
-  for (const [id, el] of fighterEls) {
-    if (!visibleIds.has(id) && !el.classList.contains("eliminating")) {
-      el.remove();
-      fighterEls.delete(id);
+  if (fighterEls.size !== visibleIds.size) {
+    for (const [id, el] of fighterEls) {
+      if (!visibleIds.has(id) && !el.classList.contains("eliminating")) {
+        el.remove();
+        fighterEls.delete(id);
+      }
     }
   }
 }

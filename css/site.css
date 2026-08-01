@@ -54,7 +54,17 @@ h1 {
   letter-spacing: 0.04em;
   margin: 0 0 8px;
 }
+.title-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+.title-row h1 { margin: 0; }
 .lede { color: var(--muted); margin-bottom: 20px; }
+button.btn:disabled { opacity: 0.55; cursor: wait; }
 .card {
   border: 1px solid var(--line);
   background: rgba(14, 28, 40, 0.9);

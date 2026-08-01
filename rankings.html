@@ -19,12 +19,16 @@
         <a href="poll.html">Final poll</a>
         <a href="control/">Mobile go-live</a>
       </nav>
-      <h1>RANKINGS</h1>
+      <div class="title-row">
+        <h1>RANKINGS</h1>
+        <button type="button" class="btn primary" id="btn-refresh">Refresh</button>
+      </div>
       <p class="lede">
         Stream history is saved on GitHub Pages under
         <code>data/rankings.json</code>. Live streams also sync through the
         public API when the go-live tunnel is up.
       </p>
+      <div class="meta" id="status">Loading…</div>
       <div id="list"></div>
     </main>
     <script type="module">
@@ -39,23 +43,31 @@
       const params = new URLSearchParams(location.search);
       const focusId = params.get("id");
       const root = document.getElementById("list");
+      const statusEl = document.getElementById("status");
+      const btnRefresh = document.getElementById("btn-refresh");
 
       async function load() {
-        await resolveApiBase();
-        let streams = listStreams();
-        const apiStreams = await fetchStreamsFromApi();
-        if (Array.isArray(apiStreams) && apiStreams.length) {
-          const map = new Map(streams.map((s) => [s.id, s]));
-          for (const s of apiStreams) map.set(s.id, s);
-          streams = [...map.values()].sort((a, b) =>
-            (b.startedAt || "").localeCompare(a.startedAt || "")
-          );
+        btnRefresh.disabled = true;
+        statusEl.textContent = "Refreshing…";
+        try {
+          await resolveApiBase();
+          let streams = listStreams();
+          const apiStreams = await fetchStreamsFromApi();
+          if (Array.isArray(apiStreams) && apiStreams.length) {
+            const map = new Map(streams.map((s) => [s.id, s]));
+            for (const s of apiStreams) map.set(s.id, s);
+            streams = [...map.values()].sort((a, b) =>
+              (b.startedAt || "").localeCompare(a.startedAt || "")
+            );
+          }
+          const live = await fetchLiveFromApi();
+          render(streams, live?.live || null);
+          statusEl.textContent = `Updated ${new Date().toLocaleString()} · ${streams.length} stream${streams.length === 1 ? "" : "s"}`;
+        } catch (err) {
+          statusEl.textContent = `Could not refresh: ${err.message || err}`;
+        } finally {
+          btnRefresh.disabled = false;
         }
-        const live = await fetchLiveFromApi();
-        if (live?.live?.streamId && !streams.find((s) => s.id === live.live.streamId)) {
-          // keep list as-is; live banner below
-        }
-        render(streams, live?.live || null);
       }
 
       function render(streams, live) {
@@ -157,8 +169,8 @@
         return div;
       }
 
+      btnRefresh.addEventListener("click", () => load());
       load();
-      setInterval(load, 5000);
     </script>
   </body>
 </html>

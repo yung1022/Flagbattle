@@ -25,7 +25,7 @@ export const CONFIG = {
   shrinkMinScale: 0.68,
   shrinkDurationSec: 40,
   /** Skip full UI notifications; physics still every frame. */
-  uiThrottleMs: 200,
+  uiThrottleMs: 250,
 };
 
 const params = new URLSearchParams(location.search);
@@ -406,16 +406,28 @@ export class FlagBattleGame {
   }
 
   _resolveCollisions() {
-    const active = this.fighters.filter((f) => f.alive && !f.falling);
-    const minDist = this._flagRadius() * 2.05;
-    const cell = Math.max(minDist, 0.04);
-    const grid = new Map();
+    const active = [];
+    for (const f of this.fighters) {
+      if (f.alive && !f.falling) active.push(f);
+    }
+    const n = active.length;
+    if (n < 2) return;
 
-    for (let i = 0; i < active.length; i++) {
+    const minDist = this._flagRadius() * 2.05;
+    const minSq = minDist * minDist;
+    const cell = Math.max(minDist, 0.04);
+    const inv = 1 / cell;
+    if (!this._colGrid) this._colGrid = new Map();
+    const grid = this._colGrid;
+    grid.clear();
+
+    for (let i = 0; i < n; i++) {
       const f = active[i];
-      const cx = Math.floor(f.x / cell);
-      const cy = Math.floor(f.y / cell);
-      const k = cx + "," + cy;
+      const cx = (f.x * inv) | 0;
+      const cy = (f.y * inv) | 0;
+      f._cx = cx;
+      f._cy = cy;
+      const k = ((cx + 4096) << 13) | ((cy + 4096) & 0x1fff);
       let bucket = grid.get(k);
       if (!bucket) {
         bucket = [];
@@ -424,40 +436,40 @@ export class FlagBattleGame {
       bucket.push(i);
     }
 
-    const checked = new Set();
-    for (const [k, indices] of grid) {
-      const [cx, cy] = k.split(",").map(Number);
+    for (let i = 0; i < n; i++) {
+      const a = active[i];
+      const cx = a._cx;
+      const cy = a._cy;
       for (let ox = -1; ox <= 1; ox++) {
         for (let oy = -1; oy <= 1; oy++) {
-          const other = grid.get(cx + ox + "," + (cy + oy));
+          const other = grid.get(
+            ((cx + ox + 4096) << 13) | ((cy + oy + 4096) & 0x1fff)
+          );
           if (!other) continue;
-          for (const i of indices) {
-            for (const j of other) {
-              if (j <= i) continue;
-              const pair = i + ":" + j;
-              if (checked.has(pair)) continue;
-              checked.add(pair);
-              const a = active[i];
-              const b = active[j];
-              const dx = b.x - a.x;
-              const dy = b.y - a.y;
-              const dist = Math.hypot(dx, dy) || 0.0001;
-              if (dist >= minDist) continue;
-              const nx = dx / dist;
-              const ny = dy / dist;
-              const overlap = (minDist - dist) * 0.5;
-              a.x -= nx * overlap;
-              a.y -= ny * overlap;
-              b.x += nx * overlap;
-              b.y += ny * overlap;
-              const avn = a.vx * nx + a.vy * ny;
-              const bvn = b.vx * nx + b.vy * ny;
-              const exchange = (avn - bvn) * CONFIG.pushStrength;
-              a.vx -= exchange * nx;
-              a.vy -= exchange * ny;
-              b.vx += exchange * nx;
-              b.vy += exchange * ny;
-            }
+          for (let b = 0; b < other.length; b++) {
+            const j = other[b];
+            if (j <= i) continue;
+            const A = a;
+            const B = active[j];
+            const dx = B.x - A.x;
+            const dy = B.y - A.y;
+            const distSq = dx * dx + dy * dy;
+            if (distSq >= minSq || distSq === 0) continue;
+            const dist = Math.sqrt(distSq);
+            const nx = dx / dist;
+            const ny = dy / dist;
+            const overlap = (minDist - dist) * 0.5;
+            A.x -= nx * overlap;
+            A.y -= ny * overlap;
+            B.x += nx * overlap;
+            B.y += ny * overlap;
+            const avn = A.vx * nx + A.vy * ny;
+            const bvn = B.vx * nx + B.vy * ny;
+            const exchange = (avn - bvn) * CONFIG.pushStrength;
+            A.vx -= exchange * nx;
+            A.vy -= exchange * ny;
+            B.vx += exchange * nx;
+            B.vy += exchange * ny;
           }
         }
       }

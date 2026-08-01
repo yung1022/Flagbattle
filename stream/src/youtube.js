@@ -17,6 +17,26 @@ export function createOAuthClient() {
   return oauth2;
 }
 
+/** Discovery tags for YouTube search / browse. */
+export const DEFAULT_LIVE_TAGS = [
+  "flag battle",
+  "flags",
+  "country flags",
+  "last flag standing",
+  "livestream",
+  "live stream",
+  "youtube shorts",
+  "shorts live",
+  "live game",
+  "battle royale",
+  "geography",
+  "world flags",
+  "flag game",
+  "countries",
+  "elimination game",
+  "live gaming",
+];
+
 /**
  * Create broadcast + RTMP stream, bind, return ingestion + ids.
  */
@@ -25,11 +45,14 @@ export async function createLiveBroadcast({
   description,
   privacyStatus = "public",
   thumbnailPath,
+  tags = DEFAULT_LIVE_TAGS,
+  categoryId = "20", // Gaming
 } = {}) {
   const auth = createOAuthClient();
   const youtube = google.youtube({ version: "v3", auth });
 
   const scheduledStart = new Date(Date.now() + 30_000).toISOString();
+  const tagList = Array.isArray(tags) && tags.length ? tags : DEFAULT_LIVE_TAGS;
 
   const broadcastRes = await youtube.liveBroadcasts.insert({
     part: ["snippet", "status", "contentDetails"],
@@ -53,6 +76,25 @@ export async function createLiveBroadcast({
 
   const broadcast = broadcastRes.data;
   const broadcastId = broadcast.id;
+
+  // Tags + category live on the video resource (helps discovery).
+  try {
+    await youtube.videos.update({
+      part: ["snippet"],
+      requestBody: {
+        id: broadcastId,
+        snippet: {
+          title,
+          description,
+          categoryId: String(categoryId || "20"),
+          tags: tagList.slice(0, 30),
+        },
+      },
+    });
+    console.log(`YouTube tags set (${Math.min(tagList.length, 30)})`);
+  } catch (err) {
+    console.warn("Could not set video tags:", err.message || err);
+  }
 
   const streamRes = await youtube.liveStreams.insert({
     part: ["snippet", "cdn", "contentDetails", "status"],
