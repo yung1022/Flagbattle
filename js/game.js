@@ -1,25 +1,34 @@
 import { COUNTRIES, flagUrl } from "./countries.js";
 
-/** @typedef {"idle" | "qualifying" | "finalizing" | "final" | "finished"} Phase */
+/** @typedef {"idle" | "qualifying" | "between_rounds" | "final" | "finished"} Phase */
 
 export const CONFIG = {
   qualifyingMs: 30 * 60 * 1000,
   finalistSlots: 32,
-  baseHp: 100,
-  qualifyPointsNeeded: 5,
-  /** Battles per second during qualifying (scaled by remaining fighters). */
-  qualifyBattleRate: 2.4,
-  /** Battles per second during final. */
-  finalBattleRate: 1.1,
-  flagRenderSize: 64,
+  heatSize: 48,
+  /** Playable circle radius in normalized arena coords (center = 0.5). */
+  arenaRadius: 0.42,
+  /** Angular width of the fall-through hole (radians). */
+  holeWidth: 0.62,
+  /** Hole rotation speed (rad/s). Speeds up as fewer flags remain. */
+  holeSpeed: 0.42,
+  flagRadius: 0.028,
+  maxSpeed: 0.26,
+  betweenRoundMs: 2800,
+  /** Soft body push strength between flags (no damage). */
+  pushStrength: 0.9,
 };
 
 const params = new URLSearchParams(location.search);
 if (params.has("demo")) {
-  CONFIG.qualifyingMs = Number(params.get("demo")) || 45_000;
-  CONFIG.qualifyPointsNeeded = 2;
-  CONFIG.qualifyBattleRate = 8;
-  CONFIG.finalBattleRate = 3;
+  const sec = Number(params.get("demo")) || 45;
+  CONFIG.qualifyingMs = sec * 1000;
+  CONFIG.betweenRoundMs = 900;
+  CONFIG.holeSpeed = 0.9;
+  CONFIG.holeWidth = 0.78;
+  CONFIG.maxSpeed = 0.36;
+  CONFIG.heatSize = 24;
+  CONFIG.finalistSlots = Math.min(CONFIG.finalistSlots, 8);
 }
 
 function shuffle(arr) {
@@ -35,6 +44,19 @@ function rand(min, max) {
   return min + Math.random() * (max - min);
 }
 
+function normAngle(a) {
+  let x = a % (Math.PI * 2);
+  if (x < 0) x += Math.PI * 2;
+  return x;
+}
+
+function angleDiff(a, b) {
+  let d = normAngle(a) - normAngle(b);
+  if (d > Math.PI) d -= Math.PI * 2;
+  if (d < -Math.PI) d += Math.PI * 2;
+  return d;
+}
+
 export class FlagBattleGame {
   constructor() {
     /** @type {Phase} */
@@ -43,10 +65,15 @@ export class FlagBattleGame {
     this.qualified = [];
     this.eliminated = [];
     this.events = [];
+    this.playedCodes = new Set();
     this.phaseStartedAt = 0;
     this.qualifyingEndsAt = 0;
+    this.qualifyingExpired = false;
     this.winner = null;
-    this._accum = 0;
+    this.round = 0;
+    this.holeAngle = 0;
+    this._betweenUntil = 0;
+    this._pendingFinal = false;
     this._raf = 0;
     this._lastTs = 0;
     this.onChange = () => {};
@@ -55,33 +82,39 @@ export class FlagBattleGame {
   reset() {
     this.stopLoop();
     this.phase = "idle";
-    this.fighters = shuffle(COUNTRIES).map((c, i) => this._makeFighter(c, i));
+    this.fighters = [];
     this.qualified = [];
     this.eliminated = [];
     this.events = [];
+    this.playedCodes = new Set();
     this.phaseStartedAt = 0;
     this.qualifyingEndsAt = 0;
+    this.qualifyingExpired = false;
     this.winner = null;
-    this._accum = 0;
-    this._emit("reset", "All countries ready. Press Start.");
+    this.round = 0;
+    this.holeAngle = rand(0, Math.PI * 2);
+    this._betweenUntil = 0;
+    this._pendingFinal = false;
+    this._emit("reset", "All countries ready. Last flag in the circle qualifies.");
     this.onChange();
   }
 
-  _makeFighter(country, index) {
-    const angle = (index / COUNTRIES.length) * Math.PI * 2;
-    const radius = 0.28 + (index % 7) * 0.035;
+  _makeFighter(country, index, total) {
+    const angle = (index / Math.max(1, total)) * Math.PI * 2 + rand(-0.05, 0.05);
+    const radius = rand(0.08, CONFIG.arenaRadius * 0.72);
+    const speed = rand(0.08, CONFIG.maxSpeed * 0.7);
+    const dir = rand(0, Math.PI * 2);
     return {
       ...country,
-      id: country.code,
-      hp: CONFIG.baseHp,
-      maxHp: CONFIG.baseHp,
-      points: 0,
+      id: `${country.code}-${this.round}-${index}`,
+      code: country.code,
       alive: true,
       qualified: false,
+      falling: false,
       x: 0.5 + Math.cos(angle) * radius,
       y: 0.5 + Math.sin(angle) * radius,
-      vx: rand(-0.08, 0.08),
-      vy: rand(-0.08, 0.08),
+      vx: Math.cos(dir) * speed,
+      vy: Math.sin(dir) * speed,
       img: flagUrl(country.code, 80),
       pulse: 0,
     };
@@ -91,12 +124,47 @@ export class FlagBattleGame {
     if (this.phase !== "idle" && this.phase !== "finished") return;
     this.reset();
     this.events = [];
-    this.phase = "qualifying";
     this.phaseStartedAt = performance.now();
     this.qualifyingEndsAt = this.phaseStartedAt + CONFIG.qualifyingMs;
-    this._emit("phase", "QUALIFYING started — survive & score to reach the Final.");
+    this._emit(
+      "phase",
+      "QUALIFYING — stay in the circle. Fall through the hole and you're out. Last flag qualifies each round."
+    );
+    this._startNextQualifyingRound();
     this._startLoop();
     this.onChange();
+  }
+
+  _pickHeat() {
+    const remaining = COUNTRIES.filter(
+      (c) => !this.qualified.some((q) => q.code === c.code)
+    );
+    if (!remaining.length) return [];
+
+    const unplayed = remaining.filter((c) => !this.playedCodes.has(c.code));
+    let pool = unplayed.length ? [...unplayed] : [...remaining];
+    pool = shuffle(pool);
+
+    if (pool.length < CONFIG.heatSize && unplayed.length) {
+      const fillers = shuffle(
+        remaining.filter((c) => this.playedCodes.has(c.code))
+      );
+      pool = pool.concat(fillers).slice(0, CONFIG.heatSize);
+    } else {
+      pool = pool.slice(0, Math.min(CONFIG.heatSize, pool.length));
+    }
+
+    for (const c of pool) this.playedCodes.add(c.code);
+    return pool;
+  }
+
+  _beginRound(countries) {
+    this.round += 1;
+    const list = shuffle(countries);
+    this.fighters = list.map((c, i) => this._makeFighter(c, i, list.length));
+    this.holeAngle = rand(0, Math.PI * 2);
+    this.phase = "qualifying";
+    this._emit("phase", `Round ${this.round} — ${list.length} flags. Last one qualifies!`);
   }
 
   stopLoop() {
@@ -118,27 +186,49 @@ export class FlagBattleGame {
   }
 
   update(dt, now) {
+    if (this.phase === "between_rounds") {
+      if (now >= this._betweenUntil) {
+        if (this._pendingFinal) this._beginFinal();
+        else this._startNextQualifyingRound();
+      }
+      this.onChange();
+      return;
+    }
+
     if (this.phase === "qualifying" || this.phase === "final") {
+      if (
+        this.phase === "qualifying" &&
+        !this.qualifyingExpired &&
+        now >= this.qualifyingEndsAt
+      ) {
+        this.qualifyingExpired = true;
+        this._emit("phase", "Qualifying clock hit 0 — finishing this round…");
+      }
+
+      const standing = this.fighters.filter((f) => f.alive && !f.falling);
+      const speedBoost = 1 + Math.max(0, 8 - standing.length) * 0.08;
+      this.holeAngle = normAngle(this.holeAngle + CONFIG.holeSpeed * speedBoost * dt);
+
       this._moveFighters(dt);
-      this._runBattles(dt);
-    }
+      this._resolveCollisions();
+      this._applyCircleAndHole();
 
-    if (this.phase === "qualifying" && now >= this.qualifyingEndsAt) {
-      this._endQualifying();
-    }
-
-    if (this.phase === "final") {
-      const standing = this.fighters.filter((f) => f.alive);
-      if (standing.length <= 1) {
-        this.winner = standing[0] || null;
-        this.phase = "finished";
-        this.stopLoop();
-        this._emit(
-          "winner",
-          this.winner
-            ? `${this.winner.name} is the LAST FLAG STANDING!`
-            : "No winner."
-        );
+      const standingNow = this.fighters.filter((f) => f.alive && !f.falling);
+      const alive = this.fighters.filter((f) => f.alive);
+      if (standingNow.length === 1) {
+        // Round over as soon as one flag remains inside the circle.
+        for (const f of this.fighters) {
+          if (f.falling && f.alive) {
+            f.alive = false;
+            this.eliminated.push(f);
+            this._emit("elim", `${f.name} fell through the hole!`);
+          }
+        }
+        this._onLastFlag(standingNow[0]);
+      } else if (alive.length === 0) {
+        this._emit("phase", "Everyone fell — restarting round.");
+        if (this.phase === "final") this._beginFinal();
+        else this._startNextQualifyingRound();
       }
     }
 
@@ -146,217 +236,225 @@ export class FlagBattleGame {
   }
 
   _moveFighters(dt) {
-    const active = this._activeArenaFighters();
-    for (const f of active) {
+    for (const f of this.fighters) {
+      if (!f.alive) continue;
+      if (f.falling) {
+        const dx = f.x - 0.5;
+        const dy = f.y - 0.5;
+        const len = Math.hypot(dx, dy) || 1;
+        f.vx += (dx / len) * 0.55 * dt;
+        f.vy += (dy / len) * 0.55 * dt;
+        f.x += f.vx * dt;
+        f.y += f.vy * dt;
+        if (Math.hypot(f.x - 0.5, f.y - 0.5) > 0.75) {
+          f.alive = false;
+          this.eliminated.push(f);
+          this._emit("elim", `${f.name} fell through the hole!`);
+        }
+        continue;
+      }
+
       f.x += f.vx * dt;
       f.y += f.vy * dt;
-      if (f.x < 0.08 || f.x > 0.92) f.vx *= -1;
-      if (f.y < 0.1 || f.y > 0.9) f.vy *= -1;
-      f.x = Math.min(0.92, Math.max(0.08, f.x));
-      f.y = Math.min(0.9, Math.max(0.1, f.y));
       if (f.pulse > 0) f.pulse = Math.max(0, f.pulse - dt * 3);
-      // Mild drift toward center so the ring stays readable.
-      f.vx += (0.5 - f.x) * 0.02 * dt;
-      f.vy += (0.5 - f.y) * 0.02 * dt;
+
       const speed = Math.hypot(f.vx, f.vy);
-      const max = this.phase === "final" ? 0.22 : 0.16;
-      if (speed > max) {
-        f.vx = (f.vx / speed) * max;
-        f.vy = (f.vy / speed) * max;
+      if (speed > CONFIG.maxSpeed) {
+        f.vx = (f.vx / speed) * CONFIG.maxSpeed;
+        f.vy = (f.vy / speed) * CONFIG.maxSpeed;
+      } else if (speed < 0.05) {
+        const dir = rand(0, Math.PI * 2);
+        f.vx += Math.cos(dir) * 0.04;
+        f.vy += Math.sin(dir) * 0.04;
       }
     }
   }
 
-  _activeArenaFighters() {
-    if (this.phase === "qualifying") {
-      return this.fighters.filter((f) => f.alive && !f.qualified);
+  _resolveCollisions() {
+    const active = this.fighters.filter((f) => f.alive && !f.falling);
+    const minDist = CONFIG.flagRadius * 2.1;
+    for (let i = 0; i < active.length; i++) {
+      for (let j = i + 1; j < active.length; j++) {
+        const a = active[i];
+        const b = active[j];
+        const dx = b.x - a.x;
+        const dy = b.y - a.y;
+        const dist = Math.hypot(dx, dy) || 0.0001;
+        if (dist >= minDist) continue;
+        const nx = dx / dist;
+        const ny = dy / dist;
+        const overlap = (minDist - dist) * 0.5;
+        a.x -= nx * overlap;
+        a.y -= ny * overlap;
+        b.x += nx * overlap;
+        b.y += ny * overlap;
+        const avn = a.vx * nx + a.vy * ny;
+        const bvn = b.vx * nx + b.vy * ny;
+        const exchange = (avn - bvn) * CONFIG.pushStrength;
+        a.vx -= exchange * nx;
+        a.vy -= exchange * ny;
+        b.vx += exchange * nx;
+        b.vy += exchange * ny;
+        a.pulse = 0.5;
+        b.pulse = 0.5;
+      }
     }
-    return this.fighters.filter((f) => f.alive);
   }
 
-  _runBattles(dt) {
-    const pool = this._activeArenaFighters();
-    if (pool.length < 2) {
-      if (this.phase === "qualifying") this._tryFillRemainingSlots();
+  _applyCircleAndHole() {
+    const R = CONFIG.arenaRadius;
+    const halfHole = CONFIG.holeWidth / 2;
+
+    for (const f of this.fighters) {
+      if (!f.alive || f.falling) continue;
+      const dx = f.x - 0.5;
+      const dy = f.y - 0.5;
+      const dist = Math.hypot(dx, dy);
+      const limit = R - CONFIG.flagRadius;
+
+      if (dist < limit) continue;
+
+      const ang = Math.atan2(dy, dx);
+      const inHole = Math.abs(angleDiff(ang, this.holeAngle)) <= halfHole;
+
+      if (inHole) {
+        f.falling = true;
+        f.pulse = 1;
+        const nx = dx / (dist || 1);
+        const ny = dy / (dist || 1);
+        f.vx += nx * 0.2;
+        f.vy += ny * 0.2;
+        continue;
+      }
+
+      const nx = dx / (dist || 1);
+      const ny = dy / (dist || 1);
+      f.x = 0.5 + nx * limit;
+      f.y = 0.5 + ny * limit;
+      const vn = f.vx * nx + f.vy * ny;
+      if (vn > 0) {
+        f.vx -= 2 * vn * nx;
+        f.vy -= 2 * vn * ny;
+      }
+      f.vx += -ny * rand(-0.03, 0.03);
+      f.vy += nx * rand(-0.03, 0.03);
+      f.pulse = 0.35;
+    }
+  }
+
+  _onLastFlag(flag) {
+    if (this.phase === "qualifying") {
+      this._qualify(flag);
+      return;
+    }
+    if (this.phase === "final") {
+      this.winner = flag;
+      this.phase = "finished";
+      this.stopLoop();
+      this._emit("winner", `${flag.name} is the LAST FLAG STANDING!`);
+    }
+  }
+
+  _qualify(flag) {
+    if (this.qualified.some((q) => q.code === flag.code)) return;
+    flag.qualified = true;
+    flag.alive = true;
+    flag.falling = false;
+    this.qualified.push({
+      code: flag.code,
+      name: flag.name,
+      img: flag.img,
+      id: flag.code,
+    });
+    this._emit("qualify", `${flag.name} QUALIFIED for the Final! (Round ${this.round})`);
+
+    const slotsFull = this.qualified.length >= CONFIG.finalistSlots;
+    this._pendingFinal = slotsFull || this.qualifyingExpired;
+    this.phase = "between_rounds";
+    this._betweenUntil = performance.now() + CONFIG.betweenRoundMs;
+  }
+
+  _startNextQualifyingRound() {
+    if (this._pendingFinal) {
+      this._beginFinal();
       return;
     }
 
-    const rate =
-      this.phase === "qualifying"
-        ? CONFIG.qualifyBattleRate
-        : CONFIG.finalBattleRate;
-    // More fighters → slightly more simultaneous clashes.
-    const density = Math.min(4, Math.sqrt(pool.length) / 4);
-    this._accum += dt * rate * density;
-
-    while (this._accum >= 1) {
-      this._accum -= 1;
-      this._clash(pool);
-      // Refresh pool if someone just left.
-      const next = this._activeArenaFighters();
-      if (next.length < 2) break;
-      pool.length = 0;
-      pool.push(...next);
-    }
-  }
-
-  _clash(pool) {
-    if (pool.length < 2) return;
-    const a = pool[Math.floor(Math.random() * pool.length)];
-    let b = pool[Math.floor(Math.random() * pool.length)];
-    let guard = 0;
-    while (b === a && guard++ < 8) {
-      b = pool[Math.floor(Math.random() * pool.length)];
-    }
-    if (a === b) return;
-
-    const dmgA = rand(12, 28);
-    const dmgB = rand(12, 28);
-    // Slight underdog bounce so favorites don't steamroll forever.
-    const roll = Math.random();
-    if (roll < 0.5) {
-      b.hp -= dmgA;
-      a.pulse = 1;
-      if (b.hp <= 0) this._eliminate(b, a);
-      else a.points += 1;
-    } else {
-      a.hp -= dmgB;
-      b.pulse = 1;
-      if (a.hp <= 0) this._eliminate(a, b);
-      else b.points += 1;
-    }
-
-    if (this.phase === "qualifying") {
-      for (const f of [a, b]) {
-        if (
-          f.alive &&
-          !f.qualified &&
-          f.points >= CONFIG.qualifyPointsNeeded &&
-          this.qualified.length < CONFIG.finalistSlots
-        ) {
-          this._qualify(f);
-        }
+    const heat = this._pickHeat();
+    if (heat.length <= 1) {
+      if (heat.length === 1) {
+        const last = this._makeFighter(heat[0], 0, 1);
+        this.fighters = [last];
+        this._qualify(last);
+        return;
       }
+      this._beginFinal();
+      return;
     }
+
+    this._beginRound(heat);
   }
 
-  _eliminate(loser, winner) {
-    if (!loser.alive) return;
-    loser.alive = false;
-    loser.hp = 0;
-    this.eliminated.push(loser);
-    if (winner) winner.points += 1;
-    this._emit(
-      "elim",
-      `${loser.name} eliminated${winner ? ` by ${winner.name}` : ""}`
-    );
-
-    if (this.phase === "qualifying") {
-      this._tryFillRemainingSlots();
-    }
-  }
-
-  _qualify(f, { fromEnd = false } = {}) {
-    if (f.qualified) return;
-    f.qualified = true;
-    f.alive = true;
-    f.hp = CONFIG.baseHp;
-    this.qualified.push(f);
-    this._emit("qualify", `${f.name} QUALIFIED for the Final!`);
-    if (!fromEnd && this.qualified.length >= CONFIG.finalistSlots) {
-      this._endQualifying(true);
-    }
-  }
-
-  _tryFillRemainingSlots() {
-    // If arena empties before slots fill, promote top remaining by points.
-    const fighting = this.fighters.filter((f) => f.alive && !f.qualified);
-    if (fighting.length === 0 && this.qualified.length < CONFIG.finalistSlots) {
-      this._endQualifying(true);
-    }
-  }
-
-  _endQualifying(early = false) {
-    if (this.phase !== "qualifying") return;
-    this.phase = "finalizing";
-
-    // Fill remaining slots from survivors with most points, then anyone left.
-    const contenders = this.fighters
-      .filter((f) => f.alive && !f.qualified)
-      .sort((a, b) => b.points - a.points || b.hp - a.hp);
-
-    for (const f of contenders) {
-      if (this.qualified.length >= CONFIG.finalistSlots) {
-        f.alive = false;
-        f.hp = 0;
-        this.eliminated.push(f);
-      } else {
-        this._qualify(f, { fromEnd: true });
-      }
-    }
-
-    // Anyone still not qualified is out.
-    for (const f of this.fighters) {
-      if (!f.qualified) {
-        f.alive = false;
-        f.hp = 0;
-      }
+  _beginFinal() {
+    this._pendingFinal = false;
+    if (!this.qualified.length) {
+      this._emit("phase", "No qualifiers — sudden-death heat.");
+      this.qualified = shuffle(COUNTRIES)
+        .slice(0, Math.min(16, COUNTRIES.length))
+        .map((c) => ({
+          code: c.code,
+          name: c.name,
+          img: flagUrl(c.code, 80),
+          id: c.code,
+        }));
     }
 
     this.phase = "final";
-    this.phaseStartedAt = performance.now();
-    this.fighters = this.qualified.map((f, i) => {
-      const angle = (i / Math.max(1, this.qualified.length)) * Math.PI * 2;
-      const radius = 0.22 + (i % 5) * 0.04;
-      return {
-        ...f,
-        alive: true,
-        hp: CONFIG.baseHp,
-        maxHp: CONFIG.baseHp,
-        points: 0,
-        x: 0.5 + Math.cos(angle) * radius,
-        y: 0.5 + Math.sin(angle) * radius,
-        vx: rand(-0.12, 0.12),
-        vy: rand(-0.12, 0.12),
-        pulse: 0,
-      };
+    this.round += 1;
+    const list = shuffle(this.qualified);
+    this.fighters = list.map((c, i) => {
+      const f = this._makeFighter(c, i, list.length);
+      f.qualified = true;
+      return f;
     });
-    this.qualified = [...this.fighters];
-    this._emit(
-      "phase",
-      early
-        ? `FINAL — ${this.fighters.length} flags. Last Flag Standing!`
-        : `Qualifying time up! FINAL — ${this.fighters.length} flags.`
-    );
-    this.onChange();
+    this.holeAngle = rand(0, Math.PI * 2);
+    this._emit("phase", `FINAL — ${this.fighters.length} flags. Last Flag Standing!`);
   }
 
   _emit(type, text) {
-    this.events.unshift({
-      type,
-      text,
-      at: Date.now(),
-    });
+    this.events.unshift({ type, text, at: Date.now() });
     if (this.events.length > 40) this.events.length = 40;
   }
 
   qualifyingRemainingMs(now = performance.now()) {
-    if (this.phase !== "qualifying") return 0;
+    if (this.phase === "idle") return CONFIG.qualifyingMs;
+    if (this.phase !== "qualifying" && this.phase !== "between_rounds") return 0;
+    if (this.qualifyingExpired) return 0;
     return Math.max(0, this.qualifyingEndsAt - now);
   }
 
   standing() {
-    if (this.phase === "qualifying") {
-      return this.fighters.filter((f) => f.alive && !f.qualified);
+    return this.fighters.filter((f) => f.alive && !f.falling);
+  }
+
+  boardFlags() {
+    if (
+      this.phase === "qualifying" ||
+      this.phase === "idle" ||
+      this.phase === "between_rounds"
+    ) {
+      return this.qualified;
     }
     return this.fighters.filter((f) => f.alive);
   }
 
-  boardFlags() {
-    if (this.phase === "qualifying" || this.phase === "idle") {
-      return this.qualified;
-    }
-    // Final / finished: flags still standing (winner alone at end).
-    return this.fighters.filter((f) => f.alive);
+  holeStyle() {
+    const deg = (this.holeAngle * 180) / Math.PI;
+    const widthDeg = (CONFIG.holeWidth * 180) / Math.PI;
+    return {
+      rotateDeg: deg,
+      widthDeg,
+      radiusPct: CONFIG.arenaRadius * 100,
+    };
   }
 }

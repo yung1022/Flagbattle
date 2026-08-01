@@ -1,0 +1,91 @@
+# Auto-create a YouTube livestream and push FLAG BATTLE (no OBS).
+#
+# Required repository secrets:
+#   GOOGLE_CLIENT_ID
+#   GOOGLE_CLIENT_SECRET
+#   GOOGLE_REFRESH_TOKEN
+#
+# Trigger manually from the Actions tab.
+
+name: Go Live — FLAG BATTLE
+
+on:
+  workflow_dispatch:
+    inputs:
+      demo_seconds:
+        description: "Qualifying length in seconds (empty = full 30 min)"
+        required: false
+        default: "120"
+      privacy:
+        description: "YouTube privacyStatus"
+        required: false
+        default: "unlisted"
+      duration_minutes:
+        description: "Stop the runner after N minutes"
+        required: false
+        default: "35"
+  # schedule:
+  #   - cron: "0 18 * * 6"
+
+jobs:
+  stream:
+    runs-on: ubuntu-latest
+    timeout-minutes: 360
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Install system deps
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ffmpeg xvfb
+
+      - name: Install stream package
+        working-directory: stream
+        run: npm install
+
+      - name: Write credentials
+        working-directory: stream
+        env:
+          GOOGLE_CLIENT_ID: ${{ secrets.GOOGLE_CLIENT_ID }}
+          GOOGLE_CLIENT_SECRET: ${{ secrets.GOOGLE_CLIENT_SECRET }}
+          GOOGLE_REFRESH_TOKEN: ${{ secrets.GOOGLE_REFRESH_TOKEN }}
+          YT_PRIVACY: ${{ inputs.privacy }}
+        run: |
+          test -n "$GOOGLE_CLIENT_ID"
+          test -n "$GOOGLE_CLIENT_SECRET"
+          test -n "$GOOGLE_REFRESH_TOKEN"
+          {
+            echo "GOOGLE_CLIENT_ID=$GOOGLE_CLIENT_ID"
+            echo "GOOGLE_CLIENT_SECRET=$GOOGLE_CLIENT_SECRET"
+            echo "GOOGLE_REFRESH_TOKEN=$GOOGLE_REFRESH_TOKEN"
+            echo "YT_PRIVACY=${YT_PRIVACY:-unlisted}"
+            echo "YT_TITLE=FLAG BATTLE — Last Flag Standing (Live)"
+          } > .env
+
+      - name: Go live
+        working-directory: stream
+        env:
+          DEMO_SECONDS: ${{ inputs.demo_seconds }}
+          DURATION_MIN: ${{ inputs.duration_minutes }}
+          PRIVACY: ${{ inputs.privacy }}
+        run: |
+          set +e
+          EXTRA=()
+          if [ -n "${DEMO_SECONDS}" ]; then
+            EXTRA+=(--demo "${DEMO_SECONDS}")
+          fi
+          EXTRA+=(--privacy "${PRIVACY:-unlisted}")
+          timeout "${DURATION_MIN:-35}m" npm run go-live -- "${EXTRA[@]}"
+          code=$?
+          set -e
+          # 124 = timeout hit planned end; treat as clean stop
+          if [ "$code" = "124" ] || [ "$code" = "0" ]; then
+            exit 0
+          fi
+          exit "$code"

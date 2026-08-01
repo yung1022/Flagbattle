@@ -1,0 +1,20 @@
+{
+  "name": "flagbattle-autostream",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Create a YouTube livestream and push FLAG BATTLE without OBS",
+  "scripts": {
+    "auth": "node src/auth.js",
+    "go-live": "node src/run.js",
+    "go-live:demo": "node src/run.js --demo 90"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "googleapis": "^144.0.0",
+    "open": "^10.1.0",
+    "serve-handler": "^6.1.6"
+  }
+}

@@ -10,6 +10,8 @@ const els = {
   phaseText: document.getElementById("phase-text"),
   timer: document.getElementById("timer"),
   arena: document.getElementById("arena"),
+  rimArc: document.getElementById("rim-arc"),
+  holeArc: document.getElementById("hole-arc"),
   feed: document.getElementById("feed"),
   statCountries: document.getElementById("stat-countries"),
   statFighting: document.getElementById("stat-fighting"),
@@ -19,6 +21,7 @@ const els = {
   winnerBanner: document.getElementById("winner-banner"),
   winnerFlag: document.getElementById("winner-flag"),
   winnerName: document.getElementById("winner-name"),
+  roundMeta: document.getElementById("round-meta"),
 };
 
 const fighterEls = new Map();
@@ -38,25 +41,55 @@ function ensureFighterEl(f) {
   el = document.createElement("div");
   el.className = "fighter";
   el.dataset.id = f.id;
-  el.innerHTML = `<img alt="${f.name}" src="${f.img}" loading="lazy" /><span class="hp"><i></i></span>`;
+  el.innerHTML = `<img alt="${f.name}" src="${f.img}" loading="lazy" />`;
   els.arena.appendChild(el);
   fighterEls.set(f.id, el);
   return el;
 }
 
+function polar(cx, cy, r, angleRad) {
+  return {
+    x: cx + Math.cos(angleRad) * r,
+    y: cy + Math.sin(angleRad) * r,
+  };
+}
+
+function describeArc(cx, cy, r, startRad, endRad) {
+  const start = polar(cx, cy, r, startRad);
+  const end = polar(cx, cy, r, endRad);
+  let delta = endRad - startRad;
+  while (delta < 0) delta += Math.PI * 2;
+  while (delta > Math.PI * 2) delta -= Math.PI * 2;
+  const large = delta > Math.PI ? 1 : 0;
+  return `M ${start.x} ${start.y} A ${r} ${r} 0 ${large} 1 ${end.x} ${end.y}`;
+}
+
+function syncHole() {
+  if (!els.rimArc || !els.holeArc) return;
+  const { rotateDeg, widthDeg, radiusPct } = game.holeStyle();
+  const r = radiusPct; // viewBox 0..100, center 50 → radius matches CONFIG
+  const cx = 50;
+  const cy = 50;
+  const hole = (widthDeg * Math.PI) / 180;
+  const mid = (rotateDeg * Math.PI) / 180;
+  const holeStart = mid - hole / 2;
+  const holeEnd = mid + hole / 2;
+  // Solid rim = everything except the hole wedge.
+  els.rimArc.setAttribute("d", describeArc(cx, cy, r, holeEnd, holeStart + Math.PI * 2));
+  els.holeArc.setAttribute("d", describeArc(cx, cy, r, holeStart, holeEnd));
+}
+
 function syncArena() {
+  syncHole();
   const visibleIds = new Set();
+  const count = Math.max(1, game.standing().length + game.fighters.filter((f) => f.falling).length);
   const sizeBase =
-    game.phase === "final"
-      ? Math.max(36, Math.min(64, 520 / Math.max(8, game.standing().length)))
-      : Math.max(22, Math.min(40, 900 / Math.max(40, game.standing().length + 20)));
+    game.phase === "final" || count < 20
+      ? Math.max(34, Math.min(58, 480 / Math.max(6, count)))
+      : Math.max(24, Math.min(40, 780 / Math.max(20, count)));
 
   for (const f of game.fighters) {
-    const show =
-      (game.phase === "qualifying" && f.alive && !f.qualified) ||
-      ((game.phase === "final" || game.phase === "finished") && f.alive) ||
-      (game.phase === "idle" && f.alive);
-
+    const show = f.alive || f.falling;
     if (!show) {
       const existing = fighterEls.get(f.id);
       if (existing && !existing.classList.contains("eliminating")) {
@@ -75,11 +108,9 @@ function syncArena() {
     el.style.left = `${f.x * 100}%`;
     el.style.top = `${f.y * 100}%`;
     el.classList.toggle("pulse", f.pulse > 0.2);
-    const bar = el.querySelector(".hp > i");
-    if (bar) bar.style.transform = `scaleX(${Math.max(0, f.hp / f.maxHp)})`;
+    el.classList.toggle("falling", f.falling);
   }
 
-  // Drop stale nodes from previous phase resets.
   for (const [id, el] of fighterEls) {
     if (!visibleIds.has(id) && !el.classList.contains("eliminating")) {
       el.remove();
@@ -91,7 +122,9 @@ function syncArena() {
 function renderBoard() {
   const flags = game.boardFlags();
   const isQual =
-    game.phase === "qualifying" || game.phase === "idle";
+    game.phase === "qualifying" ||
+    game.phase === "idle" ||
+    game.phase === "between_rounds";
   els.boardLabel.textContent = isQual
     ? "QUALIFIED FOR FINAL"
     : game.phase === "finished"
@@ -112,10 +145,10 @@ function renderBoard() {
     const empty = document.createElement("div");
     empty.className = "board-empty";
     empty.textContent =
-      game.phase === "qualifying"
+      game.phase === "qualifying" || game.phase === "between_rounds"
         ? "Waiting for first qualifier…"
         : game.phase === "idle"
-          ? "Press Start to begin qualifying"
+          ? "Press Start — last flag in the circle qualifies"
           : "—";
     els.boardTrack.appendChild(empty);
     return;
@@ -133,7 +166,6 @@ function renderBoard() {
   }
   els.boardTrack.appendChild(row);
 
-  // Duplicate for seamless marquee when many flags.
   if (flags.length > 10) {
     const clone = row.cloneNode(true);
     clone.setAttribute("aria-hidden", "true");
@@ -160,8 +192,16 @@ function renderHud() {
   els.statFighting.textContent = String(fighting);
   els.statBoard.textContent = String(game.boardFlags().length);
 
-  if (game.phase === "qualifying") {
-    els.phaseText.textContent = "Qualifying";
+  if (els.roundMeta) {
+    if (game.phase === "idle") els.roundMeta.textContent = "Hole circle · no damage";
+    else if (game.phase === "final" || game.phase === "finished")
+      els.roundMeta.textContent = `Final · Round ${game.round}`;
+    else els.roundMeta.textContent = `Qualifying · Round ${game.round}`;
+  }
+
+  if (game.phase === "qualifying" || game.phase === "between_rounds") {
+    els.phaseText.textContent =
+      game.phase === "between_rounds" ? "Qualifier locked" : "Qualifying";
     els.timer.textContent = formatMs(game.qualifyingRemainingMs());
     els.timer.hidden = false;
   } else if (game.phase === "final") {
@@ -177,7 +217,11 @@ function renderHud() {
     els.timer.hidden = false;
   }
 
-  els.btnStart.disabled = game.phase === "qualifying" || game.phase === "final";
+  const busy =
+    game.phase === "qualifying" ||
+    game.phase === "between_rounds" ||
+    game.phase === "final";
+  els.btnStart.disabled = busy;
   els.btnStart.textContent =
     game.phase === "finished" || game.phase === "idle" ? "Start Battle" : "In Progress";
 
@@ -191,6 +235,14 @@ function renderHud() {
   }
 }
 
+function clearFighters() {
+  fighterEls.forEach((el) => el.remove());
+  fighterEls.clear();
+  lastBoardKey = "";
+  lastEventAt = 0;
+  els.feed.innerHTML = "";
+}
+
 function render() {
   renderBoard();
   syncArena();
@@ -199,20 +251,12 @@ function render() {
 }
 
 els.btnStart.addEventListener("click", () => {
-  fighterEls.forEach((el) => el.remove());
-  fighterEls.clear();
-  lastBoardKey = "";
-  lastEventAt = 0;
-  els.feed.innerHTML = "";
+  clearFighters();
   game.start();
 });
 
 els.btnReset.addEventListener("click", () => {
-  fighterEls.forEach((el) => el.remove());
-  fighterEls.clear();
-  lastBoardKey = "";
-  lastEventAt = 0;
-  els.feed.innerHTML = "";
+  clearFighters();
   game.reset();
   render();
 });
@@ -223,9 +267,27 @@ if (new URLSearchParams(location.search).has("stream")) {
 
 game.onChange = render;
 game.reset();
+// Idle preview: scatter flags in the circle without running physics.
+game.fighters = COUNTRIES.map((c, i) => {
+  const angle = (i / COUNTRIES.length) * Math.PI * 2;
+  const radius = 0.12 + (i % 5) * 0.05;
+  return {
+    ...c,
+    id: c.code,
+    alive: true,
+    falling: false,
+    qualified: false,
+    x: 0.5 + Math.cos(angle) * radius,
+    y: 0.5 + Math.sin(angle) * radius,
+    vx: 0,
+    vy: 0,
+    img: `https://flagcdn.com/w80/${c.code}.png`,
+    pulse: 0,
+  };
+});
 render();
 
-// Autostart for unattended livestream OBS scenes.
 if (new URLSearchParams(location.search).has("autostart")) {
+  clearFighters();
   game.start();
 }
