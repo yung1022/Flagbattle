@@ -4,13 +4,360 @@
     {
       "code": "pt",
       "name": "Portugal",
-      "img": "https://flagcdn.com/w80/pt.png",
-      "id": "pt"
+      "img": "https://flagcdn.com/w80/pt.png"
+    },
+    {
+      "code": "lv",
+      "name": "Latvia",
+      "img": "https://flagcdn.com/w80/lv.png"
+    },
+    {
+      "code": "so",
+      "name": "Somalia",
+      "img": "https://flagcdn.com/w80/so.png"
+    },
+    {
+      "code": "sd",
+      "name": "Sudan",
+      "img": "https://flagcdn.com/w80/sd.png"
+    },
+    {
+      "code": "dm",
+      "name": "Dominica",
+      "img": "https://flagcdn.com/w80/dm.png"
+    },
+    {
+      "code": "cv",
+      "name": "Cabo Verde",
+      "img": "https://flagcdn.com/w80/cv.png"
+    },
+    {
+      "code": "il",
+      "name": "Israel",
+      "img": "https://flagcdn.com/w80/il.png"
+    },
+    {
+      "code": "co",
+      "name": "Colombia",
+      "img": "https://flagcdn.com/w80/co.png"
+    },
+    {
+      "code": "es",
+      "name": "Spain",
+      "img": "https://flagcdn.com/w80/es.png"
+    },
+    {
+      "code": "mw",
+      "name": "Malawi",
+      "img": "https://flagcdn.com/w80/mw.png"
+    },
+    {
+      "code": "bi",
+      "name": "Burundi",
+      "img": "https://flagcdn.com/w80/bi.png"
+    },
+    {
+      "code": "sc",
+      "name": "Seychelles",
+      "img": "https://flagcdn.com/w80/sc.png"
+    },
+    {
+      "code": "gd",
+      "name": "Grenada",
+      "img": "https://flagcdn.com/w80/gd.png"
+    },
+    {
+      "code": "mh",
+      "name": "Marshall Islands",
+      "img": "https://flagcdn.com/w80/mh.png"
+    },
+    {
+      "code": "ml",
+      "name": "Mali",
+      "img": "https://flagcdn.com/w80/ml.png"
+    },
+    {
+      "code": "ke",
+      "name": "Kenya",
+      "img": "https://flagcdn.com/w80/ke.png"
+    },
+    {
+      "code": "gh",
+      "name": "Ghana",
+      "img": "https://flagcdn.com/w80/gh.png"
+    },
+    {
+      "code": "lt",
+      "name": "Lithuania",
+      "img": "https://flagcdn.com/w80/lt.png"
+    },
+    {
+      "code": "pl",
+      "name": "Poland",
+      "img": "https://flagcdn.com/w80/pl.png"
+    },
+    {
+      "code": "ma",
+      "name": "Morocco",
+      "img": "https://flagcdn.com/w80/ma.png"
+    },
+    {
+      "code": "za",
+      "name": "South Africa",
+      "img": "https://flagcdn.com/w80/za.png"
+    },
+    {
+      "code": "ag",
+      "name": "Antigua and Barbuda",
+      "img": "https://flagcdn.com/w80/ag.png"
+    },
+    {
+      "code": "cu",
+      "name": "Cuba",
+      "img": "https://flagcdn.com/w80/cu.png"
+    },
+    {
+      "code": "gw",
+      "name": "Guinea-Bissau",
+      "img": "https://flagcdn.com/w80/gw.png"
+    },
+    {
+      "code": "to",
+      "name": "Tonga",
+      "img": "https://flagcdn.com/w80/to.png"
+    },
+    {
+      "code": "nz",
+      "name": "New Zealand",
+      "img": "https://flagcdn.com/w80/nz.png"
+    },
+    {
+      "code": "fr",
+      "name": "France",
+      "img": "https://flagcdn.com/w80/fr.png"
+    },
+    {
+      "code": "bo",
+      "name": "Bolivia",
+      "img": "https://flagcdn.com/w80/bo.png"
+    },
+    {
+      "code": "ls",
+      "name": "Lesotho",
+      "img": "https://flagcdn.com/w80/ls.png"
+    },
+    {
+      "code": "ch",
+      "name": "Switzerland",
+      "img": "https://flagcdn.com/w80/ch.png"
+    },
+    {
+      "code": "gy",
+      "name": "Guyana",
+      "img": "https://flagcdn.com/w80/gy.png"
+    },
+    {
+      "code": "az",
+      "name": "Azerbaijan",
+      "img": "https://flagcdn.com/w80/az.png"
+    },
+    {
+      "code": "cd",
+      "name": "DR Congo",
+      "img": "https://flagcdn.com/w80/cd.png"
+    },
+    {
+      "code": "dz",
+      "name": "Algeria",
+      "img": "https://flagcdn.com/w80/dz.png"
+    },
+    {
+      "code": "sn",
+      "name": "Senegal",
+      "img": "https://flagcdn.com/w80/sn.png"
+    },
+    {
+      "code": "no",
+      "name": "Norway",
+      "img": "https://flagcdn.com/w80/no.png"
+    },
+    {
+      "code": "kw",
+      "name": "Kuwait",
+      "img": "https://flagcdn.com/w80/kw.png"
+    },
+    {
+      "code": "zm",
+      "name": "Zambia",
+      "img": "https://flagcdn.com/w80/zm.png"
+    },
+    {
+      "code": "sa",
+      "name": "Saudi Arabia",
+      "img": "https://flagcdn.com/w80/sa.png"
+    },
+    {
+      "code": "qa",
+      "name": "Qatar",
+      "img": "https://flagcdn.com/w80/qa.png"
+    },
+    {
+      "code": "pw",
+      "name": "Palau",
+      "img": "https://flagcdn.com/w80/pw.png"
+    },
+    {
+      "code": "ie",
+      "name": "Ireland",
+      "img": "https://flagcdn.com/w80/ie.png"
+    },
+    {
+      "code": "af",
+      "name": "Afghanistan",
+      "img": "https://flagcdn.com/w80/af.png"
+    },
+    {
+      "code": "iq",
+      "name": "Iraq",
+      "img": "https://flagcdn.com/w80/iq.png"
+    },
+    {
+      "code": "ge",
+      "name": "Georgia",
+      "img": "https://flagcdn.com/w80/ge.png"
+    },
+    {
+      "code": "cz",
+      "name": "Czechia",
+      "img": "https://flagcdn.com/w80/cz.png"
+    },
+    {
+      "code": "ug",
+      "name": "Uganda",
+      "img": "https://flagcdn.com/w80/ug.png"
+    },
+    {
+      "code": "kz",
+      "name": "Kazakhstan",
+      "img": "https://flagcdn.com/w80/kz.png"
+    },
+    {
+      "code": "pk",
+      "name": "Pakistan",
+      "img": "https://flagcdn.com/w80/pk.png"
+    },
+    {
+      "code": "bj",
+      "name": "Benin",
+      "img": "https://flagcdn.com/w80/bj.png"
+    },
+    {
+      "code": "tm",
+      "name": "Turkmenistan",
+      "img": "https://flagcdn.com/w80/tm.png"
+    },
+    {
+      "code": "au",
+      "name": "Australia",
+      "img": "https://flagcdn.com/w80/au.png"
+    },
+    {
+      "code": "cn",
+      "name": "China",
+      "img": "https://flagcdn.com/w80/cn.png"
+    },
+    {
+      "code": "mm",
+      "name": "Myanmar",
+      "img": "https://flagcdn.com/w80/mm.png"
+    },
+    {
+      "code": "hr",
+      "name": "Croatia",
+      "img": "https://flagcdn.com/w80/hr.png"
+    },
+    {
+      "code": "ca",
+      "name": "Canada",
+      "img": "https://flagcdn.com/w80/ca.png"
+    },
+    {
+      "code": "mv",
+      "name": "Maldives",
+      "img": "https://flagcdn.com/w80/mv.png"
+    },
+    {
+      "code": "ae",
+      "name": "United Arab Emirates",
+      "img": "https://flagcdn.com/w80/ae.png"
+    },
+    {
+      "code": "bb",
+      "name": "Barbados",
+      "img": "https://flagcdn.com/w80/bb.png"
     }
   ],
   "votes": {
-    "pt": 0
+    "pt": 0,
+    "lv": 0,
+    "so": 0,
+    "sd": 0,
+    "dm": 0,
+    "cv": 0,
+    "il": 0,
+    "co": 0,
+    "es": 0,
+    "mw": 0,
+    "bi": 0,
+    "sc": 0,
+    "gd": 0,
+    "mh": 0,
+    "ml": 0,
+    "ke": 0,
+    "gh": 0,
+    "lt": 0,
+    "pl": 0,
+    "ma": 0,
+    "za": 0,
+    "ag": 0,
+    "cu": 0,
+    "gw": 0,
+    "to": 0,
+    "nz": 0,
+    "fr": 0,
+    "bo": 0,
+    "ls": 0,
+    "ch": 0,
+    "gy": 0,
+    "az": 0,
+    "cd": 0,
+    "dz": 0,
+    "sn": 0,
+    "no": 0,
+    "kw": 0,
+    "zm": 0,
+    "sa": 0,
+    "qa": 0,
+    "pw": 0,
+    "ie": 0,
+    "af": 0,
+    "iq": 0,
+    "ge": 0,
+    "cz": 0,
+    "ug": 0,
+    "kz": 0,
+    "pk": 0,
+    "bj": 0,
+    "tm": 0,
+    "au": 0,
+    "cn": 0,
+    "mm": 0,
+    "hr": 0,
+    "ca": 0,
+    "mv": 0,
+    "ae": 0,
+    "bb": 0
   },
   "voters": {},
-  "updatedAt": 1785617361731
+  "updatedAt": 1785619159589
 }
