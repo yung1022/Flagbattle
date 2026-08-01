@@ -38,6 +38,11 @@
 
         <div class="brand-bar">
           <div class="brand">FLAG BATTLE</div>
+          <div class="subs-pill" id="subs-pill" hidden>
+            <span class="subs-label">SUBS</span>
+            <strong id="subs-count">—</strong>
+            <span class="subs-channel" id="subs-channel"></span>
+          </div>
           <div class="phase-pill">
             <span class="dot" aria-hidden="true"></span>
             <span id="phase-text">Ready</span>
@@ -49,7 +54,13 @@
         <div class="arena-wrap">
           <div class="arena" id="arena" aria-label="Battle arena">
             <div class="arena-floor" aria-hidden="true"></div>
-            <svg class="arena-rim-svg" id="arena-rim" viewBox="0 0 100 100" aria-hidden="true">
+            <svg
+              class="arena-rim-svg"
+              id="arena-rim"
+              viewBox="0 0 100 100"
+              preserveAspectRatio="xMidYMid meet"
+              aria-hidden="true"
+            >
               <defs>
                 <linearGradient id="rimGrad" x1="0%" y1="0%" x2="100%" y2="100%">
                   <stop offset="0%" stop-color="#5effef" />

@@ -12,6 +12,7 @@ import {
 
 export const CONFIG = {
   qualifyingMs: 30 * 60 * 1000,
+  /** Must match CSS --rim / SVG circle (42% of the square arena). */
   arenaRadius: 0.42,
   holeWidth: 0.85,
   holeSpeed: 1.8,
