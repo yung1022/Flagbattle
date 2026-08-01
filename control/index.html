@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1"
+    />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="theme-color" content="#071018" />
+    <title>FLAG BATTLE — Mobile Go Live</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Manrope:wght@500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="styles.css" />
+    <link rel="icon" href="../assets/thumbnail.png" />
+    <link rel="manifest" href="manifest.webmanifest" />
+  </head>
+  <body>
+    <main class="wrap">
+      <header class="hero">
+        <p class="eyebrow">Phone only · no PC · no OBS</p>
+        <h1>FLAG BATTLE</h1>
+        <p class="lede">
+          Go live from your phone. Pick the easy screen-share path, or one-tap
+          cloud streaming after a one-time setup.
+        </p>
+      </header>
+
+      <nav class="tabs" role="tablist">
+        <button class="tab active" data-tab="easy" type="button">Easy</button>
+        <button class="tab" data-tab="cloud" type="button">Cloud</button>
+        <button class="tab" data-tab="setup" type="button">Setup</button>
+      </nav>
+
+      <!-- PATH A: YouTube mobile screen share -->
+      <section class="panel active" id="panel-easy">
+        <h2>Screen-share live</h2>
+        <p class="hint">
+          Uses the YouTube app on your phone. Best if you want zero cloud setup.
+        </p>
+        <ol class="steps">
+          <li>Tap <strong>Open arena</strong> below (fullscreen battle).</li>
+          <li>Open the <strong>YouTube</strong> app → create → <strong>Go live</strong>.</li>
+          <li>Choose <strong>Share screen</strong> (or Screen mirroring) and pick this browser.</li>
+          <li>Start the stream. Keep FLAG BATTLE on screen; don’t lock the phone.</li>
+        </ol>
+        <div class="actions">
+          <a class="btn primary" id="btn-open-arena" href="../?stream=1&autostart=1&mobile=1"
+            >Open arena</a
+          >
+          <button class="btn" type="button" id="btn-copy-arena">Copy arena link</button>
+        </div>
+        <p class="note">
+          Tip: use landscape lock off, brightness high, and plug in power. Shorts /
+          vertical live works best at 9:16.
+        </p>
+      </section>
+
+      <!-- PATH B: Cloud encoder via GitHub Actions -->
+      <section class="panel" id="panel-cloud">
+        <h2>Cloud go-live</h2>
+        <p class="hint">
+          Your phone only taps the button. GitHub Actions creates the YouTube
+          stream and pushes video (no OBS).
+        </p>
+
+        <label class="field">
+          <span>GitHub repo</span>
+          <input id="gh-repo" inputmode="url" placeholder="owner/Flagbattle" autocomplete="off" />
+        </label>
+        <label class="field">
+          <span>GitHub token (PAT)</span>
+          <input
+            id="gh-token"
+            type="password"
+            placeholder="ghp_… (workflow + secrets scope)"
+            autocomplete="off"
+          />
+        </label>
+        <label class="field">
+          <span>Privacy</span>
+          <select id="yt-privacy">
+            <option value="unlisted">unlisted</option>
+            <option value="public">public</option>
+            <option value="private">private</option>
+          </select>
+        </label>
+        <label class="field">
+          <span>Demo seconds (empty = full 30 min)</span>
+          <input id="demo-seconds" inputmode="numeric" placeholder="120" value="120" />
+        </label>
+        <label class="field">
+          <span>Duration minutes</span>
+          <input id="duration-min" inputmode="numeric" placeholder="35" value="35" />
+        </label>
+
+        <div class="actions">
+          <button class="btn primary" type="button" id="btn-go-live">Go live now</button>
+          <button class="btn" type="button" id="btn-save-cloud">Save settings</button>
+        </div>
+        <pre class="log" id="cloud-log" aria-live="polite"></pre>
+        <p class="note">
+          Needs YouTube secrets already on the repo (use the <button type="button" class="linkish" data-tab="setup">Setup</button> tab once).
+          PAT needs <code>actions:write</code> (and <code>secrets:write</code> if you push secrets from Setup).
+        </p>
+      </section>
+
+      <!-- One-time setup on phone -->
+      <section class="panel" id="panel-setup">
+        <h2>One-time phone setup</h2>
+        <p class="hint">
+          Do this once on your phone, then Cloud go-live is one tap forever.
+        </p>
+
+        <ol class="steps">
+          <li>
+            In <a href="https://console.cloud.google.com/" target="_blank" rel="noopener">Google Cloud</a>,
+            enable <strong>YouTube Data API v3</strong>.
+          </li>
+          <li>
+            Create OAuth client type
+            <strong>TVs and Limited Input devices</strong> (not Desktop).
+          </li>
+          <li>Paste Client ID + Secret below → Start device login.</li>
+          <li>Open <a href="https://www.google.com/device" target="_blank" rel="noopener">google.com/device</a>, enter the code, allow access.</li>
+          <li>Push secrets to GitHub (or copy them manually).</li>
+        </ol>
+
+        <label class="field">
+          <span>Google Client ID</span>
+          <input id="g-client-id" autocomplete="off" placeholder="….apps.googleusercontent.com" />
+        </label>
+        <label class="field">
+          <span>Google Client Secret</span>
+          <input id="g-client-secret" type="password" autocomplete="off" />
+        </label>
+
+        <div class="actions">
+          <button class="btn primary" type="button" id="btn-device-auth">Start device login</button>
+          <button class="btn" type="button" id="btn-save-google">Save Google fields</button>
+        </div>
+
+        <div class="device-box" id="device-box" hidden>
+          <p>Enter this code at Google:</p>
+          <p class="user-code" id="user-code">————</p>
+          <a class="btn" id="verify-link" href="https://www.google.com/device" target="_blank" rel="noopener"
+            >Open google.com/device</a
+          >
+          <p class="hint" id="device-status">Waiting for approval…</p>
+        </div>
+
+        <label class="field">
+          <span>Refresh token</span>
+          <textarea id="g-refresh" rows="3" placeholder="Appears after device login"></textarea>
+        </label>
+
+        <div class="actions">
+          <button class="btn primary" type="button" id="btn-push-secrets">
+            Push secrets to GitHub
+          </button>
+          <button class="btn" type="button" id="btn-copy-secrets">Copy all secrets</button>
+        </div>
+        <pre class="log" id="setup-log" aria-live="polite"></pre>
+      </section>
+    </main>
+
+    <script type="module" src="app.js"></script>
+  </body>
+</html>
