@@ -99,6 +99,12 @@ async function main() {
 function buildGameUrl(port, demo) {
   const qs = new URLSearchParams({ stream: "1", autostart: "1" });
   if (demo != null && demo !== "") qs.set("demo", String(demo));
+  // Public site URL printed as QR/links on the livestream overlay.
+  const site =
+    process.env.PUBLIC_SITE ||
+    process.env.SITE_URL ||
+    process.env.FLAGBATTLE_SITE;
+  if (site) qs.set("site", site.replace(/\/$/, ""));
   return `http://127.0.0.1:${port}/?${qs.toString()}`;
 }
 

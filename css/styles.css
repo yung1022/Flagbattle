@@ -337,6 +337,134 @@ body {
   transition: opacity 0.35s ease;
 }
 
+/* —— On-stream poll / rankings (readable on YouTube) —— */
+.stream-links {
+  position: absolute;
+  left: var(--safe-x);
+  top: calc(var(--safe-top) + 48%);
+  z-index: 6;
+  display: grid;
+  gap: 10px;
+  width: min(48%, 300px);
+  pointer-events: none;
+}
+
+.stream-links[hidden],
+.stream-poll[hidden] {
+  display: none !important;
+}
+
+.stream-link-card {
+  display: grid;
+  grid-template-columns: 72px 1fr;
+  gap: 10px;
+  align-items: center;
+  padding: 8px 10px;
+  background: rgba(3, 7, 11, 0.82);
+  border: 1px solid var(--line);
+}
+
+.stream-qr {
+  width: 72px;
+  height: 72px;
+  object-fit: cover;
+  background: #fff;
+  border: 2px solid rgba(255, 255, 255, 0.35);
+}
+
+.stream-link-label {
+  font-family: var(--font-display);
+  letter-spacing: 0.08em;
+  font-size: clamp(18px, 4.2vw, 28px);
+  color: var(--gold-hot);
+  line-height: 1;
+}
+
+.stream-link-url {
+  margin-top: 4px;
+  font-size: clamp(11px, 2.4vw, 14px);
+  font-weight: 800;
+  color: var(--ink);
+  word-break: break-all;
+  line-height: 1.25;
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.7);
+}
+
+.stream-poll {
+  position: absolute;
+  right: calc(var(--safe-x) + 2%);
+  top: calc(var(--safe-top) + 52%);
+  z-index: 6;
+  width: min(42%, 260px);
+  padding: 10px 12px;
+  background: rgba(3, 7, 11, 0.86);
+  border: 1px solid rgba(46, 196, 182, 0.45);
+  pointer-events: none;
+}
+
+.stream-poll-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 8px;
+  margin-bottom: 8px;
+  font-family: var(--font-display);
+  letter-spacing: 0.08em;
+  font-size: clamp(18px, 4vw, 26px);
+  color: var(--teal);
+}
+
+.stream-poll-head strong {
+  font-family: var(--font-body);
+  font-size: clamp(12px, 2.6vw, 15px);
+  color: var(--ink);
+  letter-spacing: 0;
+}
+
+.stream-poll-row {
+  display: grid;
+  grid-template-columns: 28px 1fr auto;
+  gap: 8px;
+  align-items: center;
+  margin-bottom: 7px;
+}
+
+.stream-poll-row img {
+  width: 28px;
+  height: 19px;
+  object-fit: cover;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+}
+
+.stream-poll-row .name {
+  font-size: clamp(12px, 2.6vw, 15px);
+  font-weight: 800;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.stream-poll-row .count {
+  font-size: clamp(12px, 2.6vw, 15px);
+  font-weight: 800;
+  color: var(--gold);
+}
+
+.stream-poll-bar {
+  grid-column: 1 / -1;
+  height: 5px;
+  background: rgba(255, 255, 255, 0.1);
+  margin-top: -3px;
+  margin-bottom: 2px;
+}
+
+.stream-poll-bar > i {
+  display: block;
+  height: 100%;
+  background: linear-gradient(90deg, var(--teal), var(--gold));
+  width: 0%;
+}
+
 /* —— Bottom feed / controls —— */
 .hud {
   position: absolute;
