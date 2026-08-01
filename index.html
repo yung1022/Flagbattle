@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>FLAG BATTLE — Last Flag Standing</title>
+    <meta
+      name="description"
+      content="All-country flag battle livestream: 30-minute qualifying, then last flag standing. Vertical 9:16 for YouTube Shorts."
+    />
+    <link rel="preconnect" href="https://flagcdn.com" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Manrope:wght@500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="css/styles.css" />
+    <link rel="icon" href="assets/thumbnail.png" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <div class="stage" id="stage">
+        <!-- Top LED-style board -->
+        <header class="board" aria-live="polite">
+          <div class="board-head">
+            <div class="board-label" id="board-label">QUALIFIED FOR FINAL</div>
+            <div class="board-meta" id="board-meta">0 / 32</div>
+          </div>
+          <div class="board-track" id="board-track"></div>
+        </header>
+
+        <div class="brand-bar">
+          <div class="brand">FLAG BATTLE</div>
+          <div class="phase-pill">
+            <span class="dot" aria-hidden="true"></span>
+            <span id="phase-text">Ready</span>
+          </div>
+          <div class="timer" id="timer">30:00</div>
+        </div>
+
+        <div class="arena-wrap">
+          <div class="arena" id="arena" aria-label="Battle arena"></div>
+        </div>
+
+        <footer class="hud">
+          <div class="stats">
+            <div>Countries <strong id="stat-countries">0</strong></div>
+            <div>In arena <strong id="stat-fighting">0</strong></div>
+            <div>On board <strong id="stat-board">0</strong></div>
+          </div>
+          <div class="feed" id="feed" aria-live="polite"></div>
+          <div class="controls">
+            <button type="button" class="primary" id="btn-start">Start Battle</button>
+            <button type="button" id="btn-reset">Reset</button>
+          </div>
+        </footer>
+
+        <div class="winner-banner" id="winner-banner">
+          <img id="winner-flag" alt="" />
+          <h2 id="winner-name">—</h2>
+          <p>Last Flag Standing</p>
+        </div>
+      </div>
+    </div>
+
+    <p class="host-hint">
+      Stream crop: the stage is locked to 9:16.
+      Use <code>?stream=1&amp;autostart=1</code> for OBS.
+      Demo speed: <code>?demo=45</code> (seconds of qualifying).
+    </p>
+
+    <script type="module" src="js/ui.js"></script>
+  </body>
+</html>
