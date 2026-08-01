@@ -26,11 +26,29 @@ Open `http://localhost:5173`
 | Mobile go-live | `/control/` |
 | Stream view | `/?stream=1&autostart=1` |
 
+### On-stream poll & rankings
+
+The livestream overlay shows:
+- **QR + URL** for the poll and rankings pages
+- **Live poll results** during final intermission / Final
+
+Pass your public site so viewers get a scannable link:
+
+```bash
+# example GitHub Pages
+node server.mjs
+# open: /?stream=1&autostart=1&site=https://yung1022.github.io/Flagbattle
+
+# auto-stream
+PUBLIC_SITE=https://yung1022.github.io/Flagbattle npm run go-live --prefix stream
+```
+
 ## Fixes in this build
 
 - Larger HUD text, inset from YouTube Shorts UI edges
 - Qualifying lasts the full 30 minutes
 - Faster flag movement + spatial collision grid (less lag)
+- Poll/rankings links + live poll board on the stream
 
 ## Mobile / cloud stream
 

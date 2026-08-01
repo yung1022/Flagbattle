@@ -1,7 +1,9 @@
 import { FlagBattleGame, CONFIG, flagSizeForCount } from "./game.js";
 import { COUNTRIES } from "./countries.js";
+import { fetchPoll } from "./store.js";
 
 const game = new FlagBattleGame();
+const params = new URLSearchParams(location.search);
 
 const els = {
   boardLabel: document.getElementById("board-label"),
@@ -27,7 +29,44 @@ const els = {
   intermissionSub: document.getElementById("intermission-sub"),
   intermissionTimer: document.getElementById("intermission-timer"),
   streamLink: document.getElementById("stream-link"),
+  streamLinks: document.getElementById("stream-links"),
+  streamPoll: document.getElementById("stream-poll"),
+  streamPollRows: document.getElementById("stream-poll-rows"),
+  streamPollTotal: document.getElementById("stream-poll-total"),
+  urlPoll: document.getElementById("url-poll"),
+  urlRank: document.getElementById("url-rank"),
+  qrPoll: document.getElementById("qr-poll"),
+  qrRank: document.getElementById("qr-rank"),
 };
+
+/** Public site root for QR/links shown on the livestream (viewers can't click video). */
+function siteBase() {
+  const override =
+    params.get("site") ||
+    params.get("publicBase") ||
+    localStorage.getItem("flagbattle.siteBase");
+  if (override) return String(override).replace(/\/$/, "");
+  // GitHub Pages project sites live under /RepoName/
+  const parts = location.pathname.split("/").filter(Boolean);
+  if (location.hostname.endsWith("github.io") && parts.length) {
+    return `${location.origin}/${parts[0]}`;
+  }
+  return location.origin;
+}
+
+function pageUrl(file, query = "") {
+  const base = siteBase();
+  const q = query ? `?${query}` : "";
+  return `${base}/${file}${q}`;
+}
+
+function qrSrc(url) {
+  return `https://api.qrserver.com/v1/create-qr-code/?size=160x160&margin=8&data=${encodeURIComponent(url)}`;
+}
+
+let lastLinkKey = "";
+let lastPollKey = "";
+let pollTimer = 0;
 
 const fighterEls = new Map();
 let lastBoardKey = "";
@@ -278,6 +317,8 @@ function renderHud() {
     els.streamLink.textContent = "Rankings";
   }
 
+  renderStreamLinks();
+
   const busy =
     game.phase === "qualifying" ||
     game.phase === "qualifying_hold" ||
@@ -307,10 +348,105 @@ function clearFighters() {
   els.feed.innerHTML = "";
 }
 
+function renderStreamLinks() {
+  if (!els.streamLinks) return;
+
+  // Always show in stream mode; otherwise once a battle stream id exists.
+  const force = params.has("stream") || params.has("links");
+  if (!game.stream?.id && !force) {
+    els.streamLinks.hidden = true;
+    return;
+  }
+
+  els.streamLinks.hidden = false;
+  const id = game.stream?.id;
+  const poll = id
+    ? pageUrl("poll.html", `id=${encodeURIComponent(id)}`)
+    : pageUrl("poll.html");
+  const rank = id
+    ? pageUrl("rankings.html", `id=${encodeURIComponent(id)}`)
+    : pageUrl("rankings.html");
+  const key = `${id || "generic"}:${poll}`;
+  if (key === lastLinkKey) return;
+  lastLinkKey = key;
+  els.urlPoll.textContent = poll.replace(/^https?:\/\//, "");
+  els.urlRank.textContent = rank.replace(/^https?:\/\//, "");
+  els.qrPoll.src = qrSrc(poll);
+  els.qrRank.src = qrSrc(rank);
+}
+
+function shouldShowStreamPoll() {
+  if (!game.stream?.id) return false;
+  return (
+    (game.phase === "intermission" && game.intermissionKind === "final") ||
+    game.phase === "final" ||
+    game.phase === "finished"
+  );
+}
+
+function renderStreamPoll(poll) {
+  if (!els.streamPoll || !els.streamPollRows) return;
+  if (!shouldShowStreamPoll()) {
+    els.streamPoll.hidden = true;
+    return;
+  }
+
+  const options = poll?.options?.length
+    ? poll.options
+    : (game.qualified || []).map((q) => ({
+        code: q.code,
+        name: q.name,
+        img: q.img,
+      }));
+
+  if (!options.length) {
+    els.streamPoll.hidden = true;
+    return;
+  }
+
+  els.streamPoll.hidden = false;
+  const votes = poll?.votes || {};
+  const total = Object.values(votes).reduce((a, b) => a + b, 0);
+  els.streamPollTotal.textContent = `${total} vote${total === 1 ? "" : "s"}`;
+
+  const ranked = [...options].sort(
+    (a, b) => (votes[b.code] || 0) - (votes[a.code] || 0)
+  );
+  const top = ranked.slice(0, 6);
+  const key = top.map((o) => `${o.code}:${votes[o.code] || 0}`).join("|") + `:${total}`;
+  if (key === lastPollKey) return;
+  lastPollKey = key;
+
+  els.streamPollRows.innerHTML = "";
+  for (const opt of top) {
+    const count = votes[opt.code] || 0;
+    const pct = total ? Math.round((count / total) * 100) : 0;
+    const row = document.createElement("div");
+    row.className = "stream-poll-row";
+    row.innerHTML = `
+      <img src="${opt.img || `https://flagcdn.com/w80/${opt.code}.png`}" alt="" />
+      <div class="name">${opt.name}</div>
+      <div class="count">${count}</div>
+      <div class="stream-poll-bar"><i style="width:${pct}%"></i></div>
+    `;
+    els.streamPollRows.appendChild(row);
+  }
+}
+
+async function refreshStreamPoll() {
+  if (!shouldShowStreamPoll() || !game.stream?.id) {
+    if (els.streamPoll) els.streamPoll.hidden = true;
+    return;
+  }
+  const poll = await fetchPoll(game.stream.id);
+  renderStreamPoll(poll);
+}
+
 function renderChrome() {
   renderBoard();
   renderFeed();
   renderHud();
+  refreshStreamPoll();
 }
 
 els.btnStart.addEventListener("click", () => {
@@ -325,7 +461,6 @@ els.btnReset.addEventListener("click", () => {
   renderChrome();
 });
 
-const params = new URLSearchParams(location.search);
 const mobileMode = params.has("mobile") || params.has("stream");
 
 if (params.has("stream")) document.body.classList.add("stream-mode");
@@ -358,6 +493,13 @@ if (params.has("autostart")) {
   clearFighters();
   game.start();
 }
+
+// Keep on-stream poll board fresh for viewers.
+clearInterval(pollTimer);
+pollTimer = setInterval(() => {
+  renderStreamLinks();
+  refreshStreamPoll();
+}, 2000);
 
 async function enableMobileStreamHelpers() {
   if (!mobileMode) return;

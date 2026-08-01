@@ -63,6 +63,33 @@
           </div>
         </div>
 
+        <!-- On-stream links (visible to YouTube viewers) -->
+        <aside class="stream-links" id="stream-links" hidden>
+          <div class="stream-link-card">
+            <img id="qr-poll" class="stream-qr" alt="Poll QR" width="96" height="96" />
+            <div>
+              <div class="stream-link-label">VOTE · POLL</div>
+              <div class="stream-link-url" id="url-poll">/poll.html</div>
+            </div>
+          </div>
+          <div class="stream-link-card">
+            <img id="qr-rank" class="stream-qr" alt="Rankings QR" width="96" height="96" />
+            <div>
+              <div class="stream-link-label">RANKINGS</div>
+              <div class="stream-link-url" id="url-rank">/rankings.html</div>
+            </div>
+          </div>
+        </aside>
+
+        <!-- Live poll results on stream -->
+        <aside class="stream-poll" id="stream-poll" hidden>
+          <div class="stream-poll-head">
+            <span>LIVE POLL</span>
+            <strong id="stream-poll-total">0 votes</strong>
+          </div>
+          <div class="stream-poll-rows" id="stream-poll-rows"></div>
+        </aside>
+
         <footer class="hud">
           <div class="stats">
             <div>Countries <strong id="stat-countries">0</strong></div>
