@@ -37,6 +37,9 @@ const els = {
   urlRank: document.getElementById("url-rank"),
   qrPoll: document.getElementById("qr-poll"),
   qrRank: document.getElementById("qr-rank"),
+  subsPill: document.getElementById("subs-pill"),
+  subsCount: document.getElementById("subs-count"),
+  subsChannel: document.getElementById("subs-channel"),
 };
 
 /** Public site root for QR/links shown on the livestream (viewers can't click video). */
@@ -119,12 +122,28 @@ function syncHole() {
   const mid = (rotateDeg * Math.PI) / 180;
   const holeStart = mid - hole / 2;
   const holeEnd = mid + hole / 2;
+  // Keep guide track + floor rim in sync with physics radius.
+  const track = document.querySelector(".rim-track");
+  if (track) track.setAttribute("r", String(r));
+  const wrap = els.arena?.parentElement;
+  if (wrap) wrap.style.setProperty("--rim", `${r}%`);
   els.rimArc.setAttribute("d", describeArc(cx, cy, r, holeEnd, holeStart + Math.PI * 2));
   els.holeArc.setAttribute("d", describeArc(cx, cy, r, holeStart, holeEnd));
 }
 
+/** Keep the playfield a true square (physics unit circle ↔ pixels). */
+function layoutSquareArena() {
+  const wrap = els.arena?.parentElement;
+  if (!wrap || !els.arena) return;
+  const side = Math.min(wrap.clientWidth, wrap.clientHeight);
+  if (side <= 0) return;
+  els.arena.style.width = `${side}px`;
+  els.arena.style.height = `${side}px`;
+}
+
 /** Hot path — positions only. */
 function syncArena() {
+  layoutSquareArena();
   syncHole();
   const visibleIds = new Set();
   const count = Math.max(
@@ -134,8 +153,9 @@ function syncArena() {
   const sizeBase = flagSizeForCount(count).px;
   if (sizeBase !== lastSize) lastSize = sizeBase;
 
+  // After square layout, w === h.
   const w = els.arena.clientWidth || 1;
-  const h = els.arena.clientHeight || 1;
+  const h = els.arena.clientHeight || w;
 
   for (const f of game.fighters) {
     const show =
@@ -494,12 +514,50 @@ if (params.has("autostart")) {
   game.start();
 }
 
-// Keep on-stream poll board fresh for viewers.
+function formatSubs(n) {
+  if (n == null || Number.isNaN(n)) return "—";
+  if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(n >= 10_000_000 ? 0 : 1)}M`;
+  if (n >= 1_000) return `${(n / 1_000).toFixed(n >= 10_000 ? 0 : 1)}K`;
+  return String(n);
+}
+
+async function refreshSubs() {
+  if (!els.subsPill || !els.subsCount) return;
+  try {
+    const channelId = params.get("channelId") || "";
+    const qs = channelId ? `?id=${encodeURIComponent(channelId)}` : "";
+    const res = await fetch(`/api/channel${qs}`, { cache: "no-store" });
+    if (!res.ok) {
+      // Keep prior value if any; hide only when never loaded.
+      return;
+    }
+    const data = await res.json();
+    if (data.hiddenSubscriberCount) {
+      els.subsCount.textContent = "HIDDEN";
+    } else {
+      els.subsCount.textContent = formatSubs(data.subscriberCount);
+    }
+    if (els.subsChannel) {
+      els.subsChannel.textContent = data.customUrl || data.title || "";
+    }
+    els.subsPill.hidden = false;
+  } catch {
+    /* API offline / GitHub Pages without server */
+  }
+}
+
+// Keep on-stream poll board + subs fresh for viewers.
 clearInterval(pollTimer);
 pollTimer = setInterval(() => {
   renderStreamLinks();
   refreshStreamPoll();
 }, 2000);
+refreshSubs();
+setInterval(refreshSubs, 30_000);
+window.addEventListener("resize", () => {
+  layoutSquareArena();
+  syncArena();
+});
 
 async function enableMobileStreamHelpers() {
   if (!mobileMode) return;

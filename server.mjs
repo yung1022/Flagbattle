@@ -1,5 +1,5 @@
 /**
- * Static site + tiny API for rankings / live poll.
+ * Static site + tiny API for rankings / live poll / channel stats.
  *   node server.mjs
  *   PORT=5173 node server.mjs
  */
@@ -15,8 +15,30 @@ const DATA = path.join(ROOT, ".data");
 const LIVE_FILE = path.join(DATA, "live.json");
 const RANK_FILE = path.join(DATA, "rankings.json");
 const POLL_DIR = path.join(DATA, "polls");
+const CHANNEL_CACHE = path.join(DATA, "channel.json");
 
 fs.mkdirSync(POLL_DIR, { recursive: true });
+loadEnvFile(path.join(ROOT, "stream/.env"));
+loadEnvFile(path.join(ROOT, ".env"));
+
+function loadEnvFile(file) {
+  if (!fs.existsSync(file)) return;
+  for (const line of fs.readFileSync(file, "utf8").split("\n")) {
+    const trimmed = line.trim();
+    if (!trimmed || trimmed.startsWith("#")) continue;
+    const eq = trimmed.indexOf("=");
+    if (eq < 0) continue;
+    const key = trimmed.slice(0, eq).trim();
+    let val = trimmed.slice(eq + 1).trim();
+    if (
+      (val.startsWith('"') && val.endsWith('"')) ||
+      (val.startsWith("'") && val.endsWith("'"))
+    ) {
+      val = val.slice(1, -1);
+    }
+    if (!(key in process.env)) process.env[key] = val;
+  }
+}
 
 const MIME = {
   ".html": "text/html; charset=utf-8",
@@ -160,7 +182,94 @@ async function handleApi(req, res, url) {
     return send(res, 200, poll);
   }
 
+  if (url.pathname === "/api/channel" && req.method === "GET") {
+    try {
+      const channelId = url.searchParams.get("id") || process.env.YT_CHANNEL_ID;
+      const force = url.searchParams.get("refresh") === "1";
+      const cached = readJson(CHANNEL_CACHE, null);
+      if (
+        !force &&
+        cached?.fetchedAt &&
+        Date.now() - cached.fetchedAt < 60_000 &&
+        (!channelId || cached.id === channelId)
+      ) {
+        return send(res, 200, cached);
+      }
+      const info = await fetchChannelStats(channelId);
+      writeJson(CHANNEL_CACHE, info);
+      return send(res, 200, info);
+    } catch (err) {
+      const cached = readJson(CHANNEL_CACHE, null);
+      if (cached) return send(res, 200, { ...cached, stale: true });
+      return send(res, 500, { error: String(err.message || err) });
+    }
+  }
+
   return send(res, 404, { error: "not found" });
+}
+
+async function fetchChannelStats(channelId) {
+  const apiKey = process.env.YOUTUBE_API_KEY || process.env.GOOGLE_API_KEY;
+  let url;
+  const headers = {};
+
+  if (channelId && apiKey) {
+    url = `https://www.googleapis.com/youtube/v3/channels?part=snippet,statistics&id=${encodeURIComponent(channelId)}&key=${apiKey}`;
+  } else if (apiKey && process.env.YT_CHANNEL_HANDLE) {
+    const handle = process.env.YT_CHANNEL_HANDLE.replace(/^@/, "");
+    url = `https://www.googleapis.com/youtube/v3/channels?part=snippet,statistics&forHandle=${encodeURIComponent(handle)}&key=${apiKey}`;
+  } else {
+    // OAuth: authenticated channel (the livestream account).
+    const token = await getAccessToken();
+    url =
+      "https://www.googleapis.com/youtube/v3/channels?part=snippet,statistics&mine=true";
+    headers.Authorization = `Bearer ${token}`;
+  }
+
+  const res = await fetch(url, { headers });
+  const data = await res.json();
+  if (!res.ok) {
+    throw new Error(data.error?.message || JSON.stringify(data.error || data));
+  }
+  const item = data.items?.[0];
+  if (!item) throw new Error("No channel found");
+
+  return {
+    id: item.id,
+    title: item.snippet?.title || "Channel",
+    customUrl: item.snippet?.customUrl || "",
+    subscriberCount: Number(item.statistics?.subscriberCount || 0),
+    hiddenSubscriberCount: !!item.statistics?.hiddenSubscriberCount,
+    thumbnail: item.snippet?.thumbnails?.default?.url || "",
+    fetchedAt: Date.now(),
+  };
+}
+
+async function getAccessToken() {
+  const clientId = process.env.GOOGLE_CLIENT_ID;
+  const clientSecret = process.env.GOOGLE_CLIENT_SECRET;
+  const refreshToken = process.env.GOOGLE_REFRESH_TOKEN;
+  if (!clientId || !clientSecret || !refreshToken) {
+    throw new Error(
+      "Set GOOGLE_* OAuth in stream/.env, or YOUTUBE_API_KEY + YT_CHANNEL_ID"
+    );
+  }
+  const body = new URLSearchParams({
+    client_id: clientId,
+    client_secret: clientSecret,
+    refresh_token: refreshToken,
+    grant_type: "refresh_token",
+  });
+  const res = await fetch("https://oauth2.googleapis.com/token", {
+    method: "POST",
+    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+    body,
+  });
+  const data = await res.json();
+  if (!res.ok || !data.access_token) {
+    throw new Error(data.error_description || data.error || "token refresh failed");
+  }
+  return data.access_token;
 }
 
 function serveStatic(req, res, urlPath) {

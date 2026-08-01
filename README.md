@@ -26,11 +26,12 @@ Open `http://localhost:5173`
 | Mobile go-live | `/control/` |
 | Stream view | `/?stream=1&autostart=1` |
 
-### On-stream poll & rankings
+### On-stream poll, rankings & subs
 
 The livestream overlay shows:
 - **QR + URL** for the poll and rankings pages
 - **Live poll results** during final intermission / Final
+- **Channel subscriber count** (via `/api/channel`)
 
 Pass your public site so viewers get a scannable link:
 
@@ -41,6 +42,14 @@ node server.mjs
 
 # auto-stream
 PUBLIC_SITE=https://yung1022.github.io/Flagbattle npm run go-live --prefix stream
+```
+
+Subscriber count uses `stream/.env` OAuth (livestream account), or:
+
+```env
+YOUTUBE_API_KEY=...
+YT_CHANNEL_ID=UCxxxx
+# or YT_CHANNEL_HANDLE=@YourHandle
 ```
 
 ## Fixes in this build
