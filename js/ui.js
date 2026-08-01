@@ -186,7 +186,7 @@ function renderBoard() {
       ? "CHAMPION"
       : "FLAGS STANDING";
   els.boardMeta.textContent = showQualifiedBoard
-    ? `${flags.length} / ${CONFIG.finalistSlots}`
+    ? `${flags.length} qualified`
     : `${flags.length} standing`;
 
   const key = `${game.phase}:${flags.map((f) => f.code).join(",")}`;
@@ -262,7 +262,7 @@ function renderHud() {
           ? "Intermission · Final next"
           : "Intermission · Qualifying next";
     else if (game.phase === "qualifying_hold")
-      els.roundMeta.textContent = "Slots full · waiting on clock";
+      els.roundMeta.textContent = "All qualified · waiting on clock";
     else if (game.phase === "final" || game.phase === "finished")
       els.roundMeta.textContent = `Final · Round ${game.round}`;
     else els.roundMeta.textContent = `Qualifying · Round ${game.round}`;
@@ -281,7 +281,7 @@ function renderHud() {
       game.phase === "between_rounds"
         ? "Qualifier locked"
         : game.phase === "qualifying_hold"
-          ? "Slots filled"
+          ? "All qualified"
           : "Qualifying";
     els.timer.textContent = formatMs(game.qualifyingRemainingMs());
     els.timer.hidden = false;

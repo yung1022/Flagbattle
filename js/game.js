@@ -12,7 +12,6 @@ import {
 
 export const CONFIG = {
   qualifyingMs: 30 * 60 * 1000,
-  finalistSlots: 32,
   arenaRadius: 0.42,
   holeWidth: 0.85,
   holeSpeed: 1.8,
@@ -39,7 +38,6 @@ if (params.has("demo")) {
   CONFIG.maxSpeed = 1.45;
   CONFIG.outwardForce = 0.5;
   CONFIG.shrinkDurationSec = 18;
-  CONFIG.finalistSlots = Math.min(CONFIG.finalistSlots, 8);
 }
 
 function shuffle(arr) {
@@ -96,7 +94,6 @@ export class FlagBattleGame {
     this._fallOrder = [];
     this._betweenUntil = 0;
     this._pendingFinal = false;
-    this._slotsFull = false;
     this._raf = 0;
     this._lastTs = 0;
     this._lastUi = 0;
@@ -125,7 +122,6 @@ export class FlagBattleGame {
     this._fallOrder = [];
     this._betweenUntil = 0;
     this._pendingFinal = false;
-    this._slotsFull = false;
     this._uiDirty = true;
     this._emit("reset", "All countries ready. Last flag in the circle qualifies.");
     this._flushUi(true);
@@ -597,11 +593,10 @@ export class FlagBattleGame {
     this._recordRound(flag, "qualifying");
     this._emit(
       "qualify",
-      `${flag.name} QUALIFIED for the Final! (Round ${this.round})`
+      `${flag.name} QUALIFIED for the Final! (Round ${this.round}) · ${this.qualified.length} total`
     );
 
-    this._slotsFull = this.qualified.length >= CONFIG.finalistSlots;
-    // Qualifying always fills the full clock — never jump to Final early.
+    // No qualifier cap — keep running until the 30:00 clock ends.
     this._pendingFinal = this.qualifyingExpired;
     this._uiDirty = true;
 
@@ -609,16 +604,6 @@ export class FlagBattleGame {
       this.phase = "between_rounds";
       this._betweenUntil = performance.now() + CONFIG.betweenRoundMs;
       this._pendingFinal = true;
-      return;
-    }
-
-    if (this._slotsFull) {
-      this.phase = "qualifying_hold";
-      this._emit(
-        "phase",
-        `All ${CONFIG.finalistSlots} slots filled — holding until qualifying clock ends.`
-      );
-      this._publishLive();
       return;
     }
 
@@ -631,11 +616,6 @@ export class FlagBattleGame {
       this._beginIntermission("final");
       return;
     }
-    if (this._slotsFull) {
-      this.phase = "qualifying_hold";
-      this._uiDirty = true;
-      return;
-    }
 
     const remaining = this._remainingCountries();
     if (remaining.length <= 1) {
@@ -645,10 +625,14 @@ export class FlagBattleGame {
         this._qualify(last);
         return;
       }
-      // No one left to qualify — hold until clock ends.
-      this._slotsFull = true;
+      // Everyone already qualified — hold until the clock ends.
       this.phase = "qualifying_hold";
-      this._emit("phase", "No countries left — holding until qualifying clock ends.");
+      this._emit(
+        "phase",
+        "Every country has qualified — holding until qualifying clock ends."
+      );
+      this._uiDirty = true;
+      this._publishLive();
       return;
     }
 
