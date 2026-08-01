@@ -33,6 +33,7 @@
       <div class="tabs" role="tablist">
         <button type="button" class="tab active" data-tab="points">Points</button>
         <button type="button" class="tab" data-tab="sheet">Battle sheet</button>
+        <button type="button" class="tab" data-tab="image">Top 10 image</button>
         <button type="button" class="tab" data-tab="streams">Streams</button>
       </div>
 
@@ -54,7 +55,47 @@
             Rows = countries · Columns = battles (oldest → newest). Scroll
             horizontally on small screens.
           </div>
+          <div class="sheet-toolbar">
+            <label class="search-field">
+              <span>Search</span>
+              <input
+                type="search"
+                id="sheet-search"
+                placeholder="Country name or code…"
+                autocomplete="off"
+                spellcheck="false"
+              />
+            </label>
+            <div class="meta" id="sheet-filter-meta"></div>
+          </div>
           <div class="sheet-scroll" id="sheet-host"></div>
+        </div>
+      </section>
+
+      <section id="panel-image" class="tab-panel" hidden>
+        <div class="card">
+          <h2>TOP 10 IMAGE</h2>
+          <div class="meta">
+            Generate a shareable ranking card (PNG) for season points or a
+            finished Final.
+          </div>
+          <div class="image-controls">
+            <label class="search-field">
+              <span>Source</span>
+              <select id="image-source"></select>
+            </label>
+            <button type="button" class="btn primary" id="btn-gen-image">
+              Generate
+            </button>
+            <button type="button" class="btn" id="btn-dl-image" disabled>
+              Download PNG
+            </button>
+          </div>
+          <div class="meta" id="image-status">Pick a source, then Generate.</div>
+          <div class="image-preview-wrap">
+            <canvas id="rank-canvas" width="1080" height="1350" hidden></canvas>
+            <img id="rank-preview" alt="Top 10 ranking preview" hidden />
+          </div>
         </div>
       </section>
 
@@ -76,6 +117,10 @@
         buildPointsLeaderboard,
         pointsForRank,
       } from "./js/rankings-stats.js";
+      import {
+        generateTop10Image,
+        downloadCanvas,
+      } from "./js/rank-image.js";
 
       const params = new URLSearchParams(location.search);
       const focusId = params.get("id");
@@ -84,8 +129,19 @@
       const btnRefresh = document.getElementById("btn-refresh");
       const pointsList = document.getElementById("points-list");
       const sheetHost = document.getElementById("sheet-host");
+      const sheetSearch = document.getElementById("sheet-search");
+      const sheetFilterMeta = document.getElementById("sheet-filter-meta");
+      const imageSource = document.getElementById("image-source");
+      const btnGenImage = document.getElementById("btn-gen-image");
+      const btnDlImage = document.getElementById("btn-dl-image");
+      const imageStatus = document.getElementById("image-status");
+      const rankPreview = document.getElementById("rank-preview");
 
       let cachedStreams = [];
+      let cachedBoard = [];
+      let lastCanvas = null;
+      let lastImageName = "flag-battle-top10.png";
+      let sheetRowCount = 0;
 
       document.querySelectorAll(".tab").forEach((tab) => {
         tab.addEventListener("click", () => {
@@ -94,6 +150,7 @@
           const id = tab.dataset.tab;
           document.getElementById("panel-points").hidden = id !== "points";
           document.getElementById("panel-sheet").hidden = id !== "sheet";
+          document.getElementById("panel-image").hidden = id !== "image";
           document.getElementById("panel-streams").hidden = id !== "streams";
         });
       });
@@ -101,6 +158,15 @@
       if (focusId) {
         document.querySelector('.tab[data-tab="streams"]')?.click();
       }
+
+      sheetSearch.addEventListener("input", () => applySheetFilter());
+      sheetSearch.addEventListener("search", () => applySheetFilter());
+
+      btnGenImage.addEventListener("click", () => generateImage());
+      btnDlImage.addEventListener("click", async () => {
+        if (!lastCanvas) return;
+        await downloadCanvas(lastCanvas, lastImageName);
+      });
 
       async function load() {
         btnRefresh.disabled = true;
@@ -119,6 +185,7 @@
           cachedStreams = streams;
           const live = await fetchLiveFromApi();
           renderSeason(streams);
+          fillImageSources(streams);
           renderStreams(streams, live?.live || null);
           const finals = streams.filter((s) => s.final?.ranking?.length).length;
           statusEl.textContent = `Updated ${new Date().toLocaleString()} · ${streams.length} stream${streams.length === 1 ? "" : "s"} · ${finals} finished Final${finals === 1 ? "" : "s"}`;
@@ -131,6 +198,7 @@
 
       function renderSeason(streams) {
         const board = buildPointsLeaderboard(streams, COUNTRIES);
+        cachedBoard = board;
         pointsList.innerHTML = "";
         if (!board.some((r) => r.points > 0 || r.finishes > 0)) {
           pointsList.innerHTML = `<p class="empty">No finished Finals yet — points appear after a battle completes Last Flag Standing.</p>`;
@@ -156,8 +224,7 @@
       function pointsRow(row) {
         const div = document.createElement("div");
         div.className = "rank-row points-row";
-        const best =
-          row.best != null ? `#${row.best}` : "nq";
+        const best = row.best != null ? `#${row.best}` : "nq";
         div.innerHTML = `
           <span class="rank-num">#${row.rank}</span>
           <img src="${row.img}" alt="" />
@@ -170,13 +237,16 @@
 
       function renderSheet(sheet) {
         sheetHost.innerHTML = "";
+        sheetRowCount = 0;
         if (!sheet.battles.length) {
           sheetHost.innerHTML = `<p class="empty">No battles recorded yet.</p>`;
+          sheetFilterMeta.textContent = "";
           return;
         }
 
         const table = document.createElement("table");
         table.className = "sheet";
+        table.id = "battle-sheet";
         const thead = document.createElement("thead");
         const headRow = document.createElement("tr");
         headRow.innerHTML = `<th class="sticky-col">Country</th><th class="pts-col">Pts</th>`;
@@ -192,6 +262,8 @@
         const tbody = document.createElement("tbody");
         for (const row of sheet.rows) {
           const tr = document.createElement("tr");
+          tr.dataset.name = row.name.toLowerCase();
+          tr.dataset.code = row.code.toLowerCase();
           const nameTd = document.createElement("td");
           nameTd.className = "sticky-col country-cell";
           nameTd.innerHTML = `<img src="${row.img}" alt="" /><span>${row.name}</span>`;
@@ -221,9 +293,126 @@
             tr.appendChild(td);
           }
           tbody.appendChild(tr);
+          sheetRowCount += 1;
         }
         table.appendChild(tbody);
         sheetHost.appendChild(table);
+        applySheetFilter();
+      }
+
+      function applySheetFilter() {
+        const q = (sheetSearch.value || "").trim().toLowerCase();
+        const rows = sheetHost.querySelectorAll("tbody tr");
+        if (!rows.length) {
+          sheetFilterMeta.textContent = "";
+          return;
+        }
+        let shown = 0;
+        for (const tr of rows) {
+          const match =
+            !q ||
+            tr.dataset.name.includes(q) ||
+            tr.dataset.code.includes(q);
+          tr.hidden = !match;
+          if (match) shown += 1;
+        }
+        sheetFilterMeta.textContent = q
+          ? `${shown} of ${sheetRowCount} countries`
+          : `${sheetRowCount} countries`;
+      }
+
+      function fillImageSources(streams) {
+        const prev = imageSource.value;
+        imageSource.innerHTML = "";
+        const optSeason = document.createElement("option");
+        optSeason.value = "season";
+        optSeason.textContent = "Season points (all battles)";
+        imageSource.appendChild(optSeason);
+
+        const finished = streams.filter((s) => s.final?.ranking?.length);
+        for (const s of finished) {
+          const opt = document.createElement("option");
+          opt.value = `stream:${s.id}`;
+          const when = s.startedAt
+            ? new Date(s.startedAt).toLocaleString()
+            : s.id;
+          const winner = s.winner?.name || s.final?.winner?.name || "Final";
+          opt.textContent = `Final · ${when} · ${winner}`;
+          imageSource.appendChild(opt);
+        }
+
+        if (prev && [...imageSource.options].some((o) => o.value === prev)) {
+          imageSource.value = prev;
+        }
+      }
+
+      async function generateImage() {
+        btnGenImage.disabled = true;
+        imageStatus.textContent = "Generating…";
+        try {
+          const value = imageSource.value || "season";
+          let entries = [];
+          let title = "TOP 10";
+          let subtitle = "Season points";
+          let filename = "flag-battle-season-top10.png";
+
+          if (value === "season") {
+            entries = cachedBoard.slice(0, 10).map((r) => ({
+              rank: r.rank,
+              code: r.code,
+              name: r.name,
+              img: `https://flagcdn.com/w160/${r.code}.png`,
+              points: r.points,
+            }));
+            if (!entries.some((e) => e.points > 0)) {
+              imageStatus.textContent =
+                "No season points yet — finish a Final first, or pick a stream Final.";
+              btnDlImage.disabled = true;
+              rankPreview.hidden = true;
+              return;
+            }
+          } else if (value.startsWith("stream:")) {
+            const id = value.slice(7);
+            const stream =
+              cachedStreams.find((s) => s.id === id) || getStream(id);
+            const ranking = stream?.final?.ranking || [];
+            entries = ranking.slice(0, 10).map((r) => ({
+              rank: r.rank,
+              code: r.code,
+              name: r.name,
+              img: r.img || `https://flagcdn.com/w160/${r.code}.png`,
+              points: pointsForRank(r.rank),
+            }));
+            const when = stream?.startedAt
+              ? new Date(stream.startedAt).toLocaleDateString()
+              : "Final";
+            subtitle = `Final · ${when}`;
+            filename = `flag-battle-final-top10-${id}.png`;
+            if (!entries.length) {
+              imageStatus.textContent = "That stream has no Final ranking.";
+              btnDlImage.disabled = true;
+              rankPreview.hidden = true;
+              return;
+            }
+          }
+
+          lastCanvas = await generateTop10Image({
+            entries,
+            title,
+            subtitle,
+            footer: "yung1022.github.io/Flagbattle/rankings.html",
+          });
+          lastImageName = filename;
+          rankPreview.src = lastCanvas.toDataURL("image/png");
+          rankPreview.hidden = false;
+          btnDlImage.disabled = false;
+          imageStatus.textContent = `Ready · ${entries.length} countries · ${filename}`;
+        } catch (err) {
+          imageStatus.textContent = `Generate failed: ${err.message || err}`;
+          btnDlImage.disabled = true;
+        } finally {
+          btnGenImage.disabled = false;
+        }
       }
 
       function renderStreams(streams, live) {
