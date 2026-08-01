@@ -4,14 +4,16 @@ Vertical **9:16** all-country flag battle for YouTube Shorts livestreams.
 
 ## Rules
 
-1. **Qualifying (30 minutes)** — Heats of flags fight inside a **circle with a rotating hole**.  
+1. **1:00 intermission** at stream start.
+2. **Qualifying (30 minutes)** — Every round puts **all non-qualified countries** in the circle (flag size scales with count).  
    - No damage between flags (they only bounce).  
    - Touch the hole → you fall out.  
    - **Last flag standing in the round qualifies** for the Final.  
    - Top board shows **QUALIFIED FOR FINAL**.
-2. **Final — Last Flag Standing** — Same hole-circle rules among qualifiers. Top board shows **FLAGS STANDING**.
+3. **1:00 intermission** between qualifying and the Final.
+4. **Final — Last Flag Standing** — Same hole-circle rules among qualifiers. Top board shows **FLAGS STANDING**.
 
-Default: **32** finalist slots · heats of **48**.
+Default: **32** finalist slots.
 
 ## Mobile only (no PC)
 

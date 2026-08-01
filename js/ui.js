@@ -1,4 +1,4 @@
-import { FlagBattleGame, CONFIG } from "./game.js";
+import { FlagBattleGame, CONFIG, flagSizeForCount } from "./game.js";
 import { COUNTRIES } from "./countries.js";
 
 const game = new FlagBattleGame();
@@ -22,6 +22,10 @@ const els = {
   winnerFlag: document.getElementById("winner-flag"),
   winnerName: document.getElementById("winner-name"),
   roundMeta: document.getElementById("round-meta"),
+  intermission: document.getElementById("intermission"),
+  intermissionTitle: document.getElementById("intermission-title"),
+  intermissionSub: document.getElementById("intermission-sub"),
+  intermissionTimer: document.getElementById("intermission-timer"),
 };
 
 const fighterEls = new Map();
@@ -82,14 +86,17 @@ function syncHole() {
 function syncArena() {
   syncHole();
   const visibleIds = new Set();
-  const count = Math.max(1, game.standing().length + game.fighters.filter((f) => f.falling).length);
-  const sizeBase =
-    game.phase === "final" || count < 20
-      ? Math.max(34, Math.min(58, 480 / Math.max(6, count)))
-      : Math.max(24, Math.min(40, 780 / Math.max(20, count)));
+  const count = Math.max(
+    1,
+    game.standing().length + game.fighters.filter((f) => f.falling).length
+  );
+  const sizeBase = flagSizeForCount(count).px;
 
   for (const f of game.fighters) {
-    const show = f.alive || f.falling;
+    const show =
+      game.phase === "intermission"
+        ? f.alive
+        : f.alive || f.falling;
     if (!show) {
       const existing = fighterEls.get(f.id);
       if (existing && !existing.classList.contains("eliminating")) {
@@ -121,16 +128,17 @@ function syncArena() {
 
 function renderBoard() {
   const flags = game.boardFlags();
-  const isQual =
+  const showQualifiedBoard =
     game.phase === "qualifying" ||
     game.phase === "idle" ||
-    game.phase === "between_rounds";
-  els.boardLabel.textContent = isQual
+    game.phase === "between_rounds" ||
+    game.phase === "intermission";
+  els.boardLabel.textContent = showQualifiedBoard
     ? "QUALIFIED FOR FINAL"
     : game.phase === "finished"
       ? "CHAMPION"
       : "FLAGS STANDING";
-  els.boardMeta.textContent = isQual
+  els.boardMeta.textContent = showQualifiedBoard
     ? `${flags.length} / ${CONFIG.finalistSlots}`
     : `${flags.length} standing`;
 
@@ -145,11 +153,13 @@ function renderBoard() {
     const empty = document.createElement("div");
     empty.className = "board-empty";
     empty.textContent =
-      game.phase === "qualifying" || game.phase === "between_rounds"
-        ? "Waiting for first qualifier…"
-        : game.phase === "idle"
-          ? "Press Start — last flag in the circle qualifies"
-          : "—";
+      game.phase === "intermission" && game.intermissionKind === "open"
+        ? "Qualifying starts after intermission…"
+        : game.phase === "qualifying" || game.phase === "between_rounds"
+          ? "Waiting for first qualifier…"
+          : game.phase === "idle"
+            ? "Press Start — last flag in the circle qualifies"
+            : "—";
     els.boardTrack.appendChild(empty);
     return;
   }
@@ -189,17 +199,28 @@ function renderFeed() {
 function renderHud() {
   const fighting = game.standing().length;
   els.statCountries.textContent = String(COUNTRIES.length);
-  els.statFighting.textContent = String(fighting);
+  els.statFighting.textContent = String(
+    game.phase === "intermission" ? game.fighters.filter((f) => f.alive).length : fighting
+  );
   els.statBoard.textContent = String(game.boardFlags().length);
 
   if (els.roundMeta) {
     if (game.phase === "idle") els.roundMeta.textContent = "Hole circle · no damage";
+    else if (game.phase === "intermission")
+      els.roundMeta.textContent =
+        game.intermissionKind === "final"
+          ? "Intermission · Final next"
+          : "Intermission · Qualifying next";
     else if (game.phase === "final" || game.phase === "finished")
       els.roundMeta.textContent = `Final · Round ${game.round}`;
     else els.roundMeta.textContent = `Qualifying · Round ${game.round}`;
   }
 
-  if (game.phase === "qualifying" || game.phase === "between_rounds") {
+  if (game.phase === "intermission") {
+    els.phaseText.textContent = "Intermission";
+    els.timer.textContent = formatMs(game.intermissionRemainingMs());
+    els.timer.hidden = false;
+  } else if (game.phase === "qualifying" || game.phase === "between_rounds") {
     els.phaseText.textContent =
       game.phase === "between_rounds" ? "Qualifier locked" : "Qualifying";
     els.timer.textContent = formatMs(game.qualifyingRemainingMs());
@@ -217,9 +238,25 @@ function renderHud() {
     els.timer.hidden = false;
   }
 
+  if (els.intermission) {
+    const show = game.phase === "intermission";
+    els.intermission.classList.toggle("show", show);
+    if (show) {
+      const opening = game.intermissionKind === "open";
+      els.intermissionTitle.textContent = opening
+        ? "GET READY"
+        : "FINAL INCOMING";
+      els.intermissionSub.textContent = opening
+        ? `${COUNTRIES.length} countries · hole circle qualifying`
+        : `${game.qualified.length} qualified · Last Flag Standing`;
+      els.intermissionTimer.textContent = formatMs(game.intermissionRemainingMs());
+    }
+  }
+
   const busy =
     game.phase === "qualifying" ||
     game.phase === "between_rounds" ||
+    game.phase === "intermission" ||
     game.phase === "final";
   els.btnStart.disabled = busy;
   els.btnStart.textContent =

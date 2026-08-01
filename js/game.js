@@ -1,33 +1,45 @@
 import { COUNTRIES, flagUrl } from "./countries.js";
 
-/** @typedef {"idle" | "qualifying" | "between_rounds" | "final" | "finished"} Phase */
+/**
+ * @typedef {"idle" | "intermission" | "qualifying" | "between_rounds" | "final" | "finished"} Phase
+ */
 
 export const CONFIG = {
   qualifyingMs: 30 * 60 * 1000,
   finalistSlots: 32,
-  heatSize: 48,
   /** Playable circle radius in normalized arena coords (center = 0.5). */
   arenaRadius: 0.42,
   /** Angular width of the fall-through hole (radians). */
-  holeWidth: 0.62,
-  /** Hole rotation speed (rad/s). Speeds up as fewer flags remain. */
-  holeSpeed: 0.42,
+  holeWidth: 0.72,
+  /** Hole rotation speed (rad/s). */
+  holeSpeed: 0.95,
+  /** Base physics radius; scaled down when many flags are present. */
   flagRadius: 0.028,
-  maxSpeed: 0.26,
-  betweenRoundMs: 2800,
+  maxSpeed: 0.42,
+  /** Brief beat after a country qualifies mid-qualifying. */
+  betweenRoundMs: 1600,
+  /** Opening bumper + pre-final bumper. */
+  intermissionMs: 60 * 1000,
   /** Soft body push strength between flags (no damage). */
-  pushStrength: 0.9,
+  pushStrength: 0.85,
+  /** Outward drift so flags hit the rim/hole sooner. */
+  outwardForce: 0.11,
+  /** Arena shrinks over a round to speed eliminations (fraction of radius). */
+  shrinkMinScale: 0.72,
+  shrinkDurationSec: 55,
 };
 
 const params = new URLSearchParams(location.search);
 if (params.has("demo")) {
   const sec = Number(params.get("demo")) || 45;
   CONFIG.qualifyingMs = sec * 1000;
-  CONFIG.betweenRoundMs = 900;
-  CONFIG.holeSpeed = 0.9;
-  CONFIG.holeWidth = 0.78;
-  CONFIG.maxSpeed = 0.36;
-  CONFIG.heatSize = 24;
+  CONFIG.betweenRoundMs = 700;
+  CONFIG.intermissionMs = Math.min(CONFIG.intermissionMs, 8_000);
+  CONFIG.holeSpeed = 1.35;
+  CONFIG.holeWidth = 0.9;
+  CONFIG.maxSpeed = 0.55;
+  CONFIG.outwardForce = 0.18;
+  CONFIG.shrinkDurationSec = 22;
   CONFIG.finalistSlots = Math.min(CONFIG.finalistSlots, 8);
 }
 
@@ -57,6 +69,15 @@ function angleDiff(a, b) {
   return d;
 }
 
+/** Physics + render radius from how many flags are in the arena. */
+export function flagSizeForCount(count) {
+  const n = Math.max(1, count);
+  // ~194 → tiny, ~32 → medium, ~8 → large
+  const radius = Math.min(0.034, Math.max(0.012, 0.22 / Math.sqrt(n)));
+  const px = Math.min(56, Math.max(14, 520 / Math.sqrt(n)));
+  return { radius, px };
+}
+
 export class FlagBattleGame {
   constructor() {
     /** @type {Phase} */
@@ -65,13 +86,15 @@ export class FlagBattleGame {
     this.qualified = [];
     this.eliminated = [];
     this.events = [];
-    this.playedCodes = new Set();
     this.phaseStartedAt = 0;
     this.qualifyingEndsAt = 0;
     this.qualifyingExpired = false;
     this.winner = null;
     this.round = 0;
     this.holeAngle = 0;
+    this.roundStartedAt = 0;
+    this.arenaScale = 1;
+    this.intermissionKind = null; // "open" | "final"
     this._betweenUntil = 0;
     this._pendingFinal = false;
     this._raf = 0;
@@ -86,13 +109,15 @@ export class FlagBattleGame {
     this.qualified = [];
     this.eliminated = [];
     this.events = [];
-    this.playedCodes = new Set();
     this.phaseStartedAt = 0;
     this.qualifyingEndsAt = 0;
     this.qualifyingExpired = false;
     this.winner = null;
     this.round = 0;
     this.holeAngle = rand(0, Math.PI * 2);
+    this.roundStartedAt = 0;
+    this.arenaScale = 1;
+    this.intermissionKind = null;
     this._betweenUntil = 0;
     this._pendingFinal = false;
     this._emit("reset", "All countries ready. Last flag in the circle qualifies.");
@@ -100,9 +125,9 @@ export class FlagBattleGame {
   }
 
   _makeFighter(country, index, total) {
-    const angle = (index / Math.max(1, total)) * Math.PI * 2 + rand(-0.05, 0.05);
-    const radius = rand(0.08, CONFIG.arenaRadius * 0.72);
-    const speed = rand(0.08, CONFIG.maxSpeed * 0.7);
+    const angle = (index / Math.max(1, total)) * Math.PI * 2 + rand(-0.04, 0.04);
+    const radius = rand(0.06, CONFIG.arenaRadius * 0.7);
+    const speed = rand(0.12, CONFIG.maxSpeed * 0.85);
     const dir = rand(0, Math.PI * 2);
     return {
       ...country,
@@ -125,37 +150,55 @@ export class FlagBattleGame {
     this.reset();
     this.events = [];
     this.phaseStartedAt = performance.now();
-    this.qualifyingEndsAt = this.phaseStartedAt + CONFIG.qualifyingMs;
-    this._emit(
-      "phase",
-      "QUALIFYING — stay in the circle. Fall through the hole and you're out. Last flag qualifies each round."
-    );
-    this._startNextQualifyingRound();
+    // Qualifying clock starts after the opening intermission.
+    this.qualifyingEndsAt = 0;
+    this._beginIntermission("open");
     this._startLoop();
     this.onChange();
   }
 
-  _pickHeat() {
-    const remaining = COUNTRIES.filter(
+  _beginIntermission(kind) {
+    this.intermissionKind = kind;
+    this.phase = "intermission";
+    this._betweenUntil = performance.now() + CONFIG.intermissionMs;
+    this.arenaScale = 1;
+    if (kind === "open") {
+      // Preview: every country on the floor during the bumper.
+      this.round = 0;
+      this.fighters = shuffle(COUNTRIES).map((c, i) =>
+        this._makeFighter(c, i, COUNTRIES.length)
+      );
+      this._emit(
+        "phase",
+        `INTERMISSION — battle starts in ${Math.round(CONFIG.intermissionMs / 1000)}s`
+      );
+    } else {
+      // Showcase everyone who made the Final.
+      const list = this.qualified.length
+        ? this.qualified
+        : shuffle(COUNTRIES).slice(0, 16);
+      this.fighters = shuffle(list).map((c, i) => {
+        const f = this._makeFighter(c, i, list.length);
+        f.qualified = true;
+        return f;
+      });
+      this._emit(
+        "phase",
+        `INTERMISSION — Final in ${Math.round(CONFIG.intermissionMs / 1000)}s · ${this.qualified.length} qualified`
+      );
+    }
+    for (const f of this.fighters) {
+      f.vx *= 0.2;
+      f.vy *= 0.2;
+      f.falling = false;
+      f.alive = true;
+    }
+  }
+
+  _remainingCountries() {
+    return COUNTRIES.filter(
       (c) => !this.qualified.some((q) => q.code === c.code)
     );
-    if (!remaining.length) return [];
-
-    const unplayed = remaining.filter((c) => !this.playedCodes.has(c.code));
-    let pool = unplayed.length ? [...unplayed] : [...remaining];
-    pool = shuffle(pool);
-
-    if (pool.length < CONFIG.heatSize && unplayed.length) {
-      const fillers = shuffle(
-        remaining.filter((c) => this.playedCodes.has(c.code))
-      );
-      pool = pool.concat(fillers).slice(0, CONFIG.heatSize);
-    } else {
-      pool = pool.slice(0, Math.min(CONFIG.heatSize, pool.length));
-    }
-
-    for (const c of pool) this.playedCodes.add(c.code);
-    return pool;
   }
 
   _beginRound(countries) {
@@ -163,8 +206,13 @@ export class FlagBattleGame {
     const list = shuffle(countries);
     this.fighters = list.map((c, i) => this._makeFighter(c, i, list.length));
     this.holeAngle = rand(0, Math.PI * 2);
+    this.roundStartedAt = performance.now();
+    this.arenaScale = 1;
     this.phase = "qualifying";
-    this._emit("phase", `Round ${this.round} — ${list.length} flags. Last one qualifies!`);
+    this._emit(
+      "phase",
+      `Round ${this.round} — ${list.length} flags in. Last one qualifies!`
+    );
   }
 
   stopLoop() {
@@ -186,9 +234,28 @@ export class FlagBattleGame {
   }
 
   update(dt, now) {
+    if (this.phase === "intermission") {
+      // Gentle drift during bumper so the arena stays alive.
+      this._moveFighters(dt * 0.35, { physicsRim: false });
+      if (now >= this._betweenUntil) {
+        if (this.intermissionKind === "open") {
+          this.qualifyingEndsAt = now + CONFIG.qualifyingMs;
+          this._emit(
+            "phase",
+            "QUALIFYING — all non-qualified countries each round. Last flag qualifies."
+          );
+          this._startNextQualifyingRound();
+        } else {
+          this._beginFinal();
+        }
+      }
+      this.onChange();
+      return;
+    }
+
     if (this.phase === "between_rounds") {
       if (now >= this._betweenUntil) {
-        if (this._pendingFinal) this._beginFinal();
+        if (this._pendingFinal) this._beginIntermission("final");
         else this._startNextQualifyingRound();
       }
       this.onChange();
@@ -199,24 +266,33 @@ export class FlagBattleGame {
       if (
         this.phase === "qualifying" &&
         !this.qualifyingExpired &&
+        this.qualifyingEndsAt &&
         now >= this.qualifyingEndsAt
       ) {
         this.qualifyingExpired = true;
         this._emit("phase", "Qualifying clock hit 0 — finishing this round…");
       }
 
-      const standing = this.fighters.filter((f) => f.alive && !f.falling);
-      const speedBoost = 1 + Math.max(0, 8 - standing.length) * 0.08;
-      this.holeAngle = normAngle(this.holeAngle + CONFIG.holeSpeed * speedBoost * dt);
+      const elapsed = (now - this.roundStartedAt) / 1000;
+      const t = Math.min(1, elapsed / CONFIG.shrinkDurationSec);
+      this.arenaScale =
+        1 - (1 - CONFIG.shrinkMinScale) * (t * t);
 
-      this._moveFighters(dt);
+      // Hole widens as the pack thins / round ages — faster qualifying.
+      const standing = this.fighters.filter((f) => f.alive && !f.falling);
+      const packBoost = 1 + Math.min(1.2, standing.length / 120);
+      const lateBoost = 1 + t * 0.85;
+      this.holeAngle = normAngle(
+        this.holeAngle + CONFIG.holeSpeed * packBoost * lateBoost * dt
+      );
+
+      this._moveFighters(dt, { physicsRim: true });
       this._resolveCollisions();
-      this._applyCircleAndHole();
+      this._applyCircleAndHole(t);
 
       const standingNow = this.fighters.filter((f) => f.alive && !f.falling);
       const alive = this.fighters.filter((f) => f.alive);
       if (standingNow.length === 1) {
-        // Round over as soon as one flag remains inside the circle.
         for (const f of this.fighters) {
           if (f.falling && f.alive) {
             f.alive = false;
@@ -235,24 +311,37 @@ export class FlagBattleGame {
     this.onChange();
   }
 
-  _moveFighters(dt) {
+  _flagRadius() {
+    const n = this.fighters.filter((f) => f.alive && !f.falling).length || this.fighters.length || 1;
+    return flagSizeForCount(n).radius;
+  }
+
+  _moveFighters(dt, { physicsRim }) {
+    const outward = physicsRim ? CONFIG.outwardForce : 0.02;
     for (const f of this.fighters) {
       if (!f.alive) continue;
       if (f.falling) {
         const dx = f.x - 0.5;
         const dy = f.y - 0.5;
         const len = Math.hypot(dx, dy) || 1;
-        f.vx += (dx / len) * 0.55 * dt;
-        f.vy += (dy / len) * 0.55 * dt;
+        f.vx += (dx / len) * 0.85 * dt;
+        f.vy += (dy / len) * 0.85 * dt;
         f.x += f.vx * dt;
         f.y += f.vy * dt;
-        if (Math.hypot(f.x - 0.5, f.y - 0.5) > 0.75) {
+        if (Math.hypot(f.x - 0.5, f.y - 0.5) > 0.78) {
           f.alive = false;
           this.eliminated.push(f);
           this._emit("elim", `${f.name} fell through the hole!`);
         }
         continue;
       }
+
+      // Mild centrifugal push toward the rim / hole.
+      const dx = f.x - 0.5;
+      const dy = f.y - 0.5;
+      const len = Math.hypot(dx, dy) || 1;
+      f.vx += (dx / len) * outward * dt;
+      f.vy += (dy / len) * outward * dt;
 
       f.x += f.vx * dt;
       f.y += f.vy * dt;
@@ -262,17 +351,18 @@ export class FlagBattleGame {
       if (speed > CONFIG.maxSpeed) {
         f.vx = (f.vx / speed) * CONFIG.maxSpeed;
         f.vy = (f.vy / speed) * CONFIG.maxSpeed;
-      } else if (speed < 0.05) {
+      } else if (speed < 0.08) {
         const dir = rand(0, Math.PI * 2);
-        f.vx += Math.cos(dir) * 0.04;
-        f.vy += Math.sin(dir) * 0.04;
+        f.vx += Math.cos(dir) * 0.06;
+        f.vy += Math.sin(dir) * 0.06;
       }
     }
   }
 
   _resolveCollisions() {
     const active = this.fighters.filter((f) => f.alive && !f.falling);
-    const minDist = CONFIG.flagRadius * 2.1;
+    const minDist = this._flagRadius() * 2.05;
+    // Spatial-ish: only O(n²) but n drops fast; for ~194 keep cheap early-outs.
     for (let i = 0; i < active.length; i++) {
       for (let j = i + 1; j < active.length; j++) {
         const a = active[i];
@@ -295,22 +385,24 @@ export class FlagBattleGame {
         a.vy -= exchange * ny;
         b.vx += exchange * nx;
         b.vy += exchange * ny;
-        a.pulse = 0.5;
-        b.pulse = 0.5;
+        a.pulse = 0.45;
+        b.pulse = 0.45;
       }
     }
   }
 
-  _applyCircleAndHole() {
-    const R = CONFIG.arenaRadius;
-    const halfHole = CONFIG.holeWidth / 2;
+  _applyCircleAndHole(roundProgress = 0) {
+    const R = CONFIG.arenaRadius * this.arenaScale;
+    const halfHole =
+      (CONFIG.holeWidth * (1 + roundProgress * 0.55)) / 2;
+    const fr = this._flagRadius();
 
     for (const f of this.fighters) {
       if (!f.alive || f.falling) continue;
       const dx = f.x - 0.5;
       const dy = f.y - 0.5;
       const dist = Math.hypot(dx, dy);
-      const limit = R - CONFIG.flagRadius;
+      const limit = R - fr;
 
       if (dist < limit) continue;
 
@@ -322,8 +414,8 @@ export class FlagBattleGame {
         f.pulse = 1;
         const nx = dx / (dist || 1);
         const ny = dy / (dist || 1);
-        f.vx += nx * 0.2;
-        f.vy += ny * 0.2;
+        f.vx += nx * 0.28;
+        f.vy += ny * 0.28;
         continue;
       }
 
@@ -336,9 +428,11 @@ export class FlagBattleGame {
         f.vx -= 2 * vn * nx;
         f.vy -= 2 * vn * ny;
       }
-      f.vx += -ny * rand(-0.03, 0.03);
-      f.vy += nx * rand(-0.03, 0.03);
-      f.pulse = 0.35;
+      // Kick along the rim toward the hole for faster sessions.
+      const tangent = Math.sign(angleDiff(this.holeAngle, ang)) || 1;
+      f.vx += -ny * tangent * 0.04;
+      f.vy += nx * tangent * 0.04;
+      f.pulse = 0.3;
     }
   }
 
@@ -366,7 +460,10 @@ export class FlagBattleGame {
       img: flag.img,
       id: flag.code,
     });
-    this._emit("qualify", `${flag.name} QUALIFIED for the Final! (Round ${this.round})`);
+    this._emit(
+      "qualify",
+      `${flag.name} QUALIFIED for the Final! (Round ${this.round})`
+    );
 
     const slotsFull = this.qualified.length >= CONFIG.finalistSlots;
     this._pendingFinal = slotsFull || this.qualifyingExpired;
@@ -376,29 +473,31 @@ export class FlagBattleGame {
 
   _startNextQualifyingRound() {
     if (this._pendingFinal) {
-      this._beginFinal();
+      this._beginIntermission("final");
       return;
     }
 
-    const heat = this._pickHeat();
-    if (heat.length <= 1) {
-      if (heat.length === 1) {
-        const last = this._makeFighter(heat[0], 0, 1);
+    const remaining = this._remainingCountries();
+    if (remaining.length <= 1) {
+      if (remaining.length === 1) {
+        const last = this._makeFighter(remaining[0], 0, 1);
         this.fighters = [last];
         this._qualify(last);
         return;
       }
-      this._beginFinal();
+      this._beginIntermission("final");
       return;
     }
 
-    this._beginRound(heat);
+    // Every non-qualified country appears in the round.
+    this._beginRound(remaining);
   }
 
   _beginFinal() {
     this._pendingFinal = false;
+    this.intermissionKind = null;
     if (!this.qualified.length) {
-      this._emit("phase", "No qualifiers — sudden-death heat.");
+      this._emit("phase", "No qualifiers — sudden-death field.");
       this.qualified = shuffle(COUNTRIES)
         .slice(0, Math.min(16, COUNTRIES.length))
         .map((c) => ({
@@ -418,7 +517,12 @@ export class FlagBattleGame {
       return f;
     });
     this.holeAngle = rand(0, Math.PI * 2);
-    this._emit("phase", `FINAL — ${this.fighters.length} flags. Last Flag Standing!`);
+    this.roundStartedAt = performance.now();
+    this.arenaScale = 1;
+    this._emit(
+      "phase",
+      `FINAL — ${this.fighters.length} flags. Last Flag Standing!`
+    );
   }
 
   _emit(type, text) {
@@ -428,9 +532,17 @@ export class FlagBattleGame {
 
   qualifyingRemainingMs(now = performance.now()) {
     if (this.phase === "idle") return CONFIG.qualifyingMs;
+    if (this.phase === "intermission" && this.intermissionKind === "open") {
+      return CONFIG.qualifyingMs;
+    }
     if (this.phase !== "qualifying" && this.phase !== "between_rounds") return 0;
-    if (this.qualifyingExpired) return 0;
+    if (this.qualifyingExpired || !this.qualifyingEndsAt) return 0;
     return Math.max(0, this.qualifyingEndsAt - now);
+  }
+
+  intermissionRemainingMs(now = performance.now()) {
+    if (this.phase !== "intermission") return 0;
+    return Math.max(0, this._betweenUntil - now);
   }
 
   standing() {
@@ -441,8 +553,12 @@ export class FlagBattleGame {
     if (
       this.phase === "qualifying" ||
       this.phase === "idle" ||
-      this.phase === "between_rounds"
+      this.phase === "between_rounds" ||
+      (this.phase === "intermission" && this.intermissionKind === "open")
     ) {
+      return this.qualified;
+    }
+    if (this.phase === "intermission" && this.intermissionKind === "final") {
       return this.qualified;
     }
     return this.fighters.filter((f) => f.alive);
@@ -450,11 +566,19 @@ export class FlagBattleGame {
 
   holeStyle() {
     const deg = (this.holeAngle * 180) / Math.PI;
-    const widthDeg = (CONFIG.holeWidth * 180) / Math.PI;
+    const elapsed = this.roundStartedAt
+      ? (performance.now() - this.roundStartedAt) / 1000
+      : 0;
+    const t = Math.min(1, elapsed / CONFIG.shrinkDurationSec);
+    const width =
+      this.phase === "qualifying" || this.phase === "final"
+        ? CONFIG.holeWidth * (1 + t * 0.55)
+        : CONFIG.holeWidth;
+    const widthDeg = (width * 180) / Math.PI;
     return {
       rotateDeg: deg,
       widthDeg,
-      radiusPct: CONFIG.arenaRadius * 100,
+      radiusPct: CONFIG.arenaRadius * this.arenaScale * 100,
     };
   }
 }
