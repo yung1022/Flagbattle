@@ -8,12 +8,10 @@
  *   npm run go-live:demo --prefix stream
  *   node stream/src/run.js --demo 90 --privacy unlisted
  */
-import http from "node:http";
 import path from "node:path";
 import fs from "node:fs";
 import { spawn } from "node:child_process";
 import { fileURLToPath } from "node:url";
-import handler from "serve-handler";
 import { loadEnv } from "./load-env.js";
 import {
   createLiveBroadcast,
@@ -52,9 +50,10 @@ async function main() {
   console.log("▶ FLAG BATTLE auto-stream");
   assertBinaries();
 
-  const server = await startGameServer(PORT);
+  await startGameServer(PORT);
   const gameUrl = buildGameUrl(PORT, DEMO);
   console.log(`Game: ${gameUrl}`);
+  console.log(`Rankings/poll API on :${PORT}`);
 
   const live = await createLiveBroadcast({
     title: TITLE,
@@ -95,7 +94,6 @@ async function main() {
 
   await done;
   await shutdown(0);
-  server.close();
 }
 
 function buildGameUrl(port, demo) {
@@ -106,14 +104,33 @@ function buildGameUrl(port, demo) {
 
 function startGameServer(port) {
   return new Promise((resolve, reject) => {
-    const server = http.createServer((req, res) =>
-      handler(req, res, { public: ROOT })
-    );
-    server.once("error", reject);
-    server.listen(port, "127.0.0.1", () => {
-      console.log(`Static server on :${port}`);
-      resolve(server);
+    const proc = spawn(process.execPath, [path.join(ROOT, "server.mjs")], {
+      cwd: ROOT,
+      env: { ...process.env, PORT: String(port) },
+      stdio: ["ignore", "pipe", "pipe"],
     });
+    children.push(proc);
+    let ready = false;
+    const onData = (buf) => {
+      const text = buf.toString();
+      process.stdout.write(text);
+      if (!ready && text.includes("FLAG BATTLE server")) {
+        ready = true;
+        resolve(proc);
+      }
+    };
+    proc.stdout.on("data", onData);
+    proc.stderr.on("data", onData);
+    proc.on("error", reject);
+    proc.on("exit", (code) => {
+      if (!ready) reject(new Error(`server.mjs exited early (${code})`));
+    });
+    setTimeout(() => {
+      if (!ready) {
+        ready = true;
+        resolve(proc);
+      }
+    }, 2000);
   });
 }
 

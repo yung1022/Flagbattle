@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>FLAG BATTLE — Final Poll</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Manrope:wght@600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="css/site.css" />
+  </head>
+  <body>
+    <main class="wrap">
+      <nav class="nav">
+        <a href="./">Arena</a>
+        <a href="rankings.html">Rankings</a>
+        <a href="control/">Mobile go-live</a>
+      </nav>
+      <h1>FINAL POLL</h1>
+      <p class="lede" id="lede">Vote for who wins Last Flag Standing.</p>
+      <div class="meta" id="status">Loading…</div>
+      <div id="options"></div>
+    </main>
+    <script type="module">
+      import {
+        fetchLiveFromApi,
+        fetchPoll,
+        submitPollVote,
+        voterId,
+        getLocalPoll,
+        listStreams,
+      } from "./js/store.js";
+
+      const params = new URLSearchParams(location.search);
+      const me = voterId();
+      const optsEl = document.getElementById("options");
+      const statusEl = document.getElementById("status");
+      const ledeEl = document.getElementById("lede");
+      let streamId = params.get("id");
+      let myVote = null;
+
+      async function resolveStreamId() {
+        if (streamId) return streamId;
+        const live = await fetchLiveFromApi();
+        if (live?.live?.streamId) return live.live.streamId;
+        const local = listStreams()[0];
+        return local?.id || null;
+      }
+
+      async function refresh() {
+        streamId = await resolveStreamId();
+        if (!streamId) {
+          statusEl.textContent = "No active stream. Start a battle first.";
+          optsEl.innerHTML = "";
+          return;
+        }
+        let poll = await fetchPoll(streamId);
+        if (!poll?.options?.length) {
+          const live = await fetchLiveFromApi();
+          const qualified = live?.live?.qualified || [];
+          if (qualified.length) {
+            poll = {
+              streamId,
+              options: qualified,
+              votes: Object.fromEntries(qualified.map((q) => [q.code, 0])),
+              voters: {},
+            };
+          } else {
+            poll = getLocalPoll(streamId);
+          }
+        }
+        myVote = poll.voters?.[me] || myVote;
+        render(poll);
+      }
+
+      function render(poll) {
+        const total = Object.values(poll.votes || {}).reduce((a, b) => a + b, 0);
+        statusEl.textContent = `Stream ${poll.streamId} · ${total} vote${total === 1 ? "" : "s"}`;
+        ledeEl.textContent = myVote
+          ? `You voted. You can change your pick anytime.`
+          : `Tap a finalist to vote.`;
+
+        const options = poll.options?.length
+          ? poll.options
+          : Object.keys(poll.votes || {}).map((code) => ({
+              code,
+              name: code.toUpperCase(),
+              img: `https://flagcdn.com/w80/${code}.png`,
+            }));
+
+        options.sort(
+          (a, b) => (poll.votes[b.code] || 0) - (poll.votes[a.code] || 0)
+        );
+
+        optsEl.innerHTML = "";
+        if (!options.length) {
+          optsEl.innerHTML = `<p class="empty">Poll opens when finalists are set (final intermission).</p>`;
+          return;
+        }
+
+        for (const opt of options) {
+          const count = poll.votes[opt.code] || 0;
+          const pct = total ? Math.round((count / total) * 100) : 0;
+          const btn = document.createElement("button");
+          btn.type = "button";
+          btn.className = "poll-option" + (myVote === opt.code ? " selected" : "");
+          btn.innerHTML = `
+            <img src="${opt.img || `https://flagcdn.com/w80/${opt.code}.png`}" alt="" />
+            <div>
+              <strong>${opt.name}</strong>
+              <div class="bar"><i style="width:${pct}%"></i></div>
+            </div>
+            <div><strong>${count}</strong><div class="meta">${pct}%</div></div>
+          `;
+          btn.addEventListener("click", async () => {
+            myVote = opt.code;
+            const next = await submitPollVote(streamId, opt.code, me);
+            render(next);
+          });
+          optsEl.appendChild(btn);
+        }
+      }
+
+      refresh();
+      setInterval(refresh, 2500);
+    </script>
+  </body>
+</html>

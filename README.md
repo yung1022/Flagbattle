@@ -5,75 +5,39 @@ Vertical **9:16** all-country flag battle for YouTube Shorts livestreams.
 ## Rules
 
 1. **1:00 intermission** at stream start.
-2. **Qualifying (30 minutes)** — Every round puts **all non-qualified countries** in the circle (flag size scales with count).  
-   - No damage between flags (they only bounce).  
-   - Touch the hole → you fall out.  
-   - **Last flag standing in the round qualifies** for the Final.  
-   - Top board shows **QUALIFIED FOR FINAL**.
-3. **1:00 intermission** between qualifying and the Final.
-4. **Final — Last Flag Standing** — Same hole-circle rules among qualifiers. Top board shows **FLAGS STANDING**.
+2. **Qualifying (full 30:00)** — every non-qualified country each round; last flag qualifies.  
+   If all 32 slots fill early, the stream **holds until the clock ends** (does not skip to Final).
+3. **1:00 intermission** before the Final.
+4. **Final — Last Flag Standing** among qualifiers.
 
-Default: **32** finalist slots.
-
-## Mobile only (no PC)
-
-Open the control hub on your phone:
-
-**`/control/`** → after GitHub Pages is on:  
-`https://<you>.github.io/Flagbattle/control/`
-
-### Path A — Easy (YouTube app screen share)
-
-1. Open **Easy** tab → **Open arena**
-2. YouTube app → **Go live** → **Share screen** → pick the browser
-3. Keep FLAG BATTLE on screen (use **Fullscreen**; phone stays awake)
-
-### Path B — Cloud (one-tap, no screen share)
-
-One-time on your phone (**Setup** tab):
-
-1. Google Cloud → enable **YouTube Data API v3**
-2. OAuth client type: **TVs and Limited Input devices**
-3. Paste Client ID + Secret → **Start device login** → approve at [google.com/device](https://www.google.com/device)
-4. Create a GitHub PAT with **Actions** (+ **Secrets** if pushing from the hub)
-5. Fill repo + PAT on **Cloud** tab → **Push secrets to GitHub**
-
-Every stream after that: **Cloud → Go live now**.
-
-GitHub Actions creates the YouTube broadcast and pushes 1080×1920 with FFmpeg (no OBS, no PC left on).
-
-## Run locally (preview)
+## Run (rankings + poll API)
 
 ```bash
-npx --yes serve -l 5173 .
+node server.mjs
 ```
 
-| Mode | URL |
+Open `http://localhost:5173`
+
+| Page | URL |
 |------|-----|
-| Host controls | `/` |
-| Mobile control hub | `/control/` |
-| Clean stream view | `/?stream=1&autostart=1` |
-| Mobile stream helpers | `/?stream=1&autostart=1&mobile=1` |
-| Fast demo | `/?demo=45&stream=1&autostart=1` |
+| Arena | `/` |
+| Rankings (per stream / per round) | `/rankings.html` |
+| Final poll | `/poll.html` |
+| Mobile go-live | `/control/` |
+| Stream view | `/?stream=1&autostart=1` |
 
-## Desktop / server auto-stream
+## Fixes in this build
 
-```bash
-cp stream/.env.example stream/.env
-npm install --prefix stream
-# Desktop OAuth:
-npm run auth --prefix stream
-# Or phone-friendly device code (TV OAuth client):
-npm run auth:device --prefix stream
-npm run go-live --prefix stream
-```
+- Larger HUD text, inset from YouTube Shorts UI edges
+- Qualifying lasts the full 30 minutes
+- Faster flag movement + spatial collision grid (less lag)
 
-## Thumbnail
+## Mobile / cloud stream
 
-[`assets/thumbnail.png`](assets/thumbnail.png)
+See [`control/`](control/) and [`stream/`](stream/). Repo Action secrets:
 
-## Stack
+- `GOOGLE_CLIENT_ID`
+- `GOOGLE_CLIENT_SECRET`
+- `GOOGLE_REFRESH_TOKEN`
 
-- Vanilla HTML / CSS / JS arena
-- Flags from [flagcdn.com](https://flagcdn.com)
-- Mobile control hub + GitHub Actions / FFmpeg RTMP ingest
+GitHub PAT for the phone hub can be named anything; it needs **Actions** write (+ **Secrets** write to push credentials).
