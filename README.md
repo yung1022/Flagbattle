@@ -2,45 +2,45 @@
 
 Vertical **9:16** all-country flag battle for YouTube Shorts livestreams.
 
+**Public site:** [yung1022.github.io/Flagbattle](https://yung1022.github.io/Flagbattle)
+
 ## Rules
 
-1. **1:00 intermission** at stream start.
+1. **1:00 intermission** at stream start (also in demo mode).
 2. **Qualifying (full 30:00)** — every non-qualified country each round; last flag qualifies.  
    **No qualifier cap** — rounds continue for the full clock; Final includes everyone who qualified.
 3. **1:00 intermission** before the Final.
 4. **Final — Last Flag Standing** among all qualifiers.
 
-## Run (rankings + poll API)
+## Viewer pages (GitHub Pages)
+
+| Page | URL |
+|------|-----|
+| Arena | https://yung1022.github.io/Flagbattle/ |
+| Rankings history | https://yung1022.github.io/Flagbattle/rankings.html |
+| Final poll | https://yung1022.github.io/Flagbattle/poll.html |
+| Mobile go-live | https://yung1022.github.io/Flagbattle/control/ |
+
+Stream ranking history is stored in [`data/rankings.json`](data/rankings.json) and published with Pages after each go-live.
+
+### How polls work for viewers
+
+1. Go-live starts a **Cloudflare quick tunnel** to the stream API.
+2. On-stream QR codes point at **GitHub Pages** with `?api=<tunnel>` (not `127.0.0.1`).
+3. Votes hit the tunnel; rankings/poll snapshots are also mirrored into `data/` for history.
+
+## Local run
 
 ```bash
 node server.mjs
 ```
 
-Open `http://localhost:5173`
+Open `http://localhost:5173` — QR/links still use GitHub Pages by default.
 
-| Page | URL |
-|------|-----|
-| Arena | `/` |
-| Rankings (per stream / per round) | `/rankings.html` |
-| Final poll | `/poll.html` |
-| Mobile go-live | `/control/` |
-| Stream view | `/?stream=1&autostart=1` |
-
-### On-stream poll, rankings & subs
-
-The livestream overlay shows:
-- **QR + URL** for the poll and rankings pages
-- **Live poll results** during final intermission / Final
-- **Channel subscriber count** (via `/api/channel`)
-
-Pass your public site so viewers get a scannable link:
+### Auto-stream
 
 ```bash
-# example GitHub Pages
-node server.mjs
-# open: /?stream=1&autostart=1&site=https://yung1022.github.io/Flagbattle
-
-# auto-stream
+# cloudflared recommended so phones can vote
 PUBLIC_SITE=https://yung1022.github.io/Flagbattle npm run go-live --prefix stream
 ```
 
@@ -52,13 +52,6 @@ YT_CHANNEL_ID=UCxxxx
 # or YT_CHANNEL_HANDLE=@YourHandle
 ```
 
-## Fixes in this build
-
-- Larger HUD text, inset from YouTube Shorts UI edges
-- Qualifying lasts the full 30 minutes
-- Faster flag movement + spatial collision grid (less lag)
-- Poll/rankings links + live poll board on the stream
-
 ## Mobile / cloud stream
 
 See [`control/`](control/) and [`stream/`](stream/). Repo Action secrets:
@@ -66,5 +59,4 @@ See [`control/`](control/) and [`stream/`](stream/). Repo Action secrets:
 - `GOOGLE_CLIENT_ID`
 - `GOOGLE_CLIENT_SECRET`
 - `GOOGLE_REFRESH_TOKEN`
-
-GitHub PAT for the phone hub can be named anything; it needs **Actions** write (+ **Secrets** write to push credentials).
+- Optional `GH_PAT` (contents write) for data commits that retrigger Pages

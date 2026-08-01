@@ -1,5 +1,6 @@
 /**
  * Static site + tiny API for rankings / live poll / channel stats.
+ * Mirrors history into data/ and syncs to GitHub for Pages.
  *   node server.mjs
  *   PORT=5173 node server.mjs
  */
@@ -7,19 +8,38 @@ import http from "node:http";
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import {
+  githubSyncEnabled,
+  mirrorAndSync,
+  enqueueGithubFile,
+} from "./github-sync.mjs";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = __dirname;
 const PORT = Number(process.env.PORT || 5173);
 const DATA = path.join(ROOT, ".data");
+const PUBLIC_DATA = path.join(ROOT, "data");
 const LIVE_FILE = path.join(DATA, "live.json");
 const RANK_FILE = path.join(DATA, "rankings.json");
 const POLL_DIR = path.join(DATA, "polls");
 const CHANNEL_CACHE = path.join(DATA, "channel.json");
 
 fs.mkdirSync(POLL_DIR, { recursive: true });
+fs.mkdirSync(path.join(PUBLIC_DATA, "polls"), { recursive: true });
 loadEnvFile(path.join(ROOT, "stream/.env"));
 loadEnvFile(path.join(ROOT, ".env"));
+
+/** Public tunnel URL for viewer votes (set by go-live / cloudflared). */
+let publicApi =
+  process.env.PUBLIC_API ||
+  process.env.PUBLIC_API_URL ||
+  process.env.TUNNEL_URL ||
+  null;
+
+let syncTimer = null;
+let dirtyLive = false;
+let dirtyRank = false;
+const dirtyPolls = new Set();
 
 function loadEnvFile(file) {
   if (!fs.existsSync(file)) return;
@@ -97,11 +117,103 @@ function pollPath(streamId) {
   return path.join(POLL_DIR, `${safe}.json`);
 }
 
+function publicPollRel(streamId) {
+  const safe = String(streamId).replace(/[^a-zA-Z0-9_-]/g, "");
+  return `data/polls/${safe}.json`;
+}
+
+function schedulePublicSync({ forceRank = false, forceLive = false, pollId } = {}) {
+  if (forceRank) dirtyRank = true;
+  if (forceLive) dirtyLive = true;
+  if (pollId) dirtyPolls.add(pollId);
+  if (syncTimer) return;
+  syncTimer = setTimeout(() => {
+    syncTimer = null;
+    flushPublicSync();
+  }, forceRank ? 500 : 12_000);
+}
+
+function flushPublicSync() {
+  const live = readJson(LIVE_FILE, { live: null, streams: [] });
+  const payload = {
+    ...live,
+    api: publicApi,
+    updatedAt: Date.now(),
+  };
+
+  if (dirtyLive || publicApi) {
+    dirtyLive = false;
+    writeJson(path.join(PUBLIC_DATA, "live.json"), payload);
+    mirrorAndSync(
+      ROOT,
+      "data/live.json",
+      payload,
+      `chore(data): update live snapshot ${new Date().toISOString()}`
+    );
+  }
+
+  if (dirtyRank) {
+    dirtyRank = false;
+    const streams = live.streams?.length
+      ? live.streams
+      : readJson(RANK_FILE, []);
+    writeJson(path.join(PUBLIC_DATA, "rankings.json"), streams);
+    writeJson(RANK_FILE, streams);
+    mirrorAndSync(
+      ROOT,
+      "data/rankings.json",
+      streams,
+      `chore(data): save stream rankings ${new Date().toISOString()}`
+    );
+  }
+
+  for (const streamId of dirtyPolls) {
+    const poll = readJson(pollPath(streamId), null);
+    if (!poll) continue;
+    const rel = publicPollRel(streamId);
+    writeJson(path.join(ROOT, rel), poll);
+    enqueueGithubFile(
+      rel,
+      JSON.stringify(poll, null, 2),
+      `chore(data): poll ${streamId}`
+    );
+  }
+  dirtyPolls.clear();
+}
+
+function seedFromPublicData() {
+  const pubRank = path.join(PUBLIC_DATA, "rankings.json");
+  if (!fs.existsSync(RANK_FILE) && fs.existsSync(pubRank)) {
+    writeJson(RANK_FILE, readJson(pubRank, []));
+  }
+  const pubLive = path.join(PUBLIC_DATA, "live.json");
+  if (!fs.existsSync(LIVE_FILE) && fs.existsSync(pubLive)) {
+    const live = readJson(pubLive, { live: null, streams: [] });
+    writeJson(LIVE_FILE, { live: live.live, streams: live.streams || [] });
+    if (live.api && !publicApi) publicApi = live.api;
+  }
+}
+
+seedFromPublicData();
+
 async function handleApi(req, res, url) {
   if (req.method === "OPTIONS") return send(res, 204, "");
 
   if (url.pathname === "/api/live" && req.method === "GET") {
-    return send(res, 200, readJson(LIVE_FILE, { live: null, streams: [] }));
+    const cur = readJson(LIVE_FILE, { live: null, streams: [] });
+    return send(res, 200, { ...cur, api: publicApi, updatedAt: Date.now() });
+  }
+
+  if (url.pathname === "/api/config" && req.method === "POST") {
+    const body = await parseBody(req);
+    if (body.api) {
+      publicApi = String(body.api).replace(/\/$/, "");
+      process.env.PUBLIC_API = publicApi;
+      dirtyLive = true;
+      schedulePublicSync({ forceLive: true });
+      flushPublicSync();
+    }
+    return send(res, 200, { ok: true, api: publicApi });
   }
 
   if (url.pathname === "/api/live" && req.method === "POST") {
@@ -113,7 +225,7 @@ async function handleApi(req, res, url) {
       if (body.live?.streamId && body.live?.qualified?.length) {
         const existing = readJson(pollPath(body.live.streamId), null);
         if (!existing?.options?.length) {
-          writeJson(pollPath(body.live.streamId), {
+          const poll = {
             streamId: body.live.streamId,
             options: body.live.qualified,
             votes: Object.fromEntries(
@@ -121,20 +233,23 @@ async function handleApi(req, res, url) {
             ),
             voters: {},
             updatedAt: Date.now(),
-          });
+          };
+          writeJson(pollPath(body.live.streamId), poll);
+          schedulePublicSync({ pollId: body.live.streamId });
         }
       }
+      schedulePublicSync({ forceLive: true });
     }
     if (body.type === "stream" && body.stream) {
       cur.streams = [body.stream, ...(cur.streams || [])]
-        .filter(
-          (s, i, arr) => arr.findIndex((x) => x.id === s.id) === i
-        )
+        .filter((s, i, arr) => arr.findIndex((x) => x.id === s.id) === i)
         .slice(0, 40);
       writeJson(RANK_FILE, cur.streams);
+      schedulePublicSync({ forceRank: true, forceLive: true });
     }
     if (body.type === "poll_init" && body.poll) {
       writeJson(pollPath(body.poll.streamId), body.poll);
+      schedulePublicSync({ pollId: body.poll.streamId, forceLive: true });
     }
     writeJson(LIVE_FILE, cur);
     return send(res, 200, { ok: true });
@@ -179,6 +294,7 @@ async function handleApi(req, res, url) {
     poll.votes[code] = (poll.votes[code] || 0) + 1;
     poll.updatedAt = Date.now();
     writeJson(pollPath(streamId), poll);
+    schedulePublicSync({ pollId: streamId, forceLive: true });
     return send(res, 200, poll);
   }
 
@@ -301,4 +417,15 @@ const server = http.createServer(async (req, res) => {
 server.listen(PORT, "0.0.0.0", () => {
   console.log(`FLAG BATTLE server http://localhost:${PORT}`);
   console.log(`Rankings: /rankings.html   Poll: /poll.html`);
+  console.log(
+    `GitHub Pages sync: ${githubSyncEnabled() ? "enabled" : "off (no token)"}`
+  );
+  if (publicApi) console.log(`Public API: ${publicApi}`);
+});
+
+process.on("SIGTERM", () => {
+  flushPublicSync();
+});
+process.on("SIGINT", () => {
+  flushPublicSync();
 });

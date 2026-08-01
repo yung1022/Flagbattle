@@ -24,8 +24,13 @@ on:
         description: "Stop the runner after N minutes"
         required: false
         default: "35"
-  # schedule:
-  #   - cron: "0 18 * * 6"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: go-live
+  cancel-in-progress: false
 
 jobs:
   stream:
@@ -44,6 +49,10 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y ffmpeg xvfb
+          curl -fsSL -o /tmp/cloudflared \
+            https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64
+          sudo install -m 755 /tmp/cloudflared /usr/local/bin/cloudflared
+          cloudflared --version
 
       - name: Install stream package
         working-directory: stream
@@ -66,6 +75,7 @@ jobs:
             echo "GOOGLE_REFRESH_TOKEN=$GOOGLE_REFRESH_TOKEN"
             echo "YT_PRIVACY=${YT_PRIVACY:-unlisted}"
             echo "YT_TITLE=FLAG BATTLE — Last Flag Standing (Live)"
+            echo "PUBLIC_SITE=https://yung1022.github.io/Flagbattle"
           } > .env
 
       - name: Go live
@@ -74,6 +84,10 @@ jobs:
           DEMO_SECONDS: ${{ inputs.demo_seconds }}
           DURATION_MIN: ${{ inputs.duration_minutes }}
           PRIVACY: ${{ inputs.privacy }}
+          PUBLIC_SITE: https://yung1022.github.io/Flagbattle
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          GITHUB_DATA_BRANCH: main
         run: |
           set +e
           EXTRA=()
@@ -89,3 +103,37 @@ jobs:
             exit 0
           fi
           exit "$code"
+
+      - name: Persist ranking history to data/
+        if: always()
+        run: |
+          mkdir -p data/polls
+          if [ -f .data/rankings.json ]; then
+            cp .data/rankings.json data/rankings.json
+          fi
+          if [ -f .data/live.json ]; then
+            node <<'NODE'
+          const fs = require("fs");
+          const live = JSON.parse(fs.readFileSync(".data/live.json", "utf8"));
+          const out = {
+            live: live.live || null,
+            streams: live.streams || [],
+            api: null,
+            updatedAt: Date.now(),
+          };
+          fs.writeFileSync("data/live.json", JSON.stringify(out, null, 2));
+          NODE
+          fi
+          if [ -d .data/polls ]; then
+            cp -f .data/polls/*.json data/polls/ 2>/dev/null || true
+          fi
+          git config user.name "flagbattle-bot"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data/
+          if git diff --staged --quiet; then
+            echo "No data changes to commit"
+          else
+            git commit -m "chore(data): persist stream rankings from go-live"
+            git pull --rebase origin main || true
+            git push origin HEAD:main
+          fi

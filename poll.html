@@ -20,7 +20,9 @@
         <a href="control/">Mobile go-live</a>
       </nav>
       <h1>FINAL POLL</h1>
-      <p class="lede" id="lede">Vote for who wins Last Flag Standing.</p>
+      <p class="lede" id="lede">
+        Vote for who wins Last Flag Standing. Opens from the stream QR on GitHub Pages.
+      </p>
       <div class="meta" id="status">Loading…</div>
       <div id="options"></div>
     </main>
@@ -33,6 +35,7 @@
         getLocalPoll,
         listStreams,
       } from "./js/store.js";
+      import { resolveApiBase } from "./js/public.js";
 
       const params = new URLSearchParams(location.search);
       const me = voterId();
@@ -43,6 +46,7 @@
       let myVote = null;
 
       async function resolveStreamId() {
+        await resolveApiBase();
         if (streamId) return streamId;
         const live = await fetchLiveFromApi();
         if (live?.live?.streamId) return live.live.streamId;

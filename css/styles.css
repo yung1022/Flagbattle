@@ -172,7 +172,8 @@ body {
 /* —— Brand / phase header —— */
 .brand-bar {
   position: absolute;
-  top: calc(var(--safe-top) + 14%);
+  /* Sit below board track + subs pill */
+  top: calc(var(--safe-top) + 18%);
   left: var(--safe-x);
   right: calc(var(--safe-x) + 4%);
   z-index: 4;
@@ -199,15 +200,17 @@ body {
 .subs-pill {
   display: inline-flex;
   align-items: baseline;
-  justify-content: center;
+  justify-content: flex-start;
   gap: 8px;
   margin-top: 8px;
-  padding: 6px 14px;
+  padding: 6px 12px;
   border: 1px solid rgba(255, 77, 109, 0.45);
   background: rgba(3, 7, 11, 0.72);
   font-weight: 800;
   letter-spacing: 0.06em;
   text-transform: uppercase;
+  width: fit-content;
+  max-width: 100%;
 }
 
 .subs-pill[hidden] {

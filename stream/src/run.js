@@ -38,7 +38,7 @@ const TITLE =
   "FLAG BATTLE — Last Flag Standing (Live)";
 const DESCRIPTION =
   process.env.YT_DESCRIPTION ||
-  "All-country FLAG BATTLE livestream. Qualifying rounds: last flag in the circle qualifies. Then Last Flag Standing final. Stay inside the ring — fall through the hole and you're out.";
+  "All-country FLAG BATTLE livestream. Qualifying rounds: last flag in the circle qualifies. Then Last Flag Standing final. Stay inside the ring — fall through the hole and you're out.\n\nPoll & rankings: https://yung1022.github.io/Flagbattle/";
 
 const children = [];
 let display = null;
@@ -51,7 +51,17 @@ async function main() {
   assertBinaries();
 
   await startGameServer(PORT);
-  const gameUrl = buildGameUrl(PORT, DEMO);
+  const tunnelUrl = await startPublicTunnel(PORT);
+  if (tunnelUrl) {
+    process.env.PUBLIC_API = tunnelUrl;
+    await registerPublicApi(PORT, tunnelUrl);
+    console.log(`Public API tunnel: ${tunnelUrl}`);
+  } else {
+    console.warn(
+      "No public tunnel — poll votes need PUBLIC_API or cloudflared"
+    );
+  }
+  const gameUrl = buildGameUrl(PORT, DEMO, tunnelUrl);
   console.log(`Game: ${gameUrl}`);
   console.log(`Rankings/poll API on :${PORT}`);
 
@@ -96,16 +106,96 @@ async function main() {
   await shutdown(0);
 }
 
-function buildGameUrl(port, demo) {
+const DEFAULT_PUBLIC_SITE = "https://yung1022.github.io/Flagbattle";
+
+function buildGameUrl(port, demo, apiUrl) {
   const qs = new URLSearchParams({ stream: "1", autostart: "1" });
   if (demo != null && demo !== "") qs.set("demo", String(demo));
   // Public site URL printed as QR/links on the livestream overlay.
-  const site =
+  const site = (
     process.env.PUBLIC_SITE ||
     process.env.SITE_URL ||
-    process.env.FLAGBATTLE_SITE;
-  if (site) qs.set("site", site.replace(/\/$/, ""));
+    process.env.FLAGBATTLE_SITE ||
+    DEFAULT_PUBLIC_SITE
+  ).replace(/\/$/, "");
+  qs.set("site", site);
+  const api = (
+    apiUrl ||
+    process.env.PUBLIC_API ||
+    process.env.PUBLIC_API_URL ||
+    ""
+  ).replace(/\/$/, "");
+  if (api) qs.set("api", api);
   return `http://127.0.0.1:${port}/?${qs.toString()}`;
+}
+
+async function registerPublicApi(port, apiUrl) {
+  try {
+    await fetch(`http://127.0.0.1:${port}/api/config`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ api: apiUrl }),
+    });
+  } catch (err) {
+    console.warn("Could not register PUBLIC_API on server:", err.message || err);
+  }
+}
+
+/** Expose local API via Cloudflare quick tunnel for GitHub Pages voters. */
+function startPublicTunnel(port) {
+  const disabled =
+    process.env.DISABLE_TUNNEL === "1" || process.env.DISABLE_TUNNEL === "true";
+  if (disabled) return Promise.resolve(null);
+  if (process.env.PUBLIC_API || process.env.PUBLIC_API_URL) {
+    return Promise.resolve(
+      (process.env.PUBLIC_API || process.env.PUBLIC_API_URL).replace(/\/$/, "")
+    );
+  }
+
+  const bin = whichBin("cloudflared");
+  if (!bin) {
+    console.warn("cloudflared not found — install it for public poll voting");
+    return Promise.resolve(null);
+  }
+
+  return new Promise((resolve) => {
+    const proc = spawn(
+      bin,
+      ["tunnel", "--url", `http://127.0.0.1:${port}`, "--no-autoupdate"],
+      { stdio: ["ignore", "pipe", "pipe"] }
+    );
+    children.push(proc);
+    let settled = false;
+    const done = (url) => {
+      if (settled) return;
+      settled = true;
+      resolve(url);
+    };
+    const onChunk = (buf) => {
+      const text = buf.toString();
+      const match = text.match(/https:\/\/[a-z0-9-]+\.trycloudflare\.com/);
+      if (match) done(match[0]);
+    };
+    proc.stdout.on("data", onChunk);
+    proc.stderr.on("data", onChunk);
+    proc.on("error", () => done(null));
+    proc.on("exit", () => done(null));
+    setTimeout(() => done(null), 25_000);
+  });
+}
+
+function whichBin(name) {
+  const dirs = (process.env.PATH || "").split(path.delimiter);
+  for (const d of dirs) {
+    const p = path.join(d, name);
+    try {
+      fs.accessSync(p, fs.constants.X_OK);
+      return p;
+    } catch {
+      /* continue */
+    }
+  }
+  return null;
 }
 
 function startGameServer(port) {
