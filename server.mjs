@@ -7,12 +7,17 @@
 import http from "node:http";
 import fs from "node:fs";
 import path from "node:path";
+import { spawn } from "node:child_process";
 import { fileURLToPath } from "node:url";
 import {
   githubSyncEnabled,
   mirrorAndSync,
   enqueueGithubFile,
 } from "./github-sync.mjs";
+
+let announceQueue = Promise.resolve();
+let lastAnnounceText = "";
+let lastAnnounceAt = 0;
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = __dirname;
@@ -298,6 +303,26 @@ async function handleApi(req, res, url) {
     return send(res, 200, poll);
   }
 
+  if (url.pathname === "/api/announce" && req.method === "POST") {
+    const body = await parseBody(req);
+    const text = String(body.text || "")
+      .replace(/[^\w\s.,!?'\-]/g, " ")
+      .replace(/\s+/g, " ")
+      .trim()
+      .slice(0, 220);
+    if (!text) return send(res, 400, { error: "text required" });
+    const now = Date.now();
+    if (text === lastAnnounceText && now - lastAnnounceAt < 1500) {
+      return send(res, 200, { ok: true, deduped: true });
+    }
+    lastAnnounceText = text;
+    lastAnnounceAt = now;
+    announceQueue = announceQueue
+      .then(() => speakWithEspeak(text))
+      .catch((err) => console.warn("[announce]", err.message || err));
+    return send(res, 200, { ok: true });
+  }
+
   if (url.pathname === "/api/channel" && req.method === "GET") {
     try {
       const channelId = url.searchParams.get("id") || process.env.YT_CHANNEL_ID;
@@ -322,6 +347,64 @@ async function handleApi(req, res, url) {
   }
 
   return send(res, 404, { error: "not found" });
+}
+
+function whichBin(name) {
+  const dirs = (process.env.PATH || "").split(path.delimiter);
+  for (const d of dirs) {
+    try {
+      fs.accessSync(path.join(d, name), fs.constants.X_OK);
+      return path.join(d, name);
+    } catch {
+      /* continue */
+    }
+  }
+  return null;
+}
+
+/** Speak via espeak into PulseAudio (captured by FFmpeg during go-live). */
+function speakWithEspeak(text) {
+  const espeak = whichBin("espeak-ng") || whichBin("espeak");
+  if (!espeak) return Promise.resolve(false);
+  const wav = path.join(DATA, `announce-${Date.now()}.wav`);
+  return new Promise((resolve) => {
+    const voice = spawn(
+      espeak,
+      ["-v", "en", "-s", "145", "-w", wav, text],
+      { stdio: "ignore" }
+    );
+    voice.on("exit", (code) => {
+      if (code !== 0 || !fs.existsSync(wav)) return resolve(false);
+      const play =
+        whichBin("paplay") || whichBin("aplay") || whichBin("ffplay");
+      if (!play) {
+        try {
+          fs.unlinkSync(wav);
+        } catch {
+          /* ignore */
+        }
+        return resolve(false);
+      }
+      const args =
+        path.basename(play) === "ffplay"
+          ? ["-nodisp", "-autoexit", "-loglevel", "error", wav]
+          : [wav];
+      const player = spawn(play, args, {
+        stdio: "ignore",
+        env: { ...process.env },
+      });
+      player.on("exit", () => {
+        try {
+          fs.unlinkSync(wav);
+        } catch {
+          /* ignore */
+        }
+        resolve(true);
+      });
+      player.on("error", () => resolve(false));
+    });
+    voice.on("error", () => resolve(false));
+  });
 }
 
 async function fetchChannelStats(channelId) {

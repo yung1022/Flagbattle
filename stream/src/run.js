@@ -17,6 +17,9 @@ import {
   createLiveBroadcast,
   goLive,
   completeBroadcast,
+  setVideoThumbnail,
+  postLiveChatMessage,
+  resolveThumbnailFile,
 } from "./youtube.js";
 
 loadEnv();
@@ -24,6 +27,8 @@ loadEnv();
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(__dirname, "../..");
 const THUMB = path.join(ROOT, "assets/thumbnail.png");
+const PUBLIC_SITE_DEFAULT = "https://yung1022.github.io/Flagbattle";
+let pulseSink = null;
 
 const args = parseArgs(process.argv.slice(2));
 const WIDTH = Number(process.env.STREAM_WIDTH || 1080);
@@ -49,6 +54,13 @@ let shuttingDown = false;
 async function main() {
   console.log("▶ FLAG BATTLE auto-stream");
   assertBinaries();
+
+  pulseSink = await startPulseAudio();
+  if (pulseSink) {
+    process.env.PULSE_SINK = pulseSink;
+    process.env.PULSE_SOURCE = `${pulseSink}.monitor`;
+    console.log(`PulseAudio sink: ${pulseSink}`);
+  }
 
   await startGameServer(PORT);
   const tunnelUrl = await startPublicTunnel(PORT);
@@ -91,6 +103,14 @@ async function main() {
   await sleep(12_000);
   await goLive(youtubeClient, broadcastId);
 
+  // Retry thumbnail after live (some channels reject pre-live sets).
+  const thumb = live.thumbnailPath || (await resolveThumbnailFile(THUMB));
+  if (thumb) {
+    await setVideoThumbnail(youtubeClient, broadcastId, thumb);
+  }
+
+  await postChatLinks(youtubeClient, broadcastId, tunnelUrl);
+
   console.log("\n🔴 LIVE — press Ctrl+C to end the stream\n");
   console.log(live.watchUrl);
 
@@ -108,17 +128,79 @@ async function main() {
   await shutdown(0);
 }
 
-const DEFAULT_PUBLIC_SITE = "https://yung1022.github.io/Flagbattle";
+async function postChatLinks(youtube, id, apiUrl) {
+  const site = (
+    process.env.PUBLIC_SITE ||
+    process.env.SITE_URL ||
+    PUBLIC_SITE_DEFAULT
+  ).replace(/\/$/, "");
+  const api = (apiUrl || process.env.PUBLIC_API || "").replace(/\/$/, "");
+  const poll = api
+    ? `${site}/poll.html?api=${encodeURIComponent(api)}`
+    : `${site}/poll.html`;
+  const rank = api
+    ? `${site}/rankings.html?api=${encodeURIComponent(api)}`
+    : `${site}/rankings.html`;
+
+  // Live chat messages max ~200 chars — split into two posts.
+  const lines = [
+    `FLAG BATTLE vote: ${poll}`,
+    `Rankings: ${rank}`,
+  ];
+  for (const line of lines) {
+    for (let attempt = 0; attempt < 5; attempt++) {
+      try {
+        await postLiveChatMessage(youtube, id, line);
+        break;
+      } catch (err) {
+        console.warn(`Chat post retry ${attempt + 1}:`, err.message || err);
+        await sleep(4000);
+      }
+    }
+  }
+}
+
+/** Null-sink so Chrome/espeak audio can be muxed into the YouTube stream. */
+function startPulseAudio() {
+  return new Promise((resolve) => {
+    const pulse = whichBin("pulseaudio");
+    const pactl = whichBin("pactl");
+    if (!pulse || !pactl) {
+      console.warn("PulseAudio not found — stream audio will be silent bed only");
+      return resolve(null);
+    }
+    const sinkName = "flagbattle";
+    const boot = spawn(pulse, ["--start", "--exit-idle-time=-1"], {
+      stdio: "ignore",
+    });
+    boot.on("exit", () => {
+      spawn(pactl, ["load-module", "module-null-sink", `sink_name=${sinkName}`, "sink_properties=device.description=FlagBattle"], {
+        stdio: "ignore",
+      }).on("exit", (code) => {
+        if (code !== 0) {
+          // Sink may already exist from a prior run.
+          console.warn("Pulse null-sink load returned", code, "(continuing)");
+        }
+        spawn(pactl, ["set-default-sink", sinkName], { stdio: "ignore" }).on(
+          "exit",
+          () => resolve(sinkName)
+        );
+      });
+    });
+    boot.on("error", () => resolve(null));
+    setTimeout(() => resolve(sinkName), 2500);
+  });
+}
 
 function buildGameUrl(port, demo, apiUrl) {
   const qs = new URLSearchParams({ stream: "1", autostart: "1" });
   if (demo != null && demo !== "") qs.set("demo", String(demo));
-  // Public site URL printed as QR/links on the livestream overlay.
+  // Public site for poll/rankings (posted to live chat; no on-screen QR).
   const site = (
     process.env.PUBLIC_SITE ||
     process.env.SITE_URL ||
     process.env.FLAGBATTLE_SITE ||
-    DEFAULT_PUBLIC_SITE
+    PUBLIC_SITE_DEFAULT
   ).replace(/\/$/, "");
   qs.set("site", site);
   const api = (
@@ -345,12 +427,18 @@ function startChrome(displayNum, url, w, h) {
       "--disable-backgrounding-occluded-windows",
       "--disable-ipc-flooding-protection",
       "--memory-pressure-off",
+      "--autoplay-policy=no-user-gesture-required",
       `--user-data-dir=${userData}`,
       url,
     ],
     {
       stdio: ["ignore", "ignore", "pipe"],
-      env: { ...process.env, DISPLAY: displayNum },
+      env: {
+        ...process.env,
+        DISPLAY: displayNum,
+        PULSE_SINK: process.env.PULSE_SINK || "",
+        PULSE_SOURCE: process.env.PULSE_SOURCE || "",
+      },
     }
   );
   children.push(proc);
@@ -376,7 +464,12 @@ function startFfmpeg(displayNum, rtmpUrl, w, h, fps) {
       : "4000k");
   const preset = process.env.STREAM_PRESET || "ultrafast";
 
-  // Silent AAC bed — YouTube requires an audio track.
+  const usePulse = Boolean(process.env.PULSE_SOURCE || process.env.PULSE_SINK);
+  const pulseSource =
+    process.env.PULSE_SOURCE ||
+    (process.env.PULSE_SINK ? `${process.env.PULSE_SINK}.monitor` : "");
+
+  // Video from X11; audio from Pulse (TTS/SFX) or silent bed.
   const args = [
     "-y",
     "-thread_queue_size",
@@ -391,12 +484,39 @@ function startFfmpeg(displayNum, rtmpUrl, w, h, fps) {
     `${w}x${h}`,
     "-i",
     `${displayNum}.0`,
-    "-f",
-    "lavfi",
-    "-thread_queue_size",
-    "512",
-    "-i",
-    "anullsrc=channel_layout=stereo:sample_rate=44100",
+  ];
+
+  if (usePulse && pulseSource) {
+    args.push(
+      "-thread_queue_size",
+      "512",
+      "-f",
+      "pulse",
+      "-i",
+      pulseSource,
+      "-f",
+      "lavfi",
+      "-i",
+      "anullsrc=channel_layout=stereo:sample_rate=44100",
+      "-filter_complex",
+      "[1:a][2:a]amix=inputs=2:duration=first:dropout_transition=2[a]"
+    );
+  } else {
+    args.push(
+      "-f",
+      "lavfi",
+      "-thread_queue_size",
+      "512",
+      "-i",
+      "anullsrc=channel_layout=stereo:sample_rate=44100"
+    );
+  }
+
+  args.push(
+    "-map",
+    "0:v",
+    "-map",
+    usePulse && pulseSource ? "[a]" : "1:a",
     "-c:v",
     "libx264",
     "-preset",
@@ -430,10 +550,12 @@ function startFfmpeg(displayNum, rtmpUrl, w, h, fps) {
     "-shortest",
     "-f",
     "flv",
-    rtmpUrl,
-  ];
+    rtmpUrl
+  );
 
-  console.log(`FFmpeg → YouTube RTMP (${w}x${h}@${fps} ${preset} ${bitrate})`);
+  console.log(
+    `FFmpeg → YouTube RTMP (${w}x${h}@${fps} ${preset} ${bitrate}${usePulse ? " +pulse" : ""})`
+  );
   const proc = spawn("ffmpeg", args, {
     stdio: ["ignore", "pipe", "pipe"],
     env: { ...process.env, DISPLAY: displayNum },

@@ -5,14 +5,12 @@
 #   GOOGLE_CLIENT_SECRET
 #   GOOGLE_REFRESH_TOKEN
 #
-# Runs automatically every 4 hours (UTC) and via Actions → Run workflow.
+# Trigger from your own cron / server with workflow_dispatch (see README).
+# GitHub's schedule cron is disabled (often delayed) — use an external cronjob.
 
 name: Go Live — FLAG BATTLE
 
 on:
-  schedule:
-    # Every 4 hours — full 30:00 qualifying, public, ~40 min on air.
-    - cron: "0 */4 * * *"
   workflow_dispatch:
     inputs:
       demo_seconds:
@@ -20,7 +18,7 @@ on:
         required: false
         default: ""
       privacy:
-        description: "YouTube privacyStatus"
+        description: "YouTube privacyStatus (public | unlisted | private)"
         required: false
         default: "public"
       duration_minutes:
@@ -30,6 +28,7 @@ on:
 
 permissions:
   contents: write
+  actions: read
 
 concurrency:
   group: go-live
@@ -51,11 +50,12 @@ jobs:
       - name: Install system deps
         run: |
           sudo apt-get update
-          sudo apt-get install -y ffmpeg xvfb
+          sudo apt-get install -y ffmpeg xvfb pulseaudio pulseaudio-utils espeak-ng
           curl -fsSL -o /tmp/cloudflared \
             https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64
           sudo install -m 755 /tmp/cloudflared /usr/local/bin/cloudflared
           cloudflared --version
+          espeak-ng --version | head -1
 
       - name: Install stream package
         working-directory: stream
@@ -87,10 +87,9 @@ jobs:
       - name: Go live
         working-directory: stream
         env:
-          # schedule has no inputs → full 30 min qualifying, public, 40 min on air
-          DEMO_SECONDS: ${{ github.event.inputs.demo_seconds || '' }}
-          DURATION_MIN: ${{ github.event.inputs.duration_minutes || '40' }}
-          PRIVACY: ${{ github.event.inputs.privacy || 'public' }}
+          DEMO_SECONDS: ${{ inputs.demo_seconds }}
+          DURATION_MIN: ${{ inputs.duration_minutes }}
+          PRIVACY: ${{ inputs.privacy }}
           PUBLIC_SITE: https://yung1022.github.io/Flagbattle
           STREAM_WIDTH: "720"
           STREAM_HEIGHT: "1280"
