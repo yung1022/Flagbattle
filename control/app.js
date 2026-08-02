@@ -2,13 +2,14 @@
  * Mobile Go Live control center.
  * - Easy: YouTube app screen share
  * - Cloud: trigger GitHub Actions encoder
- * - Highlights: generate Final Short + upload to YouTube
+ * - Highlights: Final / Season Top 10 Shorts + upload to YouTube
  * - Setup: Google device OAuth + push repo secrets (phone-only)
  */
 
 import sodiumModule from "https://esm.sh/libsodium-wrappers@0.7.15";
 import {
   generateHighlightShort,
+  generateSeasonHighlightShort,
   downloadBlob,
 } from "../js/highlight-short.js";
 import {
@@ -51,9 +52,11 @@ function init() {
   $("btn-hl-download").addEventListener("click", downloadHighlight);
   $("btn-hl-upload").addEventListener("click", uploadHighlight);
   $("hl-stream").addEventListener("change", syncHighlightTitle);
+  $("hl-format").addEventListener("change", onHighlightFormatChange);
   $("hl-title").addEventListener("input", () => {
     $("hl-title").dataset.auto = "0";
   });
+  onHighlightFormatChange();
 
   // Default repo guess from path when hosted on GitHub Pages.
   if (!$("gh-repo").value) {
@@ -447,23 +450,44 @@ function selectedHighlightStream() {
   return hlStreams.find((s) => s.id === id) || null;
 }
 
+function highlightFormat() {
+  return $("hl-format")?.value === "season" ? "season" : "final";
+}
+
+function onHighlightFormatChange() {
+  const season = highlightFormat() === "season";
+  const field = $("hl-stream-field");
+  if (field) field.hidden = season;
+  $("hl-title").dataset.auto = "1";
+  syncHighlightTitle();
+}
+
 function syncHighlightTitle() {
+  if ($("hl-title").value && $("hl-title").dataset.auto !== "1") return;
+  if (highlightFormat() === "season") {
+    $("hl-title").value = "FLAG BATTLE Season Top 10 · Rank changes #Shorts";
+    $("hl-title").dataset.auto = "1";
+    return;
+  }
   const s = selectedHighlightStream();
   if (!s) return;
   const winner = s.final?.winner?.name || s.winner?.name || "Champion";
   const when = s.startedAt
     ? new Date(s.startedAt).toLocaleDateString()
     : "Final";
-  if (!$("hl-title").value || $("hl-title").dataset.auto === "1") {
-    $("hl-title").value = `FLAG BATTLE Final · ${winner} wins · ${when} #Shorts`;
-    $("hl-title").dataset.auto = "1";
-  }
+  $("hl-title").value = `FLAG BATTLE Final Top 10 · ${winner} · ${when} #Shorts`;
+  $("hl-title").dataset.auto = "1";
 }
 
 async function generateHighlight() {
+  const format = highlightFormat();
   const stream = selectedHighlightStream();
-  if (!stream) {
+  if (format === "final" && !stream) {
     log("hl-log", "Pick a finished Final first.");
+    return;
+  }
+  if (format === "season" && !hlStreams.length) {
+    log("hl-log", "No season history loaded yet.");
     return;
   }
   $("btn-hl-generate").disabled = true;
@@ -471,15 +495,23 @@ async function generateHighlight() {
   $("btn-hl-upload").disabled = true;
   hlBlob = null;
   try {
-    log("hl-log", "Generating vertical Short (keep this tab open)…");
-    const result = await generateHighlightShort(stream, {
-      onProgress: ({ phase, progress }) => {
-        if (Math.round(progress * 20) % 4 === 0) {
-          /* light logging */
-        }
-        $("btn-hl-generate").textContent = `${phase} ${Math.round(progress * 100)}%`;
-      },
-    });
+    const apiBase = (await resolveApiBase()) || "";
+    log(
+      "hl-log",
+      format === "season"
+        ? "Generating Season Top 10 Short (anthems + ↑/↓)…"
+        : "Generating Final Top 10 Short (anthems)…"
+    );
+    if (apiBase) log("hl-log", `Anthem API: ${apiBase}`);
+    else log("hl-log", "No API base — anthems may fall back to fanfare (CORS).");
+
+    const onProgress = ({ phase, progress }) => {
+      $("btn-hl-generate").textContent = `${phase} ${Math.round(progress * 100)}%`;
+    };
+    const result =
+      format === "season"
+        ? await generateSeasonHighlightShort(hlStreams, { apiBase, onProgress })
+        : await generateHighlightShort(stream, { apiBase, onProgress });
     hlBlob = result.blob;
     hlMime = result.mimeType || hlBlob.type;
     const url = URL.createObjectURL(hlBlob);
@@ -503,8 +535,12 @@ async function generateHighlight() {
 
 function downloadHighlight() {
   if (!hlBlob) return;
+  const format = highlightFormat();
   const stream = selectedHighlightStream();
-  const name = `flag-battle-highlight-${stream?.id || "final"}.webm`;
+  const name =
+    format === "season"
+      ? "flag-battle-season-top10.webm"
+      : `flag-battle-final-top10-${stream?.id || "final"}.webm`;
   downloadBlob(hlBlob, name);
   log("hl-log", `Download started: ${name}`);
 }
@@ -527,21 +563,35 @@ async function uploadHighlight() {
       clientSecret: state.clientSecret,
       refreshToken: state.refreshToken,
     });
+    const format = highlightFormat();
     const stream = selectedHighlightStream();
     const winner = stream?.final?.winner?.name || "Champion";
     const title =
       $("hl-title").value.trim() ||
-      `FLAG BATTLE Final Results · ${winner} #Shorts`;
-    const description = [
-      "FLAG BATTLE — Last Flag Standing final results highlight.",
-      `Champion: ${winner}`,
-      stream?.startedAt ? `Battle: ${new Date(stream.startedAt).toLocaleString()}` : "",
-      "",
-      "Rankings: https://yung1022.github.io/Flagbattle/rankings.html",
-      "#Shorts #FlagBattle #LastFlagStanding #Geography",
-    ]
-      .filter(Boolean)
-      .join("\n");
+      (format === "season"
+        ? "FLAG BATTLE Season Top 10 #Shorts"
+        : `FLAG BATTLE Final Top 10 · ${winner} #Shorts`);
+    const description =
+      format === "season"
+        ? [
+            "FLAG BATTLE — Season Top 10 points ranking with rank gains and losses.",
+            "Each country gets 5 seconds of its national anthem.",
+            "",
+            "Rankings: https://yung1022.github.io/Flagbattle/rankings.html",
+            "#Shorts #FlagBattle #LastFlagStanding #Geography",
+          ].join("\n")
+        : [
+            "FLAG BATTLE — Final Top 10 with national anthems.",
+            `Champion: ${winner}`,
+            stream?.startedAt
+              ? `Battle: ${new Date(stream.startedAt).toLocaleString()}`
+              : "",
+            "",
+            "Rankings: https://yung1022.github.io/Flagbattle/rankings.html",
+            "#Shorts #FlagBattle #LastFlagStanding #Geography",
+          ]
+            .filter(Boolean)
+            .join("\n");
 
     log("hl-log", "Uploading to YouTube…");
     const uploaded = await uploadYoutubeShort({

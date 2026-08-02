@@ -115,11 +115,18 @@
       <section class="panel" id="panel-highlights">
         <h2>Highlight Short</h2>
         <p class="hint">
-          Build a vertical Short from a finished Final (ranking + battle
-          highlights), then upload it to YouTube automatically.
+          Reveal Top 10 with each country’s national anthem (5s). Final uses
+          that stream’s ranking; Season uses points + ↑/↓ rank change.
         </p>
 
         <label class="field">
+          <span>Format</span>
+          <select id="hl-format">
+            <option value="final">Final Top 10 + anthems</option>
+            <option value="season">Season Top 10 + ↑/↓ + anthems</option>
+          </select>
+        </label>
+        <label class="field" id="hl-stream-field">
           <span>Finished Final</span>
           <select id="hl-stream"></select>
         </label>
@@ -136,7 +143,7 @@
           <input
             id="hl-title"
             maxlength="100"
-            placeholder="FLAG BATTLE Final Results #Shorts"
+            placeholder="FLAG BATTLE Final Top 10 #Shorts"
           />
         </label>
 
@@ -152,8 +159,8 @@
           </button>
         </div>
         <p class="note">
-          Uses Google login from the Setup tab. Prefer Chrome/Android for
-          recording. Pinning isn’t needed for Shorts VODs.
+          Anthems need a live API (local <code>node server.mjs</code> or tunnel)
+          for CORS. Fanfare plays if an anthem can’t load. Prefer Chrome.
         </p>
         <div class="hl-preview-wrap">
           <video id="hl-preview" playsinline controls muted hidden></video>

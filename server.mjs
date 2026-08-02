@@ -346,6 +346,39 @@ async function handleApi(req, res, url) {
     }
   }
 
+  // CORS proxy for national anthems (nationalanthems.info has no CORS headers).
+  if (url.pathname === "/api/anthem" && req.method === "GET") {
+    const code = String(url.searchParams.get("code") || "")
+      .toLowerCase()
+      .replace(/[^a-z]/g, "");
+    if (!code || code.length > 3) {
+      return send(res, 400, { error: "valid ISO country code required" });
+    }
+    try {
+      const upstream = `https://www.nationalanthems.info/${code}.mp3`;
+      const upstreamRes = await fetch(upstream, {
+        headers: { Accept: "audio/mpeg,*/*" },
+      });
+      if (!upstreamRes.ok) {
+        return send(res, upstreamRes.status, {
+          error: `anthem not found for ${code}`,
+        });
+      }
+      const buf = Buffer.from(await upstreamRes.arrayBuffer());
+      res.writeHead(200, {
+        "Content-Type": "audio/mpeg",
+        "Content-Length": buf.length,
+        "Cache-Control": "public, max-age=86400",
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Methods": "GET,OPTIONS",
+      });
+      res.end(buf);
+      return;
+    } catch (err) {
+      return send(res, 502, { error: String(err.message || err) });
+    }
+  }
+
   return send(res, 404, { error: "not found" });
 }
 
