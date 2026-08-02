@@ -2,6 +2,7 @@ import { FlagBattleGame, CONFIG, flagSizeForCount } from "./game.js";
 import { COUNTRIES } from "./countries.js";
 import { fetchPoll } from "./store.js";
 import { siteBase as resolveSiteBase } from "./public.js";
+import { announceRoundWinner, unlockAudio } from "./sfx.js";
 
 const game = new FlagBattleGame();
 const params = new URLSearchParams(location.search);
@@ -34,10 +35,6 @@ const els = {
   streamPoll: document.getElementById("stream-poll"),
   streamPollRows: document.getElementById("stream-poll-rows"),
   streamPollTotal: document.getElementById("stream-poll-total"),
-  urlPoll: document.getElementById("url-poll"),
-  urlRank: document.getElementById("url-rank"),
-  qrPoll: document.getElementById("qr-poll"),
-  qrRank: document.getElementById("qr-rank"),
   subsPill: document.getElementById("subs-pill"),
   subsCount: document.getElementById("subs-count"),
   subsChannel: document.getElementById("subs-channel"),
@@ -63,13 +60,10 @@ function pageUrl(file, query = "") {
   return `${base}/${file}${q ? `?${q}` : ""}`;
 }
 
-function qrSrc(url) {
-  return `https://api.qrserver.com/v1/create-qr-code/?size=160x160&margin=8&data=${encodeURIComponent(url)}`;
-}
-
 let lastLinkKey = "";
 let lastPollKey = "";
 let pollTimer = 0;
+let lastAnnouncedAt = 0;
 
 const fighterEls = new Map();
 let lastBoardKey = "";
@@ -280,6 +274,21 @@ function renderFeed() {
   while (els.feed.children.length > 3) {
     els.feed.lastElementChild.remove();
   }
+  maybeAnnounce(latest);
+}
+
+function maybeAnnounce(event) {
+  if (!event || event.at === lastAnnouncedAt) return;
+  lastAnnouncedAt = event.at;
+  if (event.type === "qualify") {
+    const name =
+      game.qualified?.[game.qualified.length - 1]?.name ||
+      String(event.text || "").split(" ")[0] ||
+      "A country";
+    announceRoundWinner(name, { champion: false });
+  } else if (event.type === "winner") {
+    announceRoundWinner(game.winner?.name || "Champion", { champion: true });
+  }
 }
 
 function renderHud() {
@@ -387,30 +396,10 @@ function clearFighters() {
 }
 
 function renderStreamLinks() {
-  if (!els.streamLinks) return;
-
-  // Always show in stream mode; otherwise once a battle stream id exists.
-  const force = params.has("stream") || params.has("links");
-  if (!game.stream?.id && !force) {
-    els.streamLinks.hidden = true;
-    return;
-  }
-
-  els.streamLinks.hidden = false;
-  const id = game.stream?.id;
-  const poll = id
-    ? pageUrl("poll.html", `id=${encodeURIComponent(id)}`)
-    : pageUrl("poll.html");
-  const rank = id
-    ? pageUrl("rankings.html", `id=${encodeURIComponent(id)}`)
-    : pageUrl("rankings.html");
-  const key = `${id || "generic"}:${poll}`;
-  if (key === lastLinkKey) return;
-  lastLinkKey = key;
-  els.urlPoll.textContent = poll.replace(/^https?:\/\//, "");
-  els.urlRank.textContent = rank.replace(/^https?:\/\//, "");
-  els.qrPoll.src = qrSrc(poll);
-  els.qrRank.src = qrSrc(rank);
+  // QR overlay removed — poll/rankings links are posted to live chat instead.
+  if (els.streamLinks) els.streamLinks.hidden = true;
+  void lastLinkKey;
+  void pageUrl;
 }
 
 function shouldShowStreamPoll() {
@@ -488,6 +477,7 @@ function renderChrome() {
 }
 
 els.btnStart.addEventListener("click", () => {
+  unlockAudio();
   clearFighters();
   game.start();
 });
@@ -528,15 +518,23 @@ syncArena();
 renderChrome();
 
 if (params.has("autostart")) {
+  unlockAudio();
   clearFighters();
   game.start();
 }
 
+// Headless Chrome / stream: unlock audio once the page is interactive.
+window.addEventListener(
+  "pointerdown",
+  () => unlockAudio(),
+  { once: true, passive: true }
+);
+setTimeout(() => unlockAudio(), 800);
+
 function formatSubs(n) {
   if (n == null || Number.isNaN(n)) return "—";
-  if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(n >= 10_000_000 ? 0 : 1)}M`;
-  if (n >= 1_000) return `${(n / 1_000).toFixed(n >= 10_000 ? 0 : 1)}K`;
-  return String(n);
+  // Full count with thousands separators (no K/M abbreviation).
+  return Math.round(Number(n)).toLocaleString("en-US");
 }
 
 async function refreshSubs() {

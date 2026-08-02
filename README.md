@@ -26,7 +26,7 @@ Stream ranking history is stored in [`data/rankings.json`](data/rankings.json) a
 ### How polls work for viewers
 
 1. Go-live starts a **Cloudflare quick tunnel** to the stream API.
-2. On-stream QR codes point at **GitHub Pages** with `?api=<tunnel>` (not `127.0.0.1`).
+2. Poll + rankings links are **posted to YouTube live chat** (pin manually in Studio — the API cannot pin).
 3. Votes hit the tunnel; rankings/poll snapshots are also mirrored into `data/` for history.
 
 ## Local run
@@ -61,12 +61,41 @@ See [`control/`](control/) and [`stream/`](stream/). Repo Action secrets:
 - `GOOGLE_REFRESH_TOKEN`
 - Optional `GH_PAT` (contents write) for data commits that retrigger Pages
 
-### Automatic schedule
+### Trigger go-live from your own cronjob
 
-GitHub Action **Go Live — FLAG BATTLE** runs every **4 hours** (UTC):
+GitHub’s scheduled cron is often delayed, so this workflow is **`workflow_dispatch` only**. Call it from your server cron (every 4 hours, etc.).
 
-- **Public** livestream
-- Full **30:00** qualifying (no demo shorten)
-- Runner stops after **40 minutes**
-- Discovery tags + Gaming category on the YouTube video
-- Capture at 720×1280 / `ultrafast` for smoother Actions encode
+**1. Create a GitHub PAT** with permission to run Actions:
+- Fine-grained: Actions **Read and write** on `yung1022/Flagbattle`, or
+- Classic: `repo` + `workflow`
+
+**2. Cron example** (full 30:00 qualifying, public, 40 minutes):
+
+```bash
+# crontab -e   →   0 */4 * * *
+curl -sS -X POST \
+  -H "Accept: application/vnd.github+json" \
+  -H "Authorization: Bearer YOUR_GITHUB_PAT" \
+  -H "X-GitHub-Api-Version: 2022-11-28" \
+  https://api.github.com/repos/yung1022/Flagbattle/actions/workflows/go-live.yml/dispatches \
+  -d '{
+    "ref": "main",
+    "inputs": {
+      "privacy": "public",
+      "duration_minutes": "40",
+      "demo_seconds": ""
+    }
+  }'
+```
+
+**Inputs you can set**
+
+| Input | Default | Meaning |
+|-------|---------|---------|
+| `privacy` | `public` | `public` / `unlisted` / `private` |
+| `duration_minutes` | `40` | Kill the Actions runner after N minutes |
+| `demo_seconds` | `""` (empty) | Leave empty for full **30:00** qualifying; set e.g. `"120"` only for short tests |
+
+Repo secrets still required: `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `GOOGLE_REFRESH_TOKEN`.
+
+**Or** Actions UI → **Go Live — FLAG BATTLE** → **Run workflow** with the same inputs.
