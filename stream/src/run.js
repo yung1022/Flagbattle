@@ -20,6 +20,9 @@ import {
   setVideoThumbnail,
   postLiveChatMessage,
   resolveThumbnailFile,
+  applyVideoDiscovery,
+  DEFAULT_LIVE_TAGS,
+  DEFAULT_LIVE_KEYWORDS,
 } from "./youtube.js";
 import { startChatVoteLoop } from "./chat-vote.js";
 
@@ -85,17 +88,24 @@ async function main() {
   console.log(`Game: ${gameUrl}`);
   console.log(`Rankings/poll API on :${PORT}`);
 
+  const liveTags = parseTags(process.env.YT_TAGS) || DEFAULT_LIVE_TAGS;
+  const liveKeywords =
+    parseTags(process.env.YT_KEYWORDS) || DEFAULT_LIVE_KEYWORDS;
   const live = await createLiveBroadcast({
     title: TITLE,
     description: DESCRIPTION,
     privacyStatus: PRIVACY,
     thumbnailPath: THUMB,
-    tags: parseTags(process.env.YT_TAGS),
+    tags: liveTags,
+    keywords: liveKeywords,
     categoryId: process.env.YT_CATEGORY_ID || "20",
   });
   youtubeClient = live.youtube;
   broadcastId = live.broadcastId;
   console.log(`YouTube watch: ${live.watchUrl}`);
+  console.log(
+    `Discovery: ${liveTags.length} tags, ${liveKeywords.length} keywords`
+  );
   console.log(`RTMP ingest ready`);
 
   display = await findFreeDisplay();
@@ -115,6 +125,19 @@ async function main() {
   const thumb = live.thumbnailPath || (await resolveThumbnailFile(THUMB));
   if (thumb) {
     await setVideoThumbnail(youtubeClient, broadcastId, thumb);
+  }
+
+  // Re-apply tags/keywords after live — more reliable than pre-live only.
+  try {
+    await applyVideoDiscovery(youtubeClient, broadcastId, {
+      title: TITLE,
+      description: DESCRIPTION,
+      tags: liveTags,
+      keywords: liveKeywords,
+      categoryId: process.env.YT_CATEGORY_ID || "20",
+    });
+  } catch (err) {
+    console.warn("Post-live tags/keywords failed:", err.message || err);
   }
 
   await postChatLinks(youtubeClient, broadcastId, tunnelUrl, MODE);
