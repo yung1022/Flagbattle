@@ -40,22 +40,34 @@ export function battleLabel(stream, index, total) {
  */
 export function battleResult(stream, code) {
   const mode = stream?.mode || (stream?.final?.ranking?.length ? "final" : null);
+  const qualified = stream?.qualified || [];
+  const ranking = stream?.final?.ranking;
 
-  if (mode === "qualifying" || (!mode && !stream?.final?.ranking?.length)) {
-    const qualified = stream?.qualified || [];
+  // Recovered Finals may only know #1 — keep Q marks for other qualifiers.
+  if (stream?.final?.recovered) {
+    if (
+      stream.winner?.code === code ||
+      stream.final?.winner?.code === code
+    ) {
+      return 1;
+    }
+    if (qualified.some((q) => q.code === code)) return "Q";
+    if (stream?.endedAt) return "nq";
+    return "—";
+  }
+
+  if (mode === "qualifying" || (!mode && !ranking?.length)) {
     if (qualified.some((q) => q.code === code)) return "Q";
     if (stream?.endedAt) return "nq";
     if ((stream?.rounds || []).length) return "—";
     return "—";
   }
 
-  const ranking = stream?.final?.ranking;
   if (Array.isArray(ranking) && ranking.length) {
     const row = ranking.find((r) => r.code === code);
     return row?.rank != null ? Number(row.rank) : "nq";
   }
 
-  const qualified = stream?.qualified || [];
   if (qualified.some((q) => q.code === code)) return "Q";
   if (stream?.endedAt || stream?.winner) return "nq";
   if ((stream?.rounds || []).length) return "—";

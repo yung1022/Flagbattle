@@ -67,23 +67,52 @@ export async function fetchLiveFromApi() {
   return null;
 }
 
+function streamCompleteness(s) {
+  let n = 0;
+  if (s?.endedAt) n += 8;
+  if (s?.final?.ranking?.length) n += 4 + Math.min(s.final.ranking.length, 50);
+  if (s?.qualified?.length) n += 2;
+  if (s?.rounds?.length) n += 1;
+  if (s?.winner) n += 1;
+  return n;
+}
+
+/** Newest-first union; prefer the more complete record per stream id. */
+export function mergeStreamLists(...lists) {
+  const byId = new Map();
+  for (const list of lists) {
+    if (!Array.isArray(list)) continue;
+    for (const s of list) {
+      if (!s?.id) continue;
+      const prev = byId.get(s.id);
+      if (!prev || streamCompleteness(s) >= streamCompleteness(prev)) {
+        byId.set(s.id, s);
+      }
+    }
+  }
+  return [...byId.values()].sort((a, b) =>
+    (b.startedAt || "").localeCompare(a.startedAt || "")
+  );
+}
+
 export async function fetchStreamsFromApi() {
   const fromApi = await apiFetch("/api/rankings");
-  if (Array.isArray(fromApi) && fromApi.length) return fromApi;
-
+  let fromPages = null;
   try {
     const res = await fetch(pagesDataUrl("rankings.json"), { cache: "no-store" });
     if (res.ok) {
       const data = await res.json();
-      if (Array.isArray(data)) return data;
+      if (Array.isArray(data)) fromPages = data;
     }
   } catch {
     /* ignore */
   }
 
   const live = await fetchLiveFromApi();
-  if (Array.isArray(live?.streams) && live.streams.length) return live.streams;
-  return null;
+  const fromLive = Array.isArray(live?.streams) ? live.streams : null;
+
+  const merged = mergeStreamLists(fromApi, fromPages, fromLive);
+  return merged.length ? merged : null;
 }
 
 export async function submitPollVote(streamId, code, voterId) {

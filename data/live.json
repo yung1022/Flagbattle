@@ -379,13 +379,13 @@
     },
     "qualifyingRemainingMs": 0,
     "intermissionRemainingMs": 0,
-    "updatedAt": 1785684526620
+    "updatedAt": 1785685397432
   },
   "streams": [
     {
       "id": "fb_msbxak8q_z17qv0",
       "startedAt": "2026-08-02T14:56:03.578Z",
-      "endedAt": null,
+      "endedAt": "2026-08-02T15:28:46.620Z",
       "rounds": [
         {
           "round": 1,
@@ -60328,7 +60328,24 @@
           "at": "2026-08-02T15:27:20.815Z"
         }
       ],
-      "final": null,
+      "final": {
+        "ranking": [
+          {
+            "rank": 1,
+            "code": "fi",
+            "name": "Finland",
+            "img": "https://flagcdn.com/w80/fi.png"
+          }
+        ],
+        "winner": {
+          "code": "fi",
+          "name": "Finland",
+          "img": "https://flagcdn.com/w80/fi.png"
+        },
+        "at": "2026-08-02T15:28:46.620Z",
+        "recovered": true,
+        "note": "Final placements beyond #1 were lost when go-live persist failed to push"
+      },
       "qualified": [
         {
           "code": "by",
@@ -60631,7 +60648,12 @@
           "img": "https://flagcdn.com/w80/kp.png"
         }
       ],
-      "winner": null
+      "winner": {
+        "code": "fi",
+        "name": "Finland",
+        "img": "https://flagcdn.com/w80/fi.png"
+      },
+      "mode": "final"
     },
     {
       "id": "fb_msb6hvlb_nrow4q",
@@ -341639,6 +341661,6 @@
       }
     }
   ],
-  "api": "https://filled-proven-weapon-camcorder.trycloudflare.com",
-  "updatedAt": 1785684527154
+  "api": null,
+  "updatedAt": 1785685397432
 }

@@ -340,10 +340,67 @@ async function handleApi(req, res, url) {
         }
       }
       const finished = body.live?.phase === "finished";
+      // Safety net: if the finished live snapshot arrives without a matching
+      // stream save (race / dropped POST), still close the stream so rankings
+      // persist and go-live history is not lost.
+      if (finished && body.live?.streamId) {
+        const idx = (cur.streams || []).findIndex(
+          (s) => s.id === body.live.streamId
+        );
+        if (idx >= 0 && !cur.streams[idx].endedAt) {
+          const s = { ...cur.streams[idx] };
+          s.endedAt = new Date().toISOString();
+          if (Array.isArray(body.live.qualified) && body.live.qualified.length) {
+            s.qualified = body.live.qualified.map((q) => ({
+              code: q.code,
+              name: q.name,
+              img: q.img,
+            }));
+          }
+          if (body.live.winner && !s.winner) {
+            s.winner = {
+              code: body.live.winner.code,
+              name: body.live.winner.name,
+              img: body.live.winner.img,
+            };
+            if (!s.final?.ranking?.length) {
+              s.final = {
+                ranking: [{ rank: 1, ...s.winner }],
+                winner: s.winner,
+                at: s.endedAt,
+                recovered: true,
+              };
+            }
+          }
+          if (!s.mode) {
+            s.mode = s.final?.ranking?.length ? "final" : "qualifying";
+          }
+          cur.streams[idx] = s;
+          writeJson(RANK_FILE, cur.streams);
+          schedulePublicSync({
+            forceRank: true,
+            forceLive: true,
+            github: true,
+          });
+          if (githubTimer) clearTimeout(githubTimer);
+          githubTimer = null;
+          writeJson(LIVE_FILE, cur);
+          flushGithubPublicData();
+          return send(res, 200, { ok: true });
+        }
+      }
       schedulePublicSync({
         forceLive: true,
         github: finished,
       });
+      if (finished) {
+        // Don't wait the long coalesce window once a stream is done.
+        if (githubTimer) clearTimeout(githubTimer);
+        githubTimer = null;
+        writeJson(LIVE_FILE, cur);
+        flushGithubPublicData();
+        return send(res, 200, { ok: true });
+      }
     }
     if (body.type === "stream" && body.stream) {
       cur.streams = [body.stream, ...(cur.streams || [])]
@@ -351,17 +408,19 @@ async function handleApi(req, res, url) {
         .slice(0, 40);
       writeJson(RANK_FILE, cur.streams);
       const finished = Boolean(body.stream.endedAt);
-      // Local rankings every round; GitHub only when the Final finishes.
+      // Local rankings every round; GitHub when the stream finishes.
       schedulePublicSync({
         forceRank: true,
         forceLive: finished,
         github: finished,
       });
+      writeJson(LIVE_FILE, cur);
       if (finished) {
         // Publish promptly once — don't wait the long coalesce window.
         if (githubTimer) clearTimeout(githubTimer);
         githubTimer = null;
         flushGithubPublicData();
+        return send(res, 200, { ok: true });
       }
     }
     if (body.type === "poll_init" && body.poll) {

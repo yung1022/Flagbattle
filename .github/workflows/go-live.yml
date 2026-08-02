@@ -148,6 +148,47 @@ jobs:
             api: null,
             updatedAt: Date.now(),
           };
+          // Close unfinished newest stream if the live snapshot already finished
+          // (protects against dropped stream POSTs near process kill).
+          const newest = out.streams?.[0];
+          if (
+            newest &&
+            !newest.endedAt &&
+            out.live?.phase === "finished" &&
+            out.live?.streamId === newest.id
+          ) {
+            newest.endedAt = new Date(
+              out.live.updatedAt || Date.now()
+            ).toISOString();
+            if (Array.isArray(out.live.qualified) && out.live.qualified.length) {
+              newest.qualified = out.live.qualified.map((q) => ({
+                code: q.code,
+                name: q.name,
+                img: q.img,
+              }));
+            }
+            if (out.live.winner && !newest.winner) {
+              newest.winner = out.live.winner;
+              if (!newest.final?.ranking?.length) {
+                newest.final = {
+                  ranking: [{ rank: 1, ...out.live.winner }],
+                  winner: out.live.winner,
+                  at: newest.endedAt,
+                  recovered: true,
+                };
+              }
+            }
+            if (!newest.mode) {
+              newest.mode = newest.final?.ranking?.length
+                ? "final"
+                : "qualifying";
+            }
+            // Keep rankings.json in sync with closed stream.
+            fs.writeFileSync(
+              "data/rankings.json",
+              JSON.stringify(out.streams, null, 2)
+            );
+          }
           fs.writeFileSync("data/live.json", JSON.stringify(out, null, 2));
           NODE
           fi
@@ -161,6 +202,33 @@ jobs:
             echo "No data changes to commit"
           else
             git commit -m "chore(data): persist stream rankings from go-live"
-            git pull --rebase origin main || true
-            git push origin HEAD:main
+            git fetch origin main
+            # Rebase onto latest main. On data/ conflicts, keep the persist commit
+            # ("theirs" during rebase = the commit being applied).
+            resolve_data_rebase() {
+              echo "Rebase conflict — keeping persist data/ from this go-live"
+              git checkout --theirs -- data/
+              git add data/
+              GIT_EDITOR=true git rebase --continue
+            }
+            if ! git rebase origin/main; then
+              resolve_data_rebase
+            fi
+            # Retry push if main moved again (Contents API snapshots mid-push).
+            for attempt in 1 2 3 4; do
+              if git push origin HEAD:main; then
+                echo "Persisted data/ to main"
+                break
+              fi
+              echo "Push failed (attempt ${attempt}); refetch and rebase"
+              sleep $((attempt * 4))
+              git fetch origin main
+              if ! git rebase origin/main; then
+                resolve_data_rebase
+              fi
+              if [ "$attempt" = "4" ]; then
+                echo "Failed to push persist commit after retries" >&2
+                exit 1
+              fi
+            done
           fi
