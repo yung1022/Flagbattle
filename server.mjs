@@ -346,7 +346,8 @@ async function handleApi(req, res, url) {
     }
   }
 
-  // CORS proxy for national anthems (nationalanthems.info has no CORS headers).
+  // Optional CORS proxy for Wikimedia Commons anthems (see data/anthems.json).
+  // Shorts normally fetch Commons directly; this helps when a browser blocks it.
   if (url.pathname === "/api/anthem" && req.method === "GET") {
     const code = String(url.searchParams.get("code") || "")
       .toLowerCase()
@@ -355,18 +356,26 @@ async function handleApi(req, res, url) {
       return send(res, 400, { error: "valid ISO country code required" });
     }
     try {
-      const upstream = `https://www.nationalanthems.info/${code}.mp3`;
+      const map = readJson(path.join(PUBLIC_DATA, "anthems.json"), { urls: {} });
+      const upstream = map.urls?.[code];
+      if (!upstream) {
+        return send(res, 404, { error: `anthem not mapped for ${code}` });
+      }
       const upstreamRes = await fetch(upstream, {
-        headers: { Accept: "audio/mpeg,*/*" },
+        headers: {
+          Accept: "audio/*,application/ogg,*/*",
+          "User-Agent": "FlagBattle/1.0 (anthem proxy)",
+        },
       });
       if (!upstreamRes.ok) {
         return send(res, upstreamRes.status, {
-          error: `anthem not found for ${code}`,
+          error: `upstream anthem failed for ${code}`,
         });
       }
       const buf = Buffer.from(await upstreamRes.arrayBuffer());
+      const ct = upstreamRes.headers.get("content-type") || "application/ogg";
       res.writeHead(200, {
-        "Content-Type": "audio/mpeg",
+        "Content-Type": ct,
         "Content-Length": buf.length,
         "Cache-Control": "public, max-age=86400",
         "Access-Control-Allow-Origin": "*",
