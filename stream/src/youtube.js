@@ -20,25 +20,132 @@ export function createOAuthClient() {
   return oauth2;
 }
 
-/** Discovery tags for YouTube search / browse. */
+/**
+ * YouTube video tags (Studio → Details → Tags). Keep these short & focused.
+ * API max ~500 chars total across all tags; we send up to 30.
+ */
 export const DEFAULT_LIVE_TAGS = [
   "flag battle",
-  "flags",
   "country flags",
   "last flag standing",
   "livestream",
-  "live stream",
   "youtube shorts",
-  "shorts live",
-  "live game",
+  "geography game",
   "battle royale",
-  "geography",
+  "live game",
   "world flags",
-  "flag game",
-  "countries",
   "elimination game",
-  "live gaming",
 ];
+
+/**
+ * SEO / discovery keywords (description line + hashtags).
+ * YouTube has no separate Keywords API field — these go in the description.
+ */
+export const DEFAULT_LIVE_KEYWORDS = [
+  "flag battle",
+  "country flags",
+  "national flags",
+  "last flag standing",
+  "flag game live",
+  "geography livestream",
+  "world flags battle",
+  "youtube shorts live",
+  "shorts livestream",
+  "live elimination game",
+  "battle royale flags",
+  "countries battle",
+  "flag royale",
+  "live gaming",
+  "interactive livestream",
+];
+
+/** Build description with Keywords + hashtags appended. */
+export function withDiscoveryCopy(description, {
+  keywords = DEFAULT_LIVE_KEYWORDS,
+  tags = DEFAULT_LIVE_TAGS,
+} = {}) {
+  const base = String(description || "").trim();
+  const kw = (Array.isArray(keywords) && keywords.length
+    ? keywords
+    : DEFAULT_LIVE_KEYWORDS
+  )
+    .map((k) => String(k).trim())
+    .filter(Boolean);
+  const tagList = (Array.isArray(tags) && tags.length ? tags : DEFAULT_LIVE_TAGS)
+    .map((t) => String(t).trim())
+    .filter(Boolean);
+
+  // Hashtags from first tags/keywords (YouTube indexes hashtags in description).
+  const hashtags = [...tagList, ...kw]
+    .map((t) =>
+      "#" +
+      t
+        .replace(/[^a-zA-Z0-9]+/g, "")
+        .replace(/^#+/, "")
+    )
+    .filter((h) => h.length > 2);
+  const uniqueHash = [...new Set(hashtags)].slice(0, 15);
+
+  const parts = [base];
+  if (kw.length) {
+    parts.push("", `Keywords: ${kw.slice(0, 20).join(", ")}`);
+  }
+  if (uniqueHash.length) {
+    parts.push("", uniqueHash.join(" "));
+  }
+  return parts.join("\n").slice(0, 4900);
+}
+
+/**
+ * Apply title/description/tags/category on the video resource.
+ * Safe to call again after go-live (tags sometimes fail pre-live).
+ */
+export async function applyVideoDiscovery(youtube, videoId, {
+  title,
+  description,
+  tags = DEFAULT_LIVE_TAGS,
+  keywords = DEFAULT_LIVE_KEYWORDS,
+  categoryId = "20",
+} = {}) {
+  const tagList = (Array.isArray(tags) && tags.length ? tags : DEFAULT_LIVE_TAGS)
+    .map((t) => String(t).trim())
+    .filter(Boolean)
+    .slice(0, 30);
+  const fullDescription = withDiscoveryCopy(description, {
+    keywords,
+    tags: tagList,
+  });
+
+  // videos.update requires a complete snippet — fetch first, then merge.
+  let category = String(categoryId || "20");
+  try {
+    const existing = await youtube.videos.list({
+      part: ["snippet"],
+      id: [videoId],
+    });
+    const sn = existing.data.items?.[0]?.snippet;
+    if (sn?.categoryId) category = sn.categoryId;
+  } catch {
+    /* use provided category */
+  }
+
+  await youtube.videos.update({
+    part: ["snippet"],
+    requestBody: {
+      id: videoId,
+      snippet: {
+        title: String(title || "FLAG BATTLE").slice(0, 100),
+        description: fullDescription,
+        categoryId: category,
+        tags: tagList,
+      },
+    },
+  });
+  console.log(
+    `YouTube discovery set: ${tagList.length} tags, keywords+hashtags in description`
+  );
+  return { tags: tagList, description: fullDescription };
+}
 
 /**
  * Create broadcast + RTMP stream, bind, return ingestion + ids.
@@ -49,6 +156,7 @@ export async function createLiveBroadcast({
   privacyStatus = "public",
   thumbnailPath,
   tags = DEFAULT_LIVE_TAGS,
+  keywords = DEFAULT_LIVE_KEYWORDS,
   categoryId = "20", // Gaming
 } = {}) {
   const auth = createOAuthClient();
@@ -56,13 +164,19 @@ export async function createLiveBroadcast({
 
   const scheduledStart = new Date(Date.now() + 30_000).toISOString();
   const tagList = Array.isArray(tags) && tags.length ? tags : DEFAULT_LIVE_TAGS;
+  const keywordList =
+    Array.isArray(keywords) && keywords.length ? keywords : DEFAULT_LIVE_KEYWORDS;
+  const fullDescription = withDiscoveryCopy(description, {
+    keywords: keywordList,
+    tags: tagList,
+  });
 
   const broadcastRes = await youtube.liveBroadcasts.insert({
     part: ["snippet", "status", "contentDetails"],
     requestBody: {
       snippet: {
         title,
-        description,
+        description: fullDescription,
         scheduledStartTime: scheduledStart,
       },
       status: {
@@ -82,21 +196,15 @@ export async function createLiveBroadcast({
 
   // Tags + category live on the video resource (helps discovery).
   try {
-    await youtube.videos.update({
-      part: ["snippet"],
-      requestBody: {
-        id: broadcastId,
-        snippet: {
-          title,
-          description,
-          categoryId: String(categoryId || "20"),
-          tags: tagList.slice(0, 30),
-        },
-      },
+    await applyVideoDiscovery(youtube, broadcastId, {
+      title,
+      description,
+      tags: tagList,
+      keywords: keywordList,
+      categoryId,
     });
-    console.log(`YouTube tags set (${Math.min(tagList.length, 30)})`);
   } catch (err) {
-    console.warn("Could not set video tags:", err.message || err);
+    console.warn("Could not set video tags/keywords:", err.message || err);
   }
 
   const streamRes = await youtube.liveStreams.insert({
