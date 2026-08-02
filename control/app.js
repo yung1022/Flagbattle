@@ -52,7 +52,11 @@ function init() {
   $("btn-hl-download").addEventListener("click", downloadHighlight);
   $("btn-hl-upload").addEventListener("click", uploadHighlight);
   $("hl-stream").addEventListener("change", syncHighlightTitle);
-  $("hl-format").addEventListener("change", onHighlightFormatChange);
+  const hlFormat = $("hl-format");
+  if (hlFormat) {
+    hlFormat.addEventListener("change", onHighlightFormatChange);
+    hlFormat.addEventListener("input", onHighlightFormatChange);
+  }
   $("hl-title").addEventListener("input", () => {
     $("hl-title").dataset.auto = "0";
   });
@@ -451,15 +455,52 @@ function selectedHighlightStream() {
 }
 
 function highlightFormat() {
-  return $("hl-format")?.value === "season" ? "season" : "final";
+  const el = $("hl-format");
+  return el && el.value === "season" ? "season" : "final";
+}
+
+function clearHighlightPreview() {
+  hlBlob = null;
+  hlMime = "video/webm";
+  const vid = $("hl-preview");
+  if (vid) {
+    try {
+      vid.pause();
+    } catch {
+      /* ignore */
+    }
+    vid.removeAttribute("src");
+    vid.load();
+    vid.hidden = true;
+  }
+  const dl = $("btn-hl-download");
+  const up = $("btn-hl-upload");
+  if (dl) dl.disabled = true;
+  if (up) up.disabled = true;
 }
 
 function onHighlightFormatChange() {
   const season = highlightFormat() === "season";
   const field = $("hl-stream-field");
-  if (field) field.hidden = season;
+  if (field) {
+    field.hidden = season;
+    field.style.display = season ? "none" : "";
+  }
+  const hint = $("hl-format-hint");
+  if (hint) {
+    hint.textContent = season
+      ? "Season: Generate to reveal points Top 10 with ↑/↓ and anthems."
+      : "Final: pick a finished stream below, then Generate.";
+  }
   $("hl-title").dataset.auto = "1";
   syncHighlightTitle();
+  clearHighlightPreview();
+  log(
+    "hl-log",
+    season
+      ? "Format: Season Top 10 — tap Generate Short."
+      : "Format: Final Top 10 — pick a stream, then Generate Short."
+  );
 }
 
 function syncHighlightTitle() {
@@ -470,7 +511,11 @@ function syncHighlightTitle() {
     return;
   }
   const s = selectedHighlightStream();
-  if (!s) return;
+  if (!s) {
+    $("hl-title").value = "FLAG BATTLE Final Top 10 #Shorts";
+    $("hl-title").dataset.auto = "1";
+    return;
+  }
   const winner = s.final?.winner?.name || s.winner?.name || "Champion";
   const when = s.startedAt
     ? new Date(s.startedAt).toLocaleDateString()
@@ -512,6 +557,10 @@ async function generateHighlight() {
       format === "season"
         ? await generateSeasonHighlightShort(hlStreams, { apiBase, onProgress })
         : await generateHighlightShort(stream, { apiBase, onProgress });
+    if (highlightFormat() !== format) {
+      log("hl-log", "Format changed during generate — discarded. Generate again.");
+      return;
+    }
     hlBlob = result.blob;
     hlMime = result.mimeType || hlBlob.type;
     const url = URL.createObjectURL(hlBlob);

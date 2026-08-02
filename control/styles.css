@@ -166,6 +166,12 @@ body {
   color: var(--muted);
 }
 
+/* `hidden` must win over `.field { display: grid }` */
+.field[hidden],
+[hidden] {
+  display: none !important;
+}
+
 .field input,
 .field select,
 .field textarea {
