@@ -21,6 +21,7 @@ import {
   postLiveChatMessage,
   resolveThumbnailFile,
 } from "./youtube.js";
+import { startChatVoteLoop } from "./chat-vote.js";
 
 loadEnv();
 
@@ -37,19 +38,25 @@ const FPS = Number(process.env.STREAM_FPS || 30);
 const PORT = Number(process.env.GAME_PORT || 5173);
 const DEMO = args.demo ?? process.env.DEMO_SECONDS;
 const PRIVACY = args.privacy || process.env.YT_PRIVACY || "public";
+const MODE = normalizeMode(args.mode || process.env.STREAM_MODE || "qualifying");
 const TITLE =
   args.title ||
   process.env.YT_TITLE ||
-  "FLAG BATTLE — Last Flag Standing (Live)";
+  (MODE === "final"
+    ? "FLAG BATTLE — Final · Last Flag Standing (Live)"
+    : "FLAG BATTLE — Qualifying (Live)");
 const DESCRIPTION =
   process.env.YT_DESCRIPTION ||
-  "All-country FLAG BATTLE livestream. Qualifying rounds: last flag in the circle qualifies. Then Last Flag Standing final. Stay inside the ring — fall through the hole and you're out.\n\nPoll & rankings: https://yung1022.github.io/Flagbattle/";
+  (MODE === "final"
+    ? "FLAG BATTLE Final livestream. Qualified countries fight — fall through the hole and you're out, then the round resets. Vote in chat: !vote XX (country code).\n\nPoll & rankings: https://yung1022.github.io/Flagbattle/"
+    : "FLAG BATTLE Qualifying livestream. Last flag in the circle qualifies. Results save when the stream ends — Final is a separate livestream.\n\nRankings: https://yung1022.github.io/Flagbattle/");
 
 const children = [];
 let display = null;
 let youtubeClient = null;
 let broadcastId = null;
 let shuttingDown = false;
+let chatAbort = null;
 
 async function main() {
   console.log("▶ FLAG BATTLE auto-stream");
@@ -73,7 +80,8 @@ async function main() {
       "No public tunnel — poll votes need PUBLIC_API or cloudflared"
     );
   }
-  const gameUrl = buildGameUrl(PORT, DEMO, tunnelUrl);
+  console.log(`Stream mode: ${MODE}`);
+  const gameUrl = buildGameUrl(PORT, DEMO, tunnelUrl, MODE);
   console.log(`Game: ${gameUrl}`);
   console.log(`Rankings/poll API on :${PORT}`);
 
@@ -109,9 +117,20 @@ async function main() {
     await setVideoThumbnail(youtubeClient, broadcastId, thumb);
   }
 
-  await postChatLinks(youtubeClient, broadcastId, tunnelUrl);
+  await postChatLinks(youtubeClient, broadcastId, tunnelUrl, MODE);
 
-  console.log("\n🔴 LIVE — press Ctrl+C to end the stream\n");
+  // Chat !vote loop (Final poll; also works if a poll is open).
+  chatAbort = new AbortController();
+  const apiBase = tunnelUrl || `http://127.0.0.1:${PORT}`;
+  startChatVoteLoop({
+    youtube: youtubeClient,
+    broadcastId,
+    apiBase,
+    signal: chatAbort.signal,
+    getStreamId: () => readLiveStreamId(PORT),
+  }).catch((err) => console.warn("[chat-vote] stopped:", err.message || err));
+
+  console.log(`\n🔴 LIVE (${MODE}) — press Ctrl+C to end the stream\n`);
   console.log(live.watchUrl);
 
   const done = new Promise((resolve) => {
@@ -128,7 +147,7 @@ async function main() {
   await shutdown(0);
 }
 
-async function postChatLinks(youtube, id, apiUrl) {
+async function postChatLinks(youtube, id, apiUrl, mode = "qualifying") {
   const site = (
     process.env.PUBLIC_SITE ||
     process.env.SITE_URL ||
@@ -142,11 +161,16 @@ async function postChatLinks(youtube, id, apiUrl) {
     ? `${site}/rankings.html?api=${encodeURIComponent(api)}`
     : `${site}/rankings.html`;
 
-  // Live chat messages max ~200 chars — split into two posts.
-  const lines = [
-    `FLAG BATTLE vote: ${poll}`,
-    `Rankings: ${rank}`,
-  ];
+  const lines =
+    mode === "final"
+      ? [
+          `Vote in chat: !vote XX (country code) or ${poll}`,
+          `Rankings: ${rank}`,
+        ]
+      : [
+          `Qualifying live — Final is a separate stream`,
+          `Rankings: ${rank}`,
+        ];
   for (const line of lines) {
     for (let attempt = 0; attempt < 5; attempt++) {
       try {
@@ -159,6 +183,22 @@ async function postChatLinks(youtube, id, apiUrl) {
     }
   }
 }
+
+function readLiveStreamId(port) {
+  // Synchronous-ish via last cached value updated by async poller.
+  return cachedLiveStreamId;
+}
+
+let cachedLiveStreamId = null;
+setInterval(() => {
+  fetch(`http://127.0.0.1:${PORT}/api/live`)
+    .then((r) => (r.ok ? r.json() : null))
+    .then((data) => {
+      const id = data?.live?.streamId || null;
+      if (id) cachedLiveStreamId = id;
+    })
+    .catch(() => {});
+}, 4000);
 
 /** Null-sink so Chrome/espeak audio can be muxed into the YouTube stream. */
 function startPulseAudio() {
@@ -192,8 +232,12 @@ function startPulseAudio() {
   });
 }
 
-function buildGameUrl(port, demo, apiUrl) {
-  const qs = new URLSearchParams({ stream: "1", autostart: "1" });
+function buildGameUrl(port, demo, apiUrl, mode = "qualifying") {
+  const qs = new URLSearchParams({
+    stream: "1",
+    autostart: "1",
+    mode: normalizeMode(mode),
+  });
   if (demo != null && demo !== "") qs.set("demo", String(demo));
   // Public site for poll/rankings (posted to live chat; no on-screen QR).
   const site = (
@@ -211,6 +255,10 @@ function buildGameUrl(port, demo, apiUrl) {
   ).replace(/\/$/, "");
   if (api) qs.set("api", api);
   return `http://127.0.0.1:${port}/?${qs.toString()}`;
+}
+
+function normalizeMode(mode) {
+  return String(mode || "").toLowerCase() === "final" ? "final" : "qualifying";
 }
 
 async function registerPublicApi(port, apiUrl) {
@@ -573,6 +621,11 @@ async function shutdown(code) {
   if (shuttingDown) return;
   shuttingDown = true;
   console.log("\nShutting down…");
+  try {
+    chatAbort?.abort();
+  } catch {
+    /* ignore */
+  }
   for (const child of children) {
     try {
       child.kill("SIGTERM");
@@ -596,6 +649,8 @@ function parseArgs(argv) {
     else if (a.startsWith("--privacy=")) out.privacy = a.slice(10);
     else if (a === "--title") out.title = argv[++i];
     else if (a.startsWith("--title=")) out.title = a.slice(8);
+    else if (a === "--mode") out.mode = argv[++i];
+    else if (a.startsWith("--mode=")) out.mode = a.slice(7);
   }
   return out;
 }

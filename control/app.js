@@ -110,8 +110,12 @@ function fillForm() {
   $("gh-repo").value = state.ghRepo || "";
   $("gh-token").value = state.ghToken || "";
   $("yt-privacy").value = state.privacy || "unlisted";
+  if ($("stream-mode")) {
+    $("stream-mode").value =
+      state.streamMode === "final" ? "final" : "qualifying";
+  }
   $("demo-seconds").value = state.demoSeconds ?? "120";
-  $("duration-min").value = state.durationMin ?? "35";
+  $("duration-min").value = state.durationMin ?? "40";
   $("g-client-id").value = state.clientId || "";
   $("g-client-secret").value = state.clientSecret || "";
   $("g-refresh").value = state.refreshToken || "";
@@ -121,6 +125,8 @@ function saveCloudFields() {
   state.ghRepo = $("gh-repo").value.trim();
   state.ghToken = $("gh-token").value.trim();
   state.privacy = $("yt-privacy").value;
+  state.streamMode =
+    $("stream-mode")?.value === "final" ? "final" : "qualifying";
   state.demoSeconds = $("demo-seconds").value.trim();
   state.durationMin = $("duration-min").value.trim();
   persist();
@@ -333,9 +339,10 @@ async function goLive() {
         body: JSON.stringify({
           ref: "main",
           inputs: {
+            mode: state.streamMode || "qualifying",
             demo_seconds: state.demoSeconds || "",
             privacy: state.privacy || "unlisted",
-            duration_minutes: state.durationMin || "35",
+            duration_minutes: state.durationMin || "40",
           },
         }),
       }

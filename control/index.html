@@ -84,6 +84,13 @@
           />
         </label>
         <label class="field">
+          <span>Stream mode</span>
+          <select id="stream-mode">
+            <option value="qualifying">Qualifying</option>
+            <option value="final">Final</option>
+          </select>
+        </label>
+        <label class="field">
           <span>Privacy</span>
           <select id="yt-privacy">
             <option value="unlisted">unlisted</option>
@@ -92,12 +99,12 @@
           </select>
         </label>
         <label class="field">
-          <span>Demo seconds (empty = full 30 min)</span>
+          <span>Demo seconds (empty = full length)</span>
           <input id="demo-seconds" inputmode="numeric" placeholder="120" value="120" />
         </label>
         <label class="field">
           <span>Duration minutes</span>
-          <input id="duration-min" inputmode="numeric" placeholder="35" value="35" />
+          <input id="duration-min" inputmode="numeric" placeholder="40" value="40" />
         </label>
 
         <div class="actions">

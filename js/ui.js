@@ -479,7 +479,9 @@ function renderChrome() {
 els.btnStart.addEventListener("click", () => {
   unlockAudio();
   clearFighters();
-  game.start();
+  Promise.resolve(game.start()).catch((err) => {
+    console.error(err);
+  });
 });
 
 els.btnReset.addEventListener("click", () => {
@@ -520,7 +522,9 @@ renderChrome();
 if (params.has("autostart")) {
   unlockAudio();
   clearFighters();
-  game.start();
+  Promise.resolve(game.start()).catch((err) => {
+    console.error(err);
+  });
 }
 
 // Headless Chrome / stream: unlock audio once the page is interactive.

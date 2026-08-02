@@ -24,11 +24,11 @@
         <button type="button" class="btn primary" id="btn-refresh">Refresh</button>
       </div>
       <p class="lede">
-        Season sheet: every country’s place in each battle (<strong>nq</strong> =
-        did not qualify for the Final). Points: <strong>50</strong> for 1st,
-        <strong>49</strong> for 2nd, … <strong>1</strong> for 50th.
-        Arrows show places gained <span class="delta-up">↑</span> or lost
-        <span class="delta-down">↓</span> vs the previous battle.
+        Qualifying columns: <strong>Q</strong> = qualified,
+        <strong>nq</strong> = did not. Final columns: place or
+        <strong>nq</strong>. Points only from Finals (50→1). Arrows =
+        <span class="delta-up">↑</span>/<span class="delta-down">↓</span> vs
+        previous battle.
       </p>
       <div class="meta" id="status">Loading…</div>
 
@@ -285,6 +285,10 @@
             if (result === "nq") {
               td.className = "cell-nq";
               td.textContent = "nq";
+            } else if (result === "Q") {
+              td.className = "cell-q";
+              td.textContent = "Q";
+              td.title = "Qualified";
             } else if (result === "—") {
               td.className = "cell-pending";
               td.textContent = "—";
