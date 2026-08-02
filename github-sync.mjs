@@ -120,10 +120,12 @@ export function enqueueGithubFile(relPath, content, message) {
   return queue;
 }
 
-export function mirrorAndSync(rootDir, relPath, data, message) {
+export function mirrorAndSync(rootDir, relPath, data, message, opts = {}) {
   const abs = path.join(rootDir, relPath);
   fs.mkdirSync(path.dirname(abs), { recursive: true });
   const body = JSON.stringify(data, null, 2);
   fs.writeFileSync(abs, body);
+  // Allow local-only mirrors during a live stream (avoids Pages build storms).
+  if (opts.github === false) return false;
   return enqueueGithubFile(relPath, body, message);
 }

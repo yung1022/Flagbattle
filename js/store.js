@@ -142,6 +142,32 @@ export function getLocalPoll(streamId) {
 }
 
 export function initLocalPoll(streamId, options) {
+  const prev = getLocalPoll(streamId);
+  const sameOptions =
+    Array.isArray(prev?.options) &&
+    prev.options.length === options.length &&
+    options.every((o, i) => prev.options[i]?.code === o.code);
+
+  // Preserve votes if poll already open for this stream (idempotent).
+  const hadVotes =
+    prev?.streamId === streamId &&
+    ((prev.voters && Object.keys(prev.voters).length > 0) ||
+      Object.values(prev.votes || {}).some((n) => Number(n) > 0));
+
+  if (hadVotes || (sameOptions && prev?.options?.length)) {
+    const merged = {
+      streamId,
+      options,
+      votes: { ...Object.fromEntries(options.map((o) => [o.code, 0])), ...(prev.votes || {}) },
+      voters: { ...(prev.voters || {}) },
+      updatedAt: prev.updatedAt || Date.now(),
+    };
+    localStorage.setItem(pollKey(streamId), JSON.stringify(merged));
+    // Soft sync options only — server merges and keeps tallies.
+    syncLive({ type: "poll_init", poll: merged }).catch(() => {});
+    return merged;
+  }
+
   const poll = {
     streamId,
     options,

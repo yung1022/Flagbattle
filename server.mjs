@@ -42,9 +42,14 @@ let publicApi =
   null;
 
 let syncTimer = null;
+let githubTimer = null;
 let dirtyLive = false;
 let dirtyRank = false;
 const dirtyPolls = new Set();
+/** GitHub publish intents (survive local-only flushes). */
+let githubLive = false;
+let githubRank = false;
+const githubPolls = new Set();
 
 function loadEnvFile(file) {
   if (!fs.existsSync(file)) return;
@@ -127,18 +132,47 @@ function publicPollRel(streamId) {
   return `data/polls/${safe}.json`;
 }
 
-function schedulePublicSync({ forceRank = false, forceLive = false, pollId } = {}) {
-  if (forceRank) dirtyRank = true;
-  if (forceLive) dirtyLive = true;
-  if (pollId) dirtyPolls.add(pollId);
-  if (syncTimer) return;
+/** Trailing debounce for local data/ mirrors + rare GitHub publishes. */
+const LOCAL_SYNC_MS = Number(process.env.LOCAL_SYNC_DEBOUNCE_MS || 2_000);
+const GITHUB_SYNC_MS = Number(process.env.GITHUB_SYNC_DEBOUNCE_MS || 90_000);
+
+function schedulePublicSync({
+  forceRank = false,
+  forceLive = false,
+  pollId = null,
+  github = false,
+} = {}) {
+  if (forceRank) {
+    dirtyRank = true;
+    if (github) githubRank = true;
+  }
+  if (forceLive) {
+    dirtyLive = true;
+    if (github) githubLive = true;
+  }
+  if (pollId) {
+    dirtyPolls.add(pollId);
+    if (github) githubPolls.add(pollId);
+  }
+
+  // Always flush local data/ soon (tunnel API is source of truth mid-stream).
+  if (syncTimer) clearTimeout(syncTimer);
   syncTimer = setTimeout(() => {
     syncTimer = null;
-    flushPublicSync();
-  }, forceRank ? 500 : 12_000);
+    flushLocalPublicData();
+  }, LOCAL_SYNC_MS);
+
+  // Coalesce GitHub Contents API puts — frequent main commits cancel Pages builds.
+  if (githubLive || githubRank || githubPolls.size) {
+    if (githubTimer) clearTimeout(githubTimer);
+    githubTimer = setTimeout(() => {
+      githubTimer = null;
+      flushGithubPublicData();
+    }, GITHUB_SYNC_MS);
+  }
 }
 
-function flushPublicSync() {
+function flushLocalPublicData() {
   const live = readJson(LIVE_FILE, { live: null, streams: [] });
   const payload = {
     ...live,
@@ -146,15 +180,9 @@ function flushPublicSync() {
     updatedAt: Date.now(),
   };
 
-  if (dirtyLive || publicApi) {
+  if (dirtyLive) {
     dirtyLive = false;
     writeJson(path.join(PUBLIC_DATA, "live.json"), payload);
-    mirrorAndSync(
-      ROOT,
-      "data/live.json",
-      payload,
-      `chore(data): update live snapshot ${new Date().toISOString()}`
-    );
   }
 
   if (dirtyRank) {
@@ -164,15 +192,56 @@ function flushPublicSync() {
       : readJson(RANK_FILE, []);
     writeJson(path.join(PUBLIC_DATA, "rankings.json"), streams);
     writeJson(RANK_FILE, streams);
-    mirrorAndSync(
-      ROOT,
-      "data/rankings.json",
-      streams,
-      `chore(data): save stream rankings ${new Date().toISOString()}`
-    );
   }
 
   for (const streamId of dirtyPolls) {
+    const poll = readJson(pollPath(streamId), null);
+    if (!poll) continue;
+    writeJson(path.join(ROOT, publicPollRel(streamId)), poll);
+  }
+  dirtyPolls.clear();
+}
+
+function flushGithubPublicData() {
+  // Ensure local files are current before publishing.
+  flushLocalPublicData();
+
+  const live = readJson(LIVE_FILE, { live: null, streams: [] });
+  const newest = live.streams?.[0];
+  const streamFinished = Boolean(newest?.endedAt);
+  const payload = {
+    ...live,
+    api: publicApi,
+    updatedAt: Date.now(),
+  };
+
+  if (githubLive) {
+    githubLive = false;
+    writeJson(path.join(PUBLIC_DATA, "live.json"), payload);
+    enqueueGithubFile(
+      "data/live.json",
+      JSON.stringify(payload, null, 2),
+      `chore(data): update live snapshot ${new Date().toISOString()}`
+    );
+  }
+
+  if (githubRank && streamFinished) {
+    githubRank = false;
+    const streams = live.streams?.length
+      ? live.streams
+      : readJson(RANK_FILE, []);
+    writeJson(path.join(PUBLIC_DATA, "rankings.json"), streams);
+    enqueueGithubFile(
+      "data/rankings.json",
+      JSON.stringify(streams, null, 2),
+      `chore(data): save stream rankings ${new Date().toISOString()}`
+    );
+  } else if (githubRank && !streamFinished) {
+    // Defer until a finished stream is present.
+    githubRank = true;
+  }
+
+  for (const streamId of githubPolls) {
     const poll = readJson(pollPath(streamId), null);
     if (!poll) continue;
     const rel = publicPollRel(streamId);
@@ -183,7 +252,33 @@ function flushPublicSync() {
       `chore(data): poll ${streamId}`
     );
   }
-  dirtyPolls.clear();
+  githubPolls.clear();
+}
+
+function flushPublicSync({ github = false } = {}) {
+  if (github) flushGithubPublicData();
+  else flushLocalPublicData();
+}
+
+/** Merge poll_init into existing tallies — never wipe votes. */
+function mergePoll(existing, incoming) {
+  if (!existing?.options?.length) return incoming;
+  const options = incoming?.options?.length ? incoming.options : existing.options;
+  const votes = Object.fromEntries(options.map((o) => [o.code, 0]));
+  for (const [code, n] of Object.entries(existing.votes || {})) {
+    votes[code] = Number(n) || 0;
+  }
+  // Prefer higher tallies if incoming somehow carried votes.
+  for (const [code, n] of Object.entries(incoming?.votes || {})) {
+    votes[code] = Math.max(votes[code] || 0, Number(n) || 0);
+  }
+  return {
+    streamId: incoming?.streamId || existing.streamId,
+    options,
+    votes,
+    voters: { ...(existing.voters || {}), ...(incoming?.voters || {}) },
+    updatedAt: Date.now(),
+  };
 }
 
 function seedFromPublicData() {
@@ -215,8 +310,9 @@ async function handleApi(req, res, url) {
       publicApi = String(body.api).replace(/\/$/, "");
       process.env.PUBLIC_API = publicApi;
       dirtyLive = true;
-      schedulePublicSync({ forceLive: true });
-      flushPublicSync();
+      // Tunnel URL must land on Pages so phones can find the API.
+      schedulePublicSync({ forceLive: true, github: true });
+      flushPublicSync({ github: true });
     }
     return send(res, 200, { ok: true, api: publicApi });
   }
@@ -226,7 +322,7 @@ async function handleApi(req, res, url) {
     const cur = readJson(LIVE_FILE, { live: null, streams: [] });
     if (body.type === "live") {
       cur.live = body.live;
-      // Seed poll options from qualified list when present.
+      // Seed poll options from qualified list when present — never wipe votes.
       if (body.live?.streamId && body.live?.qualified?.length) {
         const existing = readJson(pollPath(body.live.streamId), null);
         if (!existing?.options?.length) {
@@ -243,18 +339,38 @@ async function handleApi(req, res, url) {
           schedulePublicSync({ pollId: body.live.streamId });
         }
       }
-      schedulePublicSync({ forceLive: true });
+      const finished = body.live?.phase === "finished";
+      schedulePublicSync({
+        forceLive: true,
+        github: finished,
+      });
     }
     if (body.type === "stream" && body.stream) {
       cur.streams = [body.stream, ...(cur.streams || [])]
         .filter((s, i, arr) => arr.findIndex((x) => x.id === s.id) === i)
         .slice(0, 40);
       writeJson(RANK_FILE, cur.streams);
-      schedulePublicSync({ forceRank: true, forceLive: true });
+      const finished = Boolean(body.stream.endedAt);
+      // Local rankings every round; GitHub only when the Final finishes.
+      schedulePublicSync({
+        forceRank: true,
+        forceLive: finished,
+        github: finished,
+      });
+      if (finished) {
+        // Publish promptly once — don't wait the long coalesce window.
+        if (githubTimer) clearTimeout(githubTimer);
+        githubTimer = null;
+        flushGithubPublicData();
+      }
     }
     if (body.type === "poll_init" && body.poll) {
-      writeJson(pollPath(body.poll.streamId), body.poll);
-      schedulePublicSync({ pollId: body.poll.streamId, forceLive: true });
+      const id = body.poll.streamId;
+      const existing = readJson(pollPath(id), null);
+      const incoming = body.poll;
+      const merged = mergePoll(existing, incoming);
+      writeJson(pollPath(id), merged);
+      schedulePublicSync({ pollId: id });
     }
     writeJson(LIVE_FILE, cur);
     return send(res, 200, { ok: true });
@@ -299,7 +415,8 @@ async function handleApi(req, res, url) {
     poll.votes[code] = (poll.votes[code] || 0) + 1;
     poll.updatedAt = Date.now();
     writeJson(pollPath(streamId), poll);
-    schedulePublicSync({ pollId: streamId, forceLive: true });
+    // Local poll file + coalesced GitHub publish (not every vote).
+    schedulePublicSync({ pollId: streamId, github: true });
     return send(res, 200, poll);
   }
 

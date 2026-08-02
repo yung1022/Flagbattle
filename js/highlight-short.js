@@ -1,7 +1,8 @@
 /**
  * Vertical (~9:16) Short generators:
- * - Final Top 10: full-screen reveal #10 → #1, 5s national anthem each
- * - Season Top 10: same reveal with points + ↑/↓ rank change
+ * - Final / Season Top 10 as a list (#1 at top, #10 at bottom)
+ * - Reveal #10 → #1 with national anthems
+ * - Anthem lengths: #4–10 = 5s, #2–3 = 8s, #1 = 10s
  */
 
 import { loadAnthemBuffer, makeFanfareBuffer } from "./anthem.js";
@@ -12,11 +13,27 @@ import { formatDelta } from "./rank-delta.js";
 const W = 1080;
 const H = 1920;
 const FPS = 30;
-const INTRO = 2.4;
-const SLOT = 5;
-const OUTRO = 3.2;
 const COUNT = 10;
-const TOTAL = INTRO + COUNT * SLOT + OUTRO;
+const HOLD = 2.5; // brief hold after #1
+
+function anthemSeconds(rank) {
+  if (rank === 1) return 10;
+  if (rank === 2 || rank === 3) return 8;
+  return 5;
+}
+
+function slotTimeline(entries) {
+  // Reveal order: #10 first → #1 last
+  const reveal = [...entries].sort((a, b) => b.rank - a.rank);
+  const slots = [];
+  let t = 0;
+  for (const e of reveal) {
+    const dur = anthemSeconds(e.rank);
+    slots.push({ entry: e, start: t, dur });
+    t += dur;
+  }
+  return { slots, revealEnds: t, total: t + HOLD };
+}
 
 function sleep(ms) {
   return new Promise((r) => setTimeout(r, ms));
@@ -24,10 +41,6 @@ function sleep(ms) {
 
 function nextFrame() {
   return new Promise((r) => requestAnimationFrame(() => r()));
-}
-
-function easeOutCubic(t) {
-  return 1 - (1 - t) ** 3;
 }
 
 function easeOutBack(t) {
@@ -128,250 +141,111 @@ function paintBg(ctx, t) {
   ctx.fillStyle = g;
   ctx.fillRect(0, 0, W, H);
 
-  const pulse = 0.15 + 0.05 * Math.sin(t * 2);
-  const glow = ctx.createRadialGradient(W / 2, 280, 20, W / 2, 360, 720);
+  const pulse = 0.12 + 0.04 * Math.sin(t * 2);
+  const glow = ctx.createRadialGradient(W / 2, 220, 20, W / 2, 300, 640);
   glow.addColorStop(0, `rgba(46,196,182,${pulse})`);
   glow.addColorStop(1, "rgba(46,196,182,0)");
   ctx.fillStyle = glow;
   ctx.fillRect(0, 0, W, H);
 }
 
-function drawFooter(ctx, text) {
-  ctx.fillStyle = "rgba(109,132,150,0.9)";
-  ctx.font = '600 22px "Manrope", system-ui, sans-serif';
-  ctx.textAlign = "center";
-  ctx.textBaseline = "middle";
-  ctx.fillText(text, W / 2, H - 48);
-}
-
-function drawIntro(ctx, t, mode, subtitle) {
-  paintBg(ctx, t);
-  const u = clamp01(t / INTRO);
-  const fade = easeOutCubic(Math.min(1, u * 1.6));
-  ctx.save();
-  ctx.globalAlpha = fade;
-  ctx.fillStyle = "#f4f7fa";
-  ctx.font = '700 86px "Bebas Neue", Impact, sans-serif';
-  ctx.textAlign = "center";
-  ctx.fillText("FLAG BATTLE", W / 2, 520);
-
-  ctx.fillStyle = "#e6b84a";
-  ctx.font = '700 96px "Bebas Neue", Impact, sans-serif';
-  ctx.fillText(mode === "season" ? "SEASON TOP 10" : "FINAL TOP 10", W / 2, 640);
-
-  ctx.fillStyle = "#8fa6b8";
-  ctx.font = '700 32px "Manrope", system-ui, sans-serif';
-  ctx.fillText(subtitle || "", W / 2, 720);
-
-  if (u > 0.45) {
-    ctx.globalAlpha = fade * Math.min(1, (u - 0.45) / 0.35);
-    ctx.fillStyle = "#2ec4b6";
-    ctx.font = '800 36px "Manrope", system-ui, sans-serif';
-    ctx.fillText("Revealing #10 → #1 · anthems", W / 2, 820);
-  }
-  ctx.restore();
-  drawFooter(
-    ctx,
-    mode === "season"
-      ? "FLAG BATTLE · Season ranking"
-      : "FLAG BATTLE · Final ranking"
-  );
-}
-
-function drawDeltaChip(ctx, delta, x, y) {
+function drawDeltaBadge(ctx, delta, x, y) {
   const info = formatDelta(delta);
   const up = delta != null && delta > 0;
   const down = delta != null && delta < 0;
   const label =
     delta == null || delta === 0 ? "—" : `${info.arrow}${info.text}`;
   const color = up ? "#4ade80" : down ? "#f87171" : "#8fa6b8";
-  const bg = up
-    ? "rgba(34,197,94,.18)"
-    : down
-      ? "rgba(248,113,113,.18)"
-      : "rgba(255,255,255,.08)";
-  roundRectFill(ctx, x - 90, y - 36, 180, 72, 16, bg);
+  roundRectFill(
+    ctx,
+    x - 8,
+    y - 26,
+    140,
+    52,
+    14,
+    up ? "rgba(34,197,94,.18)" : down ? "rgba(248,113,113,.18)" : "rgba(255,255,255,.08)"
+  );
   ctx.fillStyle = color;
-  ctx.font = '900 40px "Manrope", system-ui, sans-serif';
+  ctx.font = '900 30px "Manrope", system-ui, sans-serif';
   ctx.textAlign = "center";
   ctx.textBaseline = "middle";
-  ctx.fillText(label, x, y);
+  ctx.fillText(label, x + 62, y);
 }
 
-/** Full-screen single-country reveal for one 5s slot. */
-function drawRevealCard(ctx, { t, mode, entry, slotLocal, subtitle }) {
+/**
+ * List board: row 0 = #1 (top), row 9 = #10 (bottom).
+ * Reveals from #10 upward; current rank highlighted.
+ */
+function drawListReveal(ctx, { t, mode, subtitle, entries, revealRank, slotLocal, footer }) {
   paintBg(ctx, t);
-  const pop = easeOutBack(clamp01(slotLocal / 0.45));
-  const fade = clamp01(slotLocal / 0.18);
-
-  ctx.save();
-  ctx.globalAlpha = fade;
 
   ctx.fillStyle = "#e6b84a";
-  ctx.font = '700 56px "Bebas Neue", Impact, sans-serif';
+  ctx.font = '700 58px "Bebas Neue", Impact, sans-serif';
   ctx.textAlign = "center";
-  ctx.fillText(mode === "season" ? "SEASON TOP 10" : "FINAL TOP 10", W / 2, 150);
+  ctx.fillText(mode === "season" ? "SEASON TOP 10" : "FINAL TOP 10", W / 2, 110);
 
   ctx.fillStyle = "#8fa6b8";
   ctx.font = '700 26px "Manrope", system-ui, sans-serif';
-  ctx.fillText(subtitle || "", W / 2, 200);
+  ctx.fillText(subtitle || "", W / 2, 158);
 
-  const cardX = 70;
-  const cardY = 260;
-  const cardW = W - 140;
-  const cardH = 1180;
+  const listTop = 200;
+  const rowH = 148;
+  const padX = 48;
 
-  ctx.save();
-  ctx.translate(W / 2, cardY + cardH / 2);
-  ctx.scale(0.92 + 0.08 * pop, 0.92 + 0.08 * pop);
-  ctx.translate(-W / 2, -(cardY + cardH / 2));
-
-  roundRectFill(ctx, cardX, cardY, cardW, cardH, 28, "rgba(18,36,51,0.9)");
-  ctx.strokeStyle =
-    entry.rank === 1
-      ? "rgba(255,217,120,0.65)"
-      : entry.rank <= 3
-        ? "rgba(230,184,74,0.45)"
-        : "rgba(46,196,182,0.35)";
-  ctx.lineWidth = 4;
-  roundRectPath(ctx, cardX, cardY, cardW, cardH, 28);
-  ctx.stroke();
-
-  const rankColor = medalColor(entry.rank);
-  ctx.fillStyle = rankColor;
-  ctx.font = '700 160px "Bebas Neue", Impact, sans-serif';
-  ctx.textAlign = "center";
-  ctx.fillText(`#${entry.rank}`, W / 2, cardY + 180);
-
-  if (entry.img) {
-    const fw = 420;
-    const fh = 280;
-    const fx = W / 2 - fw / 2;
-    const fy = cardY + 230;
-    roundRectFill(ctx, fx - 10, fy - 10, fw + 20, fh + 20, 16, "rgba(0,0,0,.35)");
-    ctx.save();
-    roundRectPath(ctx, fx, fy, fw, fh, 12);
-    ctx.clip();
-    const box = fitContain(
-      entry.img.naturalWidth || entry.img.width || 1,
-      entry.img.naturalHeight || entry.img.height || 1,
-      fw,
-      fh
-    );
-    ctx.drawImage(entry.img, fx + box.x, fy + box.y, box.w, box.h);
-    ctx.restore();
-  }
-
-  ctx.fillStyle = "#f4f7fa";
-  ctx.font = '800 64px "Manrope", system-ui, sans-serif';
-  ctx.fillText(entry.name || entry.code.toUpperCase(), W / 2, cardY + 620, cardW - 80);
-
-  if (mode === "season") {
-    ctx.fillStyle = "#8fa6b8";
-    ctx.font = '700 36px "Manrope", system-ui, sans-serif';
-    ctx.fillText(`${entry.points ?? 0} season points`, W / 2, cardY + 700);
-    drawDeltaChip(ctx, entry.delta, W / 2, cardY + 790);
-    ctx.fillStyle = "#8fa6b8";
-    ctx.font = '700 26px "Manrope", system-ui, sans-serif';
-    ctx.fillText("rank change vs previous Final", W / 2, cardY + 870);
-  } else {
-    ctx.fillStyle = entry.rank === 1 ? "#ffd978" : "#8fa6b8";
-    ctx.font = '700 34px "Manrope", system-ui, sans-serif';
-    ctx.fillText(
-      entry.rank === 1 ? "LAST FLAG STANDING" : "Final placement",
-      W / 2,
-      cardY + 720
-    );
-  }
-
-  // Anthem cue
-  const pulse = 0.55 + 0.45 * Math.sin(slotLocal * 6);
-  ctx.fillStyle = `rgba(46,196,182,${0.55 + 0.35 * pulse})`;
-  ctx.font = '800 32px "Manrope", system-ui, sans-serif';
-  ctx.fillText("♪ National anthem", W / 2, cardY + 1000);
-
-  ctx.restore(); // scale
-  ctx.restore(); // fade
-
-  // Mini strip of revealed ranks so far (this + previous)
-  drawProgressStrip(ctx, entry);
-
-  drawFooter(
-    ctx,
-    mode === "season"
-      ? "FLAG BATTLE · Season Top 10"
-      : "FLAG BATTLE · Final Top 10"
-  );
-}
-
-function drawProgressStrip(ctx, current) {
-  // Show small ticks for ranks 10..1 under the card
-  const y = 1520;
-  const ranks = [10, 9, 8, 7, 6, 5, 4, 3, 2, 1];
-  const gap = 92;
-  const startX = W / 2 - ((ranks.length - 1) * gap) / 2;
-  for (let i = 0; i < ranks.length; i++) {
-    const rank = ranks[i];
-    const x = startX + i * gap;
-    const done = rank >= current.rank; // revealed already or current (#10 first)
-    const isCurrent = rank === current.rank;
-    ctx.beginPath();
-    ctx.arc(x, y, isCurrent ? 14 : 10, 0, Math.PI * 2);
-    ctx.fillStyle = isCurrent
-      ? medalColor(rank)
-      : done
-        ? "rgba(46,196,182,0.55)"
-        : "rgba(255,255,255,0.12)";
-    ctx.fill();
-    if (isCurrent) {
-      ctx.fillStyle = "#f4f7fa";
-      ctx.font = '700 22px "Bebas Neue", Impact, sans-serif';
-      ctx.textAlign = "center";
-      ctx.fillText(`#${rank}`, x, y + 40);
-    }
-  }
-}
-
-function drawOutro(ctx, t, mode, entries, subtitle) {
-  paintBg(ctx, t);
-  const local = Math.max(0, t - (INTRO + COUNT * SLOT));
-  const fade = easeOutCubic(clamp01(local / 0.5));
-  ctx.save();
-  ctx.globalAlpha = fade;
-
-  ctx.fillStyle = "#e6b84a";
-  ctx.font = '700 64px "Bebas Neue", Impact, sans-serif';
-  ctx.textAlign = "center";
-  ctx.fillText(mode === "season" ? "SEASON TOP 10" : "FINAL TOP 10", W / 2, 140);
-
-  ctx.fillStyle = "#8fa6b8";
-  ctx.font = '700 26px "Manrope", system-ui, sans-serif';
-  ctx.fillText(subtitle || "", W / 2, 190);
-
-  const listTop = 240;
-  const rowH = 140;
   for (let i = 0; i < entries.length; i++) {
     const e = entries[i];
     const y = listTop + i * rowH;
+    const rank = e.rank;
+    const revealed = revealRank == null || rank >= revealRank;
+    const isCurrent = revealRank != null && rank === revealRank;
+    const pop = isCurrent ? easeOutBack(clamp01((slotLocal || 0) / 0.45)) : 1;
+    const alpha = revealed
+      ? isCurrent
+        ? Math.min(1, (slotLocal || 0) / 0.2)
+        : 0.96
+      : 0.16;
+
+    ctx.save();
+    ctx.globalAlpha = alpha;
+    const midY = y + rowH / 2;
+    const scale = isCurrent ? 0.94 + 0.06 * pop : 1;
+    ctx.translate(W / 2, midY);
+    ctx.scale(scale, scale);
+    ctx.translate(-W / 2, -midY);
+
     roundRectFill(
       ctx,
-      60,
-      y,
-      W - 120,
-      rowH - 14,
-      14,
-      e.rank <= 3 ? "rgba(230,184,74,0.12)" : "rgba(18,36,51,0.8)"
+      padX,
+      y + 8,
+      W - padX * 2,
+      rowH - 16,
+      18,
+      isCurrent
+        ? "rgba(255,255,255,.14)"
+        : rank <= 3 && revealed
+          ? "rgba(230,184,74,.10)"
+          : "rgba(18,36,51,.85)"
     );
-    ctx.fillStyle = medalColor(e.rank);
-    ctx.font = '700 52px "Bebas Neue", Impact, sans-serif';
-    ctx.textAlign = "left";
-    ctx.fillText(`#${e.rank}`, 84, y + 78);
 
-    if (e.img) {
-      const fw = 96;
-      const fh = 64;
-      const fx = 200;
-      const fy = y + 28;
+    if (isCurrent) {
+      ctx.strokeStyle = `rgba(46,196,182,${0.55 * (1 - Math.min(1, (slotLocal || 0) / anthemSeconds(rank)))})`;
+      ctx.lineWidth = 3;
+      roundRectPath(ctx, padX, y + 8, W - padX * 2, rowH - 16, 18);
+      ctx.stroke();
+    }
+
+    ctx.fillStyle = revealed ? medalColor(rank) : "rgba(255,255,255,.3)";
+    ctx.font = '700 48px "Bebas Neue", Impact, sans-serif';
+    ctx.textAlign = "left";
+    ctx.textBaseline = "middle";
+    ctx.fillText(`#${rank}`, padX + 28, midY);
+
+    if (e.img && revealed) {
+      const fw = 100;
+      const fh = 66;
+      const fx = padX + 120;
+      const fy = midY - fh / 2;
+      roundRectFill(ctx, fx - 4, fy - 4, fw + 8, fh + 8, 10, "rgba(0,0,0,.35)");
       ctx.save();
       roundRectPath(ctx, fx, fy, fw, fh, 8);
       ctx.clip();
@@ -383,31 +257,47 @@ function drawOutro(ctx, t, mode, entries, subtitle) {
       );
       ctx.drawImage(e.img, fx + box.x, fy + box.y, box.w, box.h);
       ctx.restore();
+    } else {
+      roundRectFill(ctx, padX + 120, midY - 33, 100, 66, 8, "rgba(255,255,255,.08)");
+      if (!revealed) {
+        ctx.fillStyle = "rgba(255,255,255,.35)";
+        ctx.font = '900 36px "Manrope", system-ui, sans-serif';
+        ctx.textAlign = "center";
+        ctx.fillText("?", padX + 170, midY);
+      }
     }
 
+    const nameX = padX + 250;
     ctx.fillStyle = "#f4f7fa";
-    ctx.font = '800 36px "Manrope", system-ui, sans-serif';
+    ctx.font = `800 ${isCurrent ? 40 : 34}px "Manrope", system-ui, sans-serif`;
     ctx.textAlign = "left";
-    ctx.fillText(e.name, 320, y + (mode === "season" ? 58 : 78), 420);
+    ctx.fillText(
+      revealed ? e.name : "?????",
+      nameX,
+      midY - (mode === "season" && revealed ? 16 : 0),
+      mode === "season" ? 400 : 520
+    );
 
-    if (mode === "season") {
+    if (mode === "season" && revealed) {
       ctx.fillStyle = "#8fa6b8";
       ctx.font = '700 24px "Manrope", system-ui, sans-serif';
-      ctx.fillText(`${e.points} pts`, 320, y + 96);
-      const info = formatDelta(e.delta);
-      const up = e.delta != null && e.delta > 0;
-      const down = e.delta != null && e.delta < 0;
-      ctx.fillStyle = up ? "#4ade80" : down ? "#f87171" : "#8fa6b8";
-      ctx.font = '900 32px "Manrope", system-ui, sans-serif';
+      ctx.fillText(`${e.points ?? 0} pts`, nameX, midY + 22);
+      drawDeltaBadge(ctx, e.delta, W - padX - 160, midY);
+    } else if (isCurrent && revealed) {
+      ctx.fillStyle = "rgba(46,196,182,.9)";
+      ctx.font = '800 24px "Manrope", system-ui, sans-serif';
       ctx.textAlign = "right";
-      const label =
-        e.delta == null || e.delta === 0 ? "—" : `${info.arrow}${info.text}`;
-      ctx.fillText(label, W - 96, y + 78);
+      ctx.fillText("♪ anthem", W - padX - 36, midY);
     }
+
+    ctx.restore();
   }
 
-  ctx.restore();
-  drawFooter(ctx, "FLAG BATTLE");
+  ctx.fillStyle = "rgba(109,132,150,0.95)";
+  ctx.font = '600 24px "Manrope", system-ui, sans-serif';
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+  ctx.fillText(footer || "FLAG BATTLE", W / 2, H - 48);
 }
 
 async function prepareEntries(rows) {
@@ -415,7 +305,7 @@ async function prepareEntries(rows) {
   const imgs = await Promise.all(
     top.map((r) =>
       loadImage(
-        r.img || `https://flagcdn.com/w320/${String(r.code || "").toLowerCase()}.png`
+        r.img || `https://flagcdn.com/w160/${String(r.code || "").toLowerCase()}.png`
       )
     )
   );
@@ -438,19 +328,19 @@ async function loadAnthems(revealEntries, audioCtx, onProgress) {
     let buf = await loadAnthemBuffer(e.code, audioCtx);
     if (!buf) buf = makeFanfareBuffer(audioCtx, e.rank);
     out.push(buf);
-    // Gentle pacing — Wikimedia rate-limits burst downloads.
     if (i < revealEntries.length - 1) await sleep(180);
   }
   return out;
 }
 
-function scheduleAnthems(audioCtx, dest, buffers) {
+function scheduleAnthems(audioCtx, dest, buffers, slots) {
   const gain = audioCtx.createGain();
   gain.gain.value = 0.85;
   gain.connect(dest);
-  const startAt = audioCtx.currentTime + INTRO + 0.05;
-  for (let i = 0; i < buffers.length; i++) {
-    const when = startAt + i * SLOT;
+  const base = audioCtx.currentTime + 0.05;
+  for (let i = 0; i < slots.length; i++) {
+    const { start, dur } = slots[i];
+    const when = base + start;
     const buf = buffers[i];
     if (!buf) continue;
     const src = audioCtx.createBufferSource();
@@ -458,22 +348,17 @@ function scheduleAnthems(audioCtx, dest, buffers) {
     const g = audioCtx.createGain();
     g.gain.setValueAtTime(0.0001, when);
     g.gain.exponentialRampToValueAtTime(0.9, when + 0.08);
-    const end = when + Math.min(SLOT, buf.duration);
+    const end = when + Math.min(dur, buf.duration);
     g.gain.setValueAtTime(0.9, Math.max(when + 0.08, end - 0.25));
     g.gain.exponentialRampToValueAtTime(0.0001, end);
     src.connect(g);
     g.connect(gain);
-    src.start(when, 0, Math.min(SLOT, buf.duration));
+    src.start(when, 0, Math.min(dur, buf.duration));
     src.stop(end + 0.05);
   }
 }
 
-async function recordTop10Short({
-  mode,
-  subtitle,
-  entries,
-  onProgress,
-}) {
+async function recordTop10Short({ mode, subtitle, entries, onProgress }) {
   if (typeof MediaRecorder === "undefined") {
     throw new Error("MediaRecorder is not available in this browser.");
   }
@@ -487,8 +372,8 @@ async function recordTop10Short({
   const ctx = canvas.getContext("2d");
   if (!ctx) throw new Error("Could not create canvas context.");
 
-  // Reveal order: #10 first → #1 last
-  const revealEntries = [...entries].sort((a, b) => b.rank - a.rank);
+  const { slots, total } = slotTimeline(entries);
+  const revealEntries = slots.map((s) => s.entry);
 
   const AudioCtx = window.AudioContext || window.webkitAudioContext;
   if (!AudioCtx) throw new Error("Web Audio API is not available.");
@@ -521,7 +406,7 @@ async function recordTop10Short({
   });
 
   reportProgress(onProgress, "Recording", 0.05);
-  scheduleAnthems(audioCtx, dest, anthemBufs);
+  scheduleAnthems(audioCtx, dest, anthemBufs, slots);
   recorder.start(200);
 
   const t0 = performance.now();
@@ -529,32 +414,37 @@ async function recordTop10Short({
   let frame = 0;
   while (true) {
     const t = (performance.now() - t0) / 1000;
-    if (t >= TOTAL) break;
+    if (t >= total) break;
 
-    if (t < INTRO) {
-      drawIntro(ctx, t, mode, subtitle);
-      reportProgress(onProgress, "Intro", t / TOTAL);
-    } else if (t < INTRO + COUNT * SLOT) {
-      const elapsed = t - INTRO;
-      const revealIndex = Math.min(COUNT - 1, Math.floor(elapsed / SLOT));
-      const slotLocal = elapsed - revealIndex * SLOT;
-      const entry = revealEntries[revealIndex];
-      drawRevealCard(ctx, {
-        t,
-        mode,
-        entry,
-        slotLocal,
-        subtitle,
-      });
-      reportProgress(
-        onProgress,
-        `#${entry.rank} ${entry.name}`,
-        t / TOTAL
-      );
-    } else {
-      drawOutro(ctx, t, mode, entries, subtitle);
-      reportProgress(onProgress, "Top 10 board", t / TOTAL);
+    // Find active reveal slot
+    let active = slots[slots.length - 1];
+    for (const s of slots) {
+      if (t >= s.start && t < s.start + s.dur) {
+        active = s;
+        break;
+      }
     }
+    const inHold = t >= slots[slots.length - 1].start + slots[slots.length - 1].dur;
+    const revealRank = inHold ? null : active.entry.rank;
+    const slotLocal = inHold ? 1 : t - active.start;
+
+    drawListReveal(ctx, {
+      t,
+      mode,
+      subtitle,
+      entries,
+      revealRank,
+      slotLocal,
+      footer: inHold
+        ? "Top 10 complete"
+        : `♪ #${active.entry.rank} ${active.entry.name} · ${anthemSeconds(active.entry.rank)}s`,
+    });
+
+    reportProgress(
+      onProgress,
+      inHold ? "Hold" : `#${active.entry.rank} ${active.entry.name}`,
+      t / total
+    );
 
     frame += 1;
     const target = t0 + frame * frameMs;
@@ -563,7 +453,16 @@ async function recordTop10Short({
     else await nextFrame();
   }
 
-  drawOutro(ctx, TOTAL, mode, entries, subtitle);
+  drawListReveal(ctx, {
+    t: total,
+    mode,
+    subtitle,
+    entries,
+    revealRank: null,
+    slotLocal: 1,
+    footer: "Top 10 complete",
+  });
+
   recorder.stop();
   await done;
   stream.getTracks().forEach((tr) => tr.stop());
@@ -579,12 +478,9 @@ async function recordTop10Short({
   if (!blob.size) throw new Error("Recording produced an empty file.");
 
   reportProgress(onProgress, "Done", 1);
-  return { blob, mimeType, durationSec: TOTAL, mode };
+  return { blob, mimeType, durationSec: total, mode };
 }
 
-/**
- * Stream Final Short — top 10 of that Final, #10→#1, 5s national anthem each.
- */
 export async function generateHighlightShort(stream, opts = {}) {
   const ranking = stream?.final?.ranking;
   if (!Array.isArray(ranking) || !ranking.length) {
@@ -607,9 +503,6 @@ export async function generateHighlightShort(stream, opts = {}) {
   });
 }
 
-/**
- * Season ranking Short — top 10 season points with ↑/↓ rank change, anthems.
- */
 export async function generateSeasonHighlightShort(history, opts = {}) {
   const board = buildPointsLeaderboard(history || [], COUNTRIES);
   if (!board.length) {

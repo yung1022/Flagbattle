@@ -680,16 +680,8 @@ export class FlagBattleGame {
     this.arenaScale = 1;
     this._fallOrder = [];
     this._uiDirty = true;
-    if (this.stream) {
-      initLocalPoll(
-        this.stream.id,
-        this.qualified.map((q) => ({
-          code: q.code,
-          name: q.name,
-          img: q.img,
-        }))
-      );
-    }
+    // Do NOT re-init the poll here — votes cast during final intermission
+    // must survive until the stream ends. Poll opens once in intermission.
     this._emit(
       "phase",
       `FINAL — ${this.fighters.length} flags. Last Flag Standing!`
