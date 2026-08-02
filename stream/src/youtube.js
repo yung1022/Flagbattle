@@ -277,6 +277,15 @@ export async function goLive(youtube, broadcastId, { timeoutMs = 180_000 } = {})
   throw new Error("Timed out waiting to go live");
 }
 
+/** Resolve liveChatId for an active broadcast. */
+export async function getLiveChatId(youtube, broadcastId) {
+  const res = await youtube.liveBroadcasts.list({
+    part: ["snippet"],
+    id: [broadcastId],
+  });
+  return res.data.items?.[0]?.snippet?.liveChatId || null;
+}
+
 /**
  * Post poll/rankings links to live chat.
  * Note: YouTube Data API cannot pin chat messages — pin manually in Studio if needed.

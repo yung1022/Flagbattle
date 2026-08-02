@@ -4,11 +4,20 @@ import {
   saveStream,
   setLiveSnapshot,
   initLocalPoll,
+  fetchStreamsFromApi,
 } from "./store.js";
+import { resolveApiBase, pagesDataUrl } from "./public.js";
 
 /**
  * @typedef {"idle" | "intermission" | "qualifying" | "qualifying_hold" | "between_rounds" | "final" | "finished"} Phase
+ * @typedef {"qualifying" | "final"} StreamMode
  */
+
+const params = new URLSearchParams(location.search);
+const STREAM_MODE =
+  String(params.get("mode") || "qualifying").toLowerCase() === "final"
+    ? "final"
+    : "qualifying";
 
 export const CONFIG = {
   qualifyingMs: 30 * 60 * 1000,
@@ -28,7 +37,6 @@ export const CONFIG = {
   uiThrottleMs: 250,
 };
 
-const params = new URLSearchParams(location.search);
 if (params.has("demo")) {
   const sec = Number(params.get("demo")) || 45;
   CONFIG.qualifyingMs = sec * 1000;
@@ -92,9 +100,14 @@ export class FlagBattleGame {
     this.arenaScale = 1;
     this.intermissionKind = null;
     this.stream = null;
+    /** @type {StreamMode} */
+    this.streamMode = STREAM_MODE;
     this._fallOrder = [];
     this._betweenUntil = 0;
     this._pendingFinal = false;
+    this._pendingFinalReset = false;
+    this._finalResetRemaining = null;
+    this._finalElimLock = false;
     this._raf = 0;
     this._lastTs = 0;
     this._lastUi = 0;
@@ -120,11 +133,20 @@ export class FlagBattleGame {
     this.arenaScale = 1;
     this.intermissionKind = null;
     this.stream = null;
+    this.streamMode = STREAM_MODE;
     this._fallOrder = [];
     this._betweenUntil = 0;
     this._pendingFinal = false;
+    this._pendingFinalReset = false;
+    this._finalResetRemaining = null;
+    this._finalElimLock = false;
     this._uiDirty = true;
-    this._emit("reset", "All countries ready. Last flag in the circle qualifies.");
+    this._emit(
+      "reset",
+      this.streamMode === "final"
+        ? "Final ready — fall through the hole and you're out; round resets."
+        : "Qualifying ready — last flag in the circle qualifies."
+    );
     this._flushUi(true);
   }
 
@@ -149,25 +171,102 @@ export class FlagBattleGame {
     };
   }
 
-  start() {
+  async start() {
     if (this.phase !== "idle" && this.phase !== "finished") return;
     this.reset();
     this.events = [];
     this.phaseStartedAt = performance.now();
     this.qualifyingEndsAt = 0;
+    this.streamMode = STREAM_MODE;
     this.stream = {
       id: newStreamId(),
+      mode: this.streamMode,
       startedAt: new Date().toISOString(),
       endedAt: null,
       rounds: [],
       final: null,
       qualified: [],
       winner: null,
+      sourceStreamId: null,
     };
-    this._publishLive();
-    this._beginIntermission("open");
+
+    if (this.streamMode === "final") {
+      await this._loadQualifiersFromHistory();
+      this._publishLive();
+      this._beginIntermission("final");
+    } else {
+      this._publishLive();
+      this._beginIntermission("open");
+    }
     this._startLoop();
     this._flushUi(true);
+  }
+
+  /** Pull qualifiers from the latest finished qualifying livestream. */
+  async _loadQualifiersFromHistory() {
+    let streams = [];
+    try {
+      await resolveApiBase();
+      streams = (await fetchStreamsFromApi()) || [];
+    } catch {
+      /* ignore */
+    }
+    if (!streams.length) {
+      try {
+        const res = await fetch(pagesDataUrl("rankings.json"), {
+          cache: "no-store",
+        });
+        if (res.ok) streams = await res.json();
+      } catch {
+        /* ignore */
+      }
+    }
+    const list = Array.isArray(streams) ? streams : [];
+    const prior =
+      list.find(
+        (s) =>
+          s?.mode === "qualifying" &&
+          s?.endedAt &&
+          Array.isArray(s.qualified) &&
+          s.qualified.length
+      ) ||
+      list.find(
+        (s) =>
+          s?.endedAt &&
+          Array.isArray(s.qualified) &&
+          s.qualified.length &&
+          !s?.final?.ranking?.length
+      ) ||
+      list.find((s) => Array.isArray(s.qualified) && s.qualified.length);
+
+    if (prior?.qualified?.length) {
+      this.qualified = prior.qualified.map((q) => ({
+        code: q.code,
+        name: q.name,
+        img: q.img || flagUrl(q.code, 80),
+        id: q.code,
+      }));
+      if (this.stream) this.stream.sourceStreamId = prior.id || null;
+      this._emit(
+        "phase",
+        `Loaded ${this.qualified.length} qualifiers from prior stream.`
+      );
+      return;
+    }
+
+    // Fallback — never leave Final empty.
+    this.qualified = shuffle(COUNTRIES)
+      .slice(0, Math.min(16, COUNTRIES.length))
+      .map((c) => ({
+        code: c.code,
+        name: c.name,
+        img: flagUrl(c.code, 80),
+        id: c.code,
+      }));
+    this._emit(
+      "phase",
+      "No prior qualifiers found — sudden-death field of 16."
+    );
   }
 
   _beginIntermission(kind) {
@@ -286,9 +385,8 @@ export class FlagBattleGame {
         now >= this.qualifyingEndsAt
       ) {
         this.qualifyingExpired = true;
-        this._pendingFinal = true;
-        this._emit("phase", "Qualifying time complete — Final next.");
-        this._beginIntermission("final");
+        this._emit("phase", "Qualifying time complete.");
+        this._finishQualifyingStream();
       }
       this.onFrame();
       this._flushUi();
@@ -297,8 +395,15 @@ export class FlagBattleGame {
 
     if (this.phase === "between_rounds") {
       if (now >= this._betweenUntil) {
-        if (this._pendingFinal) this._beginIntermission("final");
-        else this._startNextQualifyingRound();
+        if (this._pendingFinalReset) {
+          this._pendingFinalReset = false;
+          const remaining = this._finalResetRemaining || [];
+          this._finalResetRemaining = null;
+          this._resetFinalRound(remaining);
+        } else if (this._pendingFinal) {
+          // Qualifying livestream ends here (Final is a separate stream).
+          this._finishQualifyingStream();
+        } else this._startNextQualifyingRound();
       }
       this.onFrame();
       this._flushUi();
@@ -334,15 +439,24 @@ export class FlagBattleGame {
 
       const standingNow = this.fighters.filter((f) => f.alive && !f.falling);
       const alive = this.fighters.filter((f) => f.alive);
-      if (standingNow.length === 1) {
-        for (const f of this.fighters) {
-          if (f.falling && f.alive) this._markFallen(f);
+
+      // Final: first fall triggers elim + round reset (handled in _markFallen).
+      // Qualifying: last standing qualifies as before.
+      if (this.phase === "qualifying") {
+        if (standingNow.length === 1) {
+          for (const f of this.fighters) {
+            if (f.falling && f.alive) this._markFallen(f);
+          }
+          this._onLastFlag(standingNow[0]);
+        } else if (alive.length === 0) {
+          this._emit("phase", "Everyone fell — restarting round.");
+          this._startNextQualifyingRound();
         }
-        this._onLastFlag(standingNow[0]);
-      } else if (alive.length === 0) {
-        this._emit("phase", "Everyone fell — restarting round.");
-        if (this.phase === "final") this._beginFinal();
-        else this._startNextQualifyingRound();
+      } else if (this.phase === "final" && alive.length === 0 && !this._finalElimLock) {
+        this._emit("phase", "Everyone fell — restarting with remaining.");
+        const remaining = this._finalRemainingCountries();
+        if (remaining.length <= 1) this._finishFinalWithRemaining(remaining);
+        else this._resetFinalRound(remaining);
       }
     }
 
@@ -525,6 +639,103 @@ export class FlagBattleGame {
     this._fallOrder.push({ code: f.code, name: f.name, img: f.img });
     this._emit("elim", `${f.name} fell through the hole!`);
     this._uiDirty = true;
+
+    // Final rule: one elimination → round resets with remaining countries.
+    if (this.phase === "final" && !this._finalElimLock) {
+      this._finalElimLock = true;
+      // Cancel any other mid-fall fighters — only the first elim counts.
+      for (const other of this.fighters) {
+        if (other === f || !other.alive) continue;
+        if (other.falling) {
+          other.falling = false;
+          other.vx *= 0.3;
+          other.vy *= 0.3;
+        }
+      }
+      const remaining = this._finalRemainingCountries();
+      if (remaining.length <= 1) {
+        this._finishFinalWithRemaining(remaining);
+        return;
+      }
+      this.phase = "between_rounds";
+      this._pendingFinalReset = true;
+      this._finalResetRemaining = remaining;
+      this._betweenUntil = performance.now() + Math.max(1200, CONFIG.betweenRoundMs);
+      this._emit(
+        "phase",
+        `${f.name} eliminated — ${remaining.length} left. Resetting round…`
+      );
+    }
+  }
+
+  _finalRemainingCountries() {
+    const out = new Set(this._fallOrder.map((r) => r.code));
+    return (this.qualified || []).filter((q) => !out.has(q.code));
+  }
+
+  _resetFinalRound(remaining) {
+    this._finalElimLock = false;
+    this._pendingFinalReset = false;
+    this.intermissionKind = null;
+    this.phase = "final";
+    this.round += 1;
+    const list = shuffle(remaining);
+    this.fighters = list.map((c, i) => {
+      const f = this._makeFighter(c, i, list.length);
+      f.qualified = true;
+      return f;
+    });
+    this.holeAngle = rand(0, Math.PI * 2);
+    this.roundStartedAt = performance.now();
+    this.arenaScale = 1;
+    this._uiDirty = true;
+    this._emit(
+      "phase",
+      `FINAL round — ${this.fighters.length} flags remaining. Fall = out!`
+    );
+    this._publishLive();
+  }
+
+  _finishFinalWithRemaining(remaining) {
+    const winner =
+      remaining[0] ||
+      (this._fallOrder.length
+        ? {
+            code: this._fallOrder[this._fallOrder.length - 1].code,
+            name: this._fallOrder[this._fallOrder.length - 1].name,
+            img: this._fallOrder[this._fallOrder.length - 1].img,
+          }
+        : null);
+    if (!winner) {
+      this.phase = "finished";
+      this.stopLoop();
+      return;
+    }
+    this._onLastFlag(winner);
+  }
+
+  _finishQualifyingStream() {
+    this._pendingFinal = false;
+    this.phase = "finished";
+    this.stopLoop();
+    if (this.stream) {
+      this.stream.mode = "qualifying";
+      this.stream.qualified = this.qualified.map((q) => ({
+        code: q.code,
+        name: q.name,
+        img: q.img,
+      }));
+      this.stream.final = null;
+      this.stream.winner = null;
+      this.stream.endedAt = new Date().toISOString();
+      saveStream(this.stream);
+      this._publishLive();
+    }
+    this._emit(
+      "phase",
+      `Qualifying complete — ${this.qualified.length} countries advance to Final.`
+    );
+    this._uiDirty = true;
   }
 
   _rankingFromFallOrder(winner) {
@@ -572,17 +783,25 @@ export class FlagBattleGame {
       this._qualify(flag);
       return;
     }
-    if (this.phase === "final") {
+    if (this.phase === "final" || this._finalElimLock) {
       this.winner = flag;
       this.phase = "finished";
+      this._finalElimLock = false;
       this.stopLoop();
       if (this.stream) {
+        this.stream.mode = "final";
         this.stream.final = {
           ranking: this._rankingFromFallOrder(flag),
           winner: { code: flag.code, name: flag.name, img: flag.img },
           at: new Date().toISOString(),
+          rules: "reset_on_fall",
         };
         this.stream.winner = this.stream.final.winner;
+        this.stream.qualified = this.qualified.map((q) => ({
+          code: q.code,
+          name: q.name,
+          img: q.img,
+        }));
         this.stream.endedAt = new Date().toISOString();
         saveStream(this.stream);
         this._publishLive();
@@ -610,13 +829,12 @@ export class FlagBattleGame {
     );
 
     // No qualifier cap — keep running until the 30:00 clock ends.
-    this._pendingFinal = this.qualifyingExpired;
     this._uiDirty = true;
 
     if (this.qualifyingExpired) {
       this.phase = "between_rounds";
       this._betweenUntil = performance.now() + CONFIG.betweenRoundMs;
-      this._pendingFinal = true;
+      this._pendingFinal = true; // qualifying stream will finish (not open Final)
       return;
     }
 
@@ -626,7 +844,7 @@ export class FlagBattleGame {
 
   _startNextQualifyingRound() {
     if (this._pendingFinal || this.qualifyingExpired) {
-      this._beginIntermission("final");
+      this._finishQualifyingStream();
       return;
     }
 
@@ -654,6 +872,8 @@ export class FlagBattleGame {
 
   _beginFinal() {
     this._pendingFinal = false;
+    this._finalElimLock = false;
+    this._pendingFinalReset = false;
     this.intermissionKind = null;
     if (!this.qualified.length) {
       this._emit("phase", "No qualifiers — sudden-death field.");
@@ -684,7 +904,7 @@ export class FlagBattleGame {
     // must survive until the stream ends. Poll opens once in intermission.
     this._emit(
       "phase",
-      `FINAL — ${this.fighters.length} flags. Last Flag Standing!`
+      `FINAL — ${this.fighters.length} flags. Fall = eliminated, then reset!`
     );
     this._publishLive();
   }
@@ -692,6 +912,7 @@ export class FlagBattleGame {
   _publishLive() {
     setLiveSnapshot({
       streamId: this.stream?.id || null,
+      mode: this.streamMode,
       phase: this.phase,
       round: this.round,
       qualified: this.qualified,

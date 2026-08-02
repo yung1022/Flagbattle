@@ -111,7 +111,7 @@ function fillForm() {
   $("gh-token").value = state.ghToken || "";
   $("yt-privacy").value = state.privacy || "unlisted";
   $("demo-seconds").value = state.demoSeconds ?? "120";
-  $("duration-min").value = state.durationMin ?? "35";
+  $("duration-min").value = state.durationMin ?? "40";
   $("g-client-id").value = state.clientId || "";
   $("g-client-secret").value = state.clientSecret || "";
   $("g-refresh").value = state.refreshToken || "";
@@ -335,7 +335,7 @@ async function goLive() {
           inputs: {
             demo_seconds: state.demoSeconds || "",
             privacy: state.privacy || "unlisted",
-            duration_minutes: state.durationMin || "35",
+            duration_minutes: state.durationMin || "40",
           },
         }),
       }

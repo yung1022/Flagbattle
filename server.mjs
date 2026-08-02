@@ -399,9 +399,15 @@ async function handleApi(req, res, url) {
 
   if (url.pathname === "/api/poll/vote" && req.method === "POST") {
     const body = await parseBody(req);
-    const { streamId, code, voterId } = body;
+    const { streamId, voterId } = body;
+    const code = String(body.code || "")
+      .toLowerCase()
+      .replace(/[^a-z]/g, "");
     if (!streamId || !code || !voterId) {
       return send(res, 400, { error: "streamId, code, voterId required" });
+    }
+    if (code.length !== 2) {
+      return send(res, 400, { error: "unknown_country" });
     }
     const poll = readJson(pollPath(streamId), {
       streamId,
@@ -409,6 +415,15 @@ async function handleApi(req, res, url) {
       votes: {},
       voters: {},
     });
+    if (!poll.options?.length) {
+      return send(res, 409, { error: "poll_closed" });
+    }
+    const allowed = new Set(
+      poll.options.map((o) => String(o.code || "").toLowerCase())
+    );
+    if (!allowed.has(code)) {
+      return send(res, 400, { error: "not_an_option" });
+    }
     const prev = poll.voters[voterId];
     if (prev && poll.votes[prev] > 0) poll.votes[prev] -= 1;
     poll.voters[voterId] = code;

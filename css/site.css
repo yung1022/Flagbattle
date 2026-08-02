@@ -262,6 +262,10 @@ button.btn:disabled { opacity: 0.55; cursor: wait; }
   border: 1px solid rgba(255,255,255,0.2);
   flex-shrink: 0;
 }
+.cell-q {
+  color: #2ec4b6;
+  font-weight: 800;
+}
 .cell-nq {
   color: #6d8496;
   font-weight: 700;

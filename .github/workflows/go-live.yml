@@ -6,7 +6,9 @@
 #   GOOGLE_REFRESH_TOKEN
 #
 # Trigger from your own cron / server with workflow_dispatch (see README).
-# GitHub's schedule cron is disabled (often delayed) — use an external cronjob.
+# Mode is chosen automatically from the last finished stream in data/rankings.json:
+#   last = qualifying (with qualifiers) → next = final
+#   otherwise → qualifying
 
 name: Go Live — FLAG BATTLE
 
@@ -14,7 +16,7 @@ on:
   workflow_dispatch:
     inputs:
       demo_seconds:
-        description: "Qualifying length in seconds (leave empty = full 30 min)"
+        description: "Shorten clock in seconds (leave empty = full length)"
         required: false
         default: ""
       privacy:
@@ -42,6 +44,13 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Resolve stream mode from last run
+        id: mode
+        run: |
+          MODE=$(node stream/src/next-mode.js data/rankings.json)
+          echo "mode=$MODE" >> "$GITHUB_OUTPUT"
+          echo "Next livestream mode: $MODE"
+
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
@@ -67,16 +76,24 @@ jobs:
           GOOGLE_CLIENT_ID: ${{ secrets.GOOGLE_CLIENT_ID }}
           GOOGLE_CLIENT_SECRET: ${{ secrets.GOOGLE_CLIENT_SECRET }}
           GOOGLE_REFRESH_TOKEN: ${{ secrets.GOOGLE_REFRESH_TOKEN }}
+          STREAM_MODE: ${{ steps.mode.outputs.mode }}
         run: |
           test -n "$GOOGLE_CLIENT_ID"
           test -n "$GOOGLE_CLIENT_SECRET"
           test -n "$GOOGLE_REFRESH_TOKEN"
+          MODE="${STREAM_MODE:-qualifying}"
+          if [ "$MODE" = "final" ]; then
+            TITLE="FLAG BATTLE — Final · Last Flag Standing (Live)"
+          else
+            TITLE="FLAG BATTLE — Qualifying (Live)"
+          fi
           {
             echo "GOOGLE_CLIENT_ID=$GOOGLE_CLIENT_ID"
             echo "GOOGLE_CLIENT_SECRET=$GOOGLE_CLIENT_SECRET"
             echo "GOOGLE_REFRESH_TOKEN=$GOOGLE_REFRESH_TOKEN"
             echo "YT_PRIVACY=public"
-            echo "YT_TITLE=FLAG BATTLE — Last Flag Standing (Live)"
+            echo "YT_TITLE=$TITLE"
+            echo "STREAM_MODE=$MODE"
             echo "PUBLIC_SITE=https://yung1022.github.io/Flagbattle"
             # Smoother encode on GitHub-hosted runners (Shorts-friendly 9:16)
             echo "STREAM_WIDTH=720"
@@ -90,6 +107,7 @@ jobs:
           DEMO_SECONDS: ${{ inputs.demo_seconds }}
           DURATION_MIN: ${{ inputs.duration_minutes }}
           PRIVACY: ${{ inputs.privacy }}
+          STREAM_MODE: ${{ steps.mode.outputs.mode }}
           PUBLIC_SITE: https://yung1022.github.io/Flagbattle
           STREAM_WIDTH: "720"
           STREAM_HEIGHT: "1280"
@@ -99,7 +117,7 @@ jobs:
           GITHUB_DATA_BRANCH: main
         run: |
           set +e
-          EXTRA=()
+          EXTRA=(--mode "${STREAM_MODE:-qualifying}")
           if [ -n "${DEMO_SECONDS}" ]; then
             EXTRA+=(--demo "${DEMO_SECONDS}")
           fi
