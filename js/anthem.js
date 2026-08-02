@@ -1,44 +1,133 @@
 /**
  * National anthem loading for Short generation.
- * Prefer same-origin /api/anthem proxy (CORS-safe); fall back to direct URL.
+ * Uses Wikimedia Commons audio (CORS-friendly) via data/anthems.json.
+ * No nationalanthems.info / live tunnel required on GitHub Pages.
  */
 
-export function anthemSourceUrl(code, apiBase = "") {
-  const c = String(code || "")
+import { pagesDataUrl } from "./public.js";
+
+let urlMapPromise = null;
+const bufferCache = new Map();
+
+function normalizeCode(code) {
+  return String(code || "")
     .toLowerCase()
     .replace(/[^a-z]/g, "");
+}
+
+async function loadUrlMap() {
+  if (urlMapPromise) return urlMapPromise;
+  urlMapPromise = (async () => {
+    const candidates = [];
+    try {
+      candidates.push(pagesDataUrl("anthems.json"));
+    } catch {
+      /* ignore */
+    }
+    candidates.push("../data/anthems.json", "./data/anthems.json", "data/anthems.json");
+
+    for (const url of candidates) {
+      try {
+        const res = await fetch(url, { cache: "force-cache" });
+        if (!res.ok) continue;
+        const data = await res.json();
+        if (data?.urls && typeof data.urls === "object") return data.urls;
+      } catch {
+        /* try next */
+      }
+    }
+    return {};
+  })();
+  return urlMapPromise;
+}
+
+/** Resolve Commons Special:FilePath → direct upload.wikimedia.org URL. */
+async function resolveCommonsUploadUrl(url) {
+  if (!url) return "";
+  if (url.includes("upload.wikimedia.org")) return url;
+  const m = String(url).match(/Special:FilePath\/(.+)$/i);
+  if (!m) return url;
+  const title = "File:" + decodeURIComponent(m[1]).replace(/_/g, " ");
+  try {
+    const api =
+      "https://commons.wikimedia.org/w/api.php?action=query&prop=imageinfo&iiprop=url&format=json&origin=*&titles=" +
+      encodeURIComponent(title);
+    const res = await fetch(api, { mode: "cors", credentials: "omit" });
+    if (!res.ok) return url;
+    const json = await res.json();
+    for (const p of Object.values(json.query?.pages || {})) {
+      const u = p.imageinfo?.[0]?.url;
+      if (u) return u;
+    }
+  } catch {
+    /* keep original */
+  }
+  return url;
+}
+
+export async function anthemSourceUrl(code) {
+  const c = normalizeCode(code);
   if (!c) return "";
-  if (apiBase) return `${String(apiBase).replace(/\/$/, "")}/api/anthem?code=${c}`;
-  return `https://www.nationalanthems.info/${c}.mp3`;
+  const map = await loadUrlMap();
+  const raw = map[c] || "";
+  if (!raw) return "";
+  return resolveCommonsUploadUrl(raw);
+}
+
+async function fetchArrayBuffer(url, { retries = 4 } = {}) {
+  let lastErr = null;
+  for (let i = 0; i < retries; i++) {
+    try {
+      const res = await fetch(url, {
+        mode: "cors",
+        credentials: "omit",
+        headers: { Accept: "audio/*,application/ogg,*/*" },
+      });
+      if (res.status === 429) {
+        await new Promise((r) => setTimeout(r, 900 * (i + 1)));
+        continue;
+      }
+      if (!res.ok) {
+        lastErr = new Error(`HTTP ${res.status}`);
+        await new Promise((r) => setTimeout(r, 300 * (i + 1)));
+        continue;
+      }
+      const ct = (res.headers.get("content-type") || "").toLowerCase();
+      if (ct.includes("text/html")) {
+        lastErr = new Error("got HTML instead of audio");
+        await new Promise((r) => setTimeout(r, 600 * (i + 1)));
+        continue;
+      }
+      return await res.arrayBuffer();
+    } catch (err) {
+      lastErr = err;
+      await new Promise((r) => setTimeout(r, 400 * (i + 1)));
+    }
+  }
+  throw lastErr || new Error("fetch failed");
 }
 
 /**
- * Decode anthem into an AudioBuffer (full file; caller clips to ~5s).
+ * Decode anthem into an AudioBuffer (caller clips to ~5s).
  * @returns {Promise<AudioBuffer|null>}
  */
-export async function loadAnthemBuffer(code, audioCtx, apiBase = "") {
-  const c = String(code || "")
-    .toLowerCase()
-    .replace(/[^a-z]/g, "");
+export async function loadAnthemBuffer(code, audioCtx) {
+  const c = normalizeCode(code);
   if (!c || !audioCtx) return null;
 
-  const candidates = [];
-  if (apiBase) candidates.push(anthemSourceUrl(c, apiBase));
-  // Direct may fail in-browser due to missing CORS — still try.
-  candidates.push(`https://www.nationalanthems.info/${c}.mp3`);
+  if (bufferCache.has(c)) return bufferCache.get(c);
 
-  for (const url of candidates) {
-    try {
-      const res = await fetch(url, { mode: "cors" });
-      if (!res.ok) continue;
-      const raw = await res.arrayBuffer();
-      const buf = await audioCtx.decodeAudioData(raw.slice(0));
-      return buf;
-    } catch {
-      /* try next */
-    }
+  const url = await anthemSourceUrl(c);
+  if (!url) return null;
+
+  try {
+    const raw = await fetchArrayBuffer(url);
+    const buf = await audioCtx.decodeAudioData(raw.slice(0));
+    bufferCache.set(c, buf);
+    return buf;
+  } catch {
+    return null;
   }
-  return null;
 }
 
 /** Short synthesized brass fall-back when anthem cannot be fetched. */

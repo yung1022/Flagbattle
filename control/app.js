@@ -540,23 +540,20 @@ async function generateHighlight() {
   $("btn-hl-upload").disabled = true;
   hlBlob = null;
   try {
-    const apiBase = (await resolveApiBase()) || "";
     log(
       "hl-log",
       format === "season"
-        ? "Generating Season Top 10 Short (anthems + ↑/↓)…"
-        : "Generating Final Top 10 Short (anthems)…"
+        ? "Generating Season Top 10 Short (Wikimedia anthems + ↑/↓)…"
+        : "Generating Final Top 10 Short (Wikimedia anthems)…"
     );
-    if (apiBase) log("hl-log", `Anthem API: ${apiBase}`);
-    else log("hl-log", "No API base — anthems may fall back to fanfare (CORS).");
 
     const onProgress = ({ phase, progress }) => {
       $("btn-hl-generate").textContent = `${phase} ${Math.round(progress * 100)}%`;
     };
     const result =
       format === "season"
-        ? await generateSeasonHighlightShort(hlStreams, { apiBase, onProgress })
-        : await generateHighlightShort(stream, { apiBase, onProgress });
+        ? await generateSeasonHighlightShort(hlStreams, { onProgress })
+        : await generateHighlightShort(stream, { onProgress });
     if (highlightFormat() !== format) {
       log("hl-log", "Format changed during generate — discarded. Generate again.");
       return;

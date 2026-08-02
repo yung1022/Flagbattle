@@ -426,7 +426,7 @@ async function prepareEntries(rows) {
   }));
 }
 
-async function loadAnthems(revealEntries, audioCtx, apiBase, onProgress) {
+async function loadAnthems(revealEntries, audioCtx, onProgress) {
   const out = [];
   for (let i = 0; i < revealEntries.length; i++) {
     const e = revealEntries[i];
@@ -435,9 +435,11 @@ async function loadAnthems(revealEntries, audioCtx, apiBase, onProgress) {
       `Anthem ${i + 1}/${revealEntries.length}`,
       i / Math.max(1, revealEntries.length)
     );
-    let buf = await loadAnthemBuffer(e.code, audioCtx, apiBase);
+    let buf = await loadAnthemBuffer(e.code, audioCtx);
     if (!buf) buf = makeFanfareBuffer(audioCtx, e.rank);
     out.push(buf);
+    // Gentle pacing — Wikimedia rate-limits burst downloads.
+    if (i < revealEntries.length - 1) await sleep(180);
   }
   return out;
 }
@@ -470,7 +472,6 @@ async function recordTop10Short({
   mode,
   subtitle,
   entries,
-  apiBase = "",
   onProgress,
 }) {
   if (typeof MediaRecorder === "undefined") {
@@ -496,7 +497,7 @@ async function recordTop10Short({
   const dest = audioCtx.createMediaStreamDestination();
 
   reportProgress(onProgress, "Loading anthems", 0.02);
-  const anthemBufs = await loadAnthems(revealEntries, audioCtx, apiBase, onProgress);
+  const anthemBufs = await loadAnthems(revealEntries, audioCtx, onProgress);
 
   const stream = canvas.captureStream(FPS);
   for (const track of dest.stream.getAudioTracks()) {
@@ -602,7 +603,6 @@ export async function generateHighlightShort(stream, opts = {}) {
     mode: "final",
     subtitle: formatWhen(stream.endedAt || stream.startedAt) || "Stream Final",
     entries,
-    apiBase: opts.apiBase || "",
     onProgress: opts.onProgress,
   });
 }
@@ -630,7 +630,6 @@ export async function generateSeasonHighlightShort(history, opts = {}) {
     mode: "season",
     subtitle: "Points ranking · ↑ gained · ↓ lost",
     entries,
-    apiBase: opts.apiBase || "",
     onProgress: opts.onProgress,
   });
 }
