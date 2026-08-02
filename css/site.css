@@ -151,12 +151,21 @@ button.btn:disabled { opacity: 0.55; cursor: wait; }
 .tab-panel[hidden] { display: none !important; }
 
 .points-row {
-  grid-template-columns: 42px 36px 1fr auto;
+  grid-template-columns: 42px 36px 1fr auto auto;
   grid-template-rows: auto auto;
 }
 .points-row .points-name { grid-column: 3; grid-row: 1; }
-.points-row .points-total {
+.points-row .delta {
   grid-column: 4;
+  grid-row: 1 / span 2;
+  align-self: center;
+  font-weight: 800;
+  font-size: 14px;
+  min-width: 3.2ch;
+  text-align: right;
+}
+.points-row .points-total {
+  grid-column: 5;
   grid-row: 1 / span 2;
   align-self: center;
   font-family: var(--font-display);
@@ -169,6 +178,19 @@ button.btn:disabled { opacity: 0.55; cursor: wait; }
   grid-column: 3;
   grid-row: 2;
   margin: 0;
+}
+.delta-up { color: #3dd68c; }
+.delta-down { color: #ff4d6d; }
+.delta-flat { color: #6d8496; }
+.cell-rank {
+  line-height: 1.15;
+}
+.cell-rank .cell-place { display: block; }
+.cell-rank .delta {
+  display: block;
+  font-size: 10px;
+  font-weight: 800;
+  margin-top: 2px;
 }
 
 .sheet-scroll {

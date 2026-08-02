@@ -2,10 +2,22 @@
  * Mobile Go Live control center.
  * - Easy: YouTube app screen share
  * - Cloud: trigger GitHub Actions encoder
+ * - Highlights: generate Final Short + upload to YouTube
  * - Setup: Google device OAuth + push repo secrets (phone-only)
  */
 
 import sodiumModule from "https://esm.sh/libsodium-wrappers@0.7.15";
+import {
+  generateHighlightShort,
+  downloadBlob,
+} from "../js/highlight-short.js";
+import {
+  refreshAccessToken,
+  uploadYoutubeShort,
+} from "../js/youtube-upload.js";
+import { fetchStreamsFromApi } from "../js/store.js";
+import { resolveApiBase } from "../js/public.js";
+
 const sodium = sodiumModule;
 
 const STORAGE_KEY = "flagbattle.mobile.v1";
@@ -13,7 +25,15 @@ const STORAGE_KEY = "flagbattle.mobile.v1";
 const $ = (id) => document.getElementById(id);
 const state = load();
 
-const ytScope = "https://www.googleapis.com/auth/youtube";
+const ytScope = [
+  "https://www.googleapis.com/auth/youtube",
+  "https://www.googleapis.com/auth/youtube.force-ssl",
+  "https://www.googleapis.com/auth/youtube.upload",
+].join(" ");
+
+let hlStreams = [];
+let hlBlob = null;
+let hlMime = "video/webm";
 
 init();
 
@@ -27,6 +47,13 @@ function init() {
   $("btn-push-secrets").addEventListener("click", pushSecrets);
   $("btn-copy-secrets").addEventListener("click", copySecrets);
   $("btn-copy-arena").addEventListener("click", copyArenaLink);
+  $("btn-hl-generate").addEventListener("click", generateHighlight);
+  $("btn-hl-download").addEventListener("click", downloadHighlight);
+  $("btn-hl-upload").addEventListener("click", uploadHighlight);
+  $("hl-stream").addEventListener("change", syncHighlightTitle);
+  $("hl-title").addEventListener("input", () => {
+    $("hl-title").dataset.auto = "0";
+  });
 
   // Default repo guess from path when hosted on GitHub Pages.
   if (!$("gh-repo").value) {
@@ -42,6 +69,8 @@ function init() {
   // Fix relative arena link when served from /control/
   const arena = $("btn-open-arena");
   arena.href = new URL("../?stream=1&autostart=1&mobile=1", location.href).href;
+
+  loadHighlightStreams();
 }
 
 function bindTabs() {
@@ -365,4 +394,172 @@ function splitRepo(repo) {
 
 function sleep(ms) {
   return new Promise((r) => setTimeout(r, ms));
+}
+
+/* ——— Highlight Short ——— */
+
+async function loadHighlightStreams() {
+  try {
+    await resolveApiBase();
+    let streams = (await fetchStreamsFromApi()) || [];
+    // Also try relative Pages data when API missing.
+    if (!streams.length) {
+      try {
+        const res = await fetch("../data/rankings.json", { cache: "no-store" });
+        if (res.ok) streams = await res.json();
+      } catch {
+        /* ignore */
+      }
+    }
+    hlStreams = (streams || [])
+      .filter((s) => s.final?.ranking?.length)
+      .sort((a, b) => (b.startedAt || "").localeCompare(a.startedAt || ""));
+
+    const sel = $("hl-stream");
+    sel.innerHTML = "";
+    if (!hlStreams.length) {
+      const opt = document.createElement("option");
+      opt.value = "";
+      opt.textContent = "No finished Finals yet";
+      sel.appendChild(opt);
+      log("hl-log", "No finished Finals in rankings data.");
+      return;
+    }
+    for (const s of hlStreams) {
+      const opt = document.createElement("option");
+      opt.value = s.id;
+      const when = s.startedAt
+        ? new Date(s.startedAt).toLocaleString()
+        : s.id;
+      const winner = s.final?.winner?.name || s.winner?.name || "Champion";
+      opt.textContent = `${when} · ${winner} · ${s.final.ranking.length} finalists`;
+      sel.appendChild(opt);
+    }
+    syncHighlightTitle();
+    log("hl-log", `Loaded ${hlStreams.length} finished Final(s).`);
+  } catch (err) {
+    log("hl-log", `Could not load streams: ${err.message || err}`);
+  }
+}
+
+function selectedHighlightStream() {
+  const id = $("hl-stream").value;
+  return hlStreams.find((s) => s.id === id) || null;
+}
+
+function syncHighlightTitle() {
+  const s = selectedHighlightStream();
+  if (!s) return;
+  const winner = s.final?.winner?.name || s.winner?.name || "Champion";
+  const when = s.startedAt
+    ? new Date(s.startedAt).toLocaleDateString()
+    : "Final";
+  if (!$("hl-title").value || $("hl-title").dataset.auto === "1") {
+    $("hl-title").value = `FLAG BATTLE Final · ${winner} wins · ${when} #Shorts`;
+    $("hl-title").dataset.auto = "1";
+  }
+}
+
+async function generateHighlight() {
+  const stream = selectedHighlightStream();
+  if (!stream) {
+    log("hl-log", "Pick a finished Final first.");
+    return;
+  }
+  $("btn-hl-generate").disabled = true;
+  $("btn-hl-download").disabled = true;
+  $("btn-hl-upload").disabled = true;
+  hlBlob = null;
+  try {
+    log("hl-log", "Generating vertical Short (keep this tab open)…");
+    const result = await generateHighlightShort(stream, {
+      onProgress: ({ phase, progress }) => {
+        if (Math.round(progress * 20) % 4 === 0) {
+          /* light logging */
+        }
+        $("btn-hl-generate").textContent = `${phase} ${Math.round(progress * 100)}%`;
+      },
+    });
+    hlBlob = result.blob;
+    hlMime = result.mimeType || hlBlob.type;
+    const url = URL.createObjectURL(hlBlob);
+    const vid = $("hl-preview");
+    vid.src = url;
+    vid.hidden = false;
+    vid.muted = false;
+    $("btn-hl-download").disabled = false;
+    $("btn-hl-upload").disabled = false;
+    log(
+      "hl-log",
+      `Ready · ${(hlBlob.size / 1024 / 1024).toFixed(1)} MB · ${result.durationSec.toFixed(0)}s · ${hlMime}`
+    );
+  } catch (err) {
+    log("hl-log", `Generate failed: ${err.message || err}`);
+  } finally {
+    $("btn-hl-generate").disabled = false;
+    $("btn-hl-generate").textContent = "Generate Short";
+  }
+}
+
+function downloadHighlight() {
+  if (!hlBlob) return;
+  const stream = selectedHighlightStream();
+  const name = `flag-battle-highlight-${stream?.id || "final"}.webm`;
+  downloadBlob(hlBlob, name);
+  log("hl-log", `Download started: ${name}`);
+}
+
+async function uploadHighlight() {
+  saveGoogleFields();
+  if (!hlBlob) {
+    log("hl-log", "Generate a Short first.");
+    return;
+  }
+  if (!state.clientId || !state.clientSecret || !state.refreshToken) {
+    log("hl-log", "Setup tab: authorize Google (refresh token) first.");
+    return;
+  }
+  $("btn-hl-upload").disabled = true;
+  try {
+    log("hl-log", "Refreshing YouTube access token…");
+    const accessToken = await refreshAccessToken({
+      clientId: state.clientId,
+      clientSecret: state.clientSecret,
+      refreshToken: state.refreshToken,
+    });
+    const stream = selectedHighlightStream();
+    const winner = stream?.final?.winner?.name || "Champion";
+    const title =
+      $("hl-title").value.trim() ||
+      `FLAG BATTLE Final Results · ${winner} #Shorts`;
+    const description = [
+      "FLAG BATTLE — Last Flag Standing final results highlight.",
+      `Champion: ${winner}`,
+      stream?.startedAt ? `Battle: ${new Date(stream.startedAt).toLocaleString()}` : "",
+      "",
+      "Rankings: https://yung1022.github.io/Flagbattle/rankings.html",
+      "#Shorts #FlagBattle #LastFlagStanding #Geography",
+    ]
+      .filter(Boolean)
+      .join("\n");
+
+    log("hl-log", "Uploading to YouTube…");
+    const uploaded = await uploadYoutubeShort({
+      accessToken,
+      blob: hlBlob,
+      title,
+      description,
+      privacyStatus: $("hl-privacy").value || "public",
+    });
+    log("hl-log", `Uploaded ✓ ${uploaded.watchUrl}`);
+    log("hl-log", `Shorts URL: ${uploaded.shortsUrl}`);
+  } catch (err) {
+    log("hl-log", `Upload failed: ${err.message || err}`);
+    log(
+      "hl-log",
+      "If scope errors: Setup → Start device login again (upload scope), then retry."
+    );
+  } finally {
+    $("btn-hl-upload").disabled = false;
+  }
 }

@@ -27,6 +27,8 @@
         Season sheet: every country’s place in each battle (<strong>nq</strong> =
         did not qualify for the Final). Points: <strong>50</strong> for 1st,
         <strong>49</strong> for 2nd, … <strong>1</strong> for 50th.
+        Arrows show places gained <span class="delta-up">↑</span> or lost
+        <span class="delta-down">↓</span> vs the previous battle.
       </p>
       <div class="meta" id="status">Loading…</div>
 
@@ -117,6 +119,7 @@
         buildPointsLeaderboard,
         pointsForRank,
       } from "./js/rankings-stats.js";
+      import { formatDelta } from "./js/rank-delta.js";
       import {
         generateTop10Image,
         downloadCanvas,
@@ -225,10 +228,12 @@
         const div = document.createElement("div");
         div.className = "rank-row points-row";
         const best = row.best != null ? `#${row.best}` : "nq";
+        const d = formatDelta(row.delta);
         div.innerHTML = `
           <span class="rank-num">#${row.rank}</span>
           <img src="${row.img}" alt="" />
           <span class="points-name">${row.name}</span>
+          <span class="delta ${d.cls}" title="Places vs previous battle">${d.arrow}${d.text === "—" ? "" : d.text}</span>
           <strong class="points-total">${row.points}</strong>
           <span class="meta points-meta">${row.finishes} final${row.finishes === 1 ? "" : "s"} · best ${best}</span>
         `;
@@ -274,8 +279,9 @@
           ptsTd.textContent = String(row.points);
           tr.appendChild(ptsTd);
 
-          for (const result of row.results) {
+          row.results.forEach((result, i) => {
             const td = document.createElement("td");
+            const delta = row.deltas?.[i];
             if (result === "nq") {
               td.className = "cell-nq";
               td.textContent = "nq";
@@ -287,11 +293,19 @@
               if (result === 1) td.classList.add("cell-gold");
               else if (result === 2) td.classList.add("cell-silver");
               else if (result === 3) td.classList.add("cell-bronze");
-              td.textContent = String(result);
-              td.title = `${pointsForRank(result)} pts`;
+              const d = formatDelta(delta);
+              const arrow =
+                delta == null || delta === 0
+                  ? ""
+                  : `<span class="delta ${d.cls}">${d.arrow}${d.text}</span>`;
+              td.innerHTML = `<span class="cell-place">${result}</span>${arrow}`;
+              td.title =
+                delta == null || delta === 0
+                  ? `${pointsForRank(result)} pts`
+                  : `${pointsForRank(result)} pts · ${delta > 0 ? "up" : "down"} ${Math.abs(delta)}`;
             }
             tr.appendChild(td);
-          }
+          });
           tbody.appendChild(tr);
           sheetRowCount += 1;
         }
