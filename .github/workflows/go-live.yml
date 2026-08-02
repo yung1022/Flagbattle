@@ -6,21 +6,15 @@
 #   GOOGLE_REFRESH_TOKEN
 #
 # Trigger from your own cron / server with workflow_dispatch (see README).
-# Pass mode=qualifying or mode=final — they are separate livestreams.
+# Mode is chosen automatically from the last finished stream in data/rankings.json:
+#   last = qualifying (with qualifiers) → next = final
+#   otherwise → qualifying
 
 name: Go Live — FLAG BATTLE
 
 on:
   workflow_dispatch:
     inputs:
-      mode:
-        description: "Livestream type: qualifying | final"
-        required: true
-        default: "qualifying"
-        type: choice
-        options:
-          - qualifying
-          - final
       demo_seconds:
         description: "Shorten clock in seconds (leave empty = full length)"
         required: false
@@ -50,6 +44,13 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Resolve stream mode from last run
+        id: mode
+        run: |
+          MODE=$(node stream/src/next-mode.js data/rankings.json)
+          echo "mode=$MODE" >> "$GITHUB_OUTPUT"
+          echo "Next livestream mode: $MODE"
+
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
@@ -75,7 +76,7 @@ jobs:
           GOOGLE_CLIENT_ID: ${{ secrets.GOOGLE_CLIENT_ID }}
           GOOGLE_CLIENT_SECRET: ${{ secrets.GOOGLE_CLIENT_SECRET }}
           GOOGLE_REFRESH_TOKEN: ${{ secrets.GOOGLE_REFRESH_TOKEN }}
-          STREAM_MODE: ${{ inputs.mode }}
+          STREAM_MODE: ${{ steps.mode.outputs.mode }}
         run: |
           test -n "$GOOGLE_CLIENT_ID"
           test -n "$GOOGLE_CLIENT_SECRET"
@@ -106,7 +107,7 @@ jobs:
           DEMO_SECONDS: ${{ inputs.demo_seconds }}
           DURATION_MIN: ${{ inputs.duration_minutes }}
           PRIVACY: ${{ inputs.privacy }}
-          STREAM_MODE: ${{ inputs.mode }}
+          STREAM_MODE: ${{ steps.mode.outputs.mode }}
           PUBLIC_SITE: https://yung1022.github.io/Flagbattle
           STREAM_WIDTH: "720"
           STREAM_HEIGHT: "1280"

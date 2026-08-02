@@ -61,12 +61,13 @@ Open `http://localhost:5173` — QR/links still use GitHub Pages by default.
 ### Auto-stream
 
 ```bash
-# Qualifying
-PUBLIC_SITE=https://yung1022.github.io/Flagbattle npm run go-live --prefix stream -- --mode qualifying
-
-# Final (after a qualifying run has saved results)
-PUBLIC_SITE=https://yung1022.github.io/Flagbattle npm run go-live --prefix stream -- --mode final
+PUBLIC_SITE=https://yung1022.github.io/Flagbattle npm run go-live --prefix stream
+# Optional: force a mode locally with --mode qualifying|final
 ```
+
+The GitHub Action picks the mode automatically from `data/rankings.json`:
+- last finished stream was **qualifying** (with qualifiers) → next is **final**
+- otherwise → **qualifying**
 
 ## Mobile / cloud stream
 
@@ -79,55 +80,52 @@ See [`control/`](control/) and [`stream/`](stream/). Repo Action secrets:
 
 ### Trigger go-live from your own cronjob
 
-GitHub’s scheduled cron is often delayed, so this workflow is **`workflow_dispatch` only**. Call it from your server cron. **You must set `mode`.**
+GitHub’s scheduled cron is often delayed, so this workflow is **`workflow_dispatch` only**. Call it from your server cron — **do not pass `mode`**; the workflow chooses it.
 
-**1. Create a GitHub PAT** with permission to run Actions:
+**1. Auth — GitHub PAT** with permission to run Actions:
 - Fine-grained: Actions **Read and write** on `yung1022/Flagbattle`, or
 - Classic: `repo` + `workflow`
 
-**2. Cron examples**
+**2. Request**
 
-```bash
-# Qualifying (e.g. every 4 hours)
-curl -sS -X POST \
-  -H "Accept: application/vnd.github+json" \
-  -H "Authorization: Bearer YOUR_GITHUB_PAT" \
-  -H "X-GitHub-Api-Version: 2022-11-28" \
-  https://api.github.com/repos/yung1022/Flagbattle/actions/workflows/go-live.yml/dispatches \
-  -d '{
-    "ref": "main",
-    "inputs": {
-      "mode": "qualifying",
-      "privacy": "public",
-      "duration_minutes": "40",
-      "demo_seconds": ""
-    }
-  }'
-
-# Final (schedule after a qualifying run, e.g. +45 minutes)
-curl -sS -X POST \
-  -H "Accept: application/vnd.github+json" \
-  -H "Authorization: Bearer YOUR_GITHUB_PAT" \
-  -H "X-GitHub-Api-Version: 2022-11-28" \
-  https://api.github.com/repos/yung1022/Flagbattle/actions/workflows/go-live.yml/dispatches \
-  -d '{
-    "ref": "main",
-    "inputs": {
-      "mode": "final",
-      "privacy": "public",
-      "duration_minutes": "30",
-      "demo_seconds": ""
-    }
-  }'
+- **Method:** `POST`
+- **URL:** `https://api.github.com/repos/yung1022/Flagbattle/actions/workflows/go-live.yml/dispatches`
+- **Headers:**
+  - `Accept: application/vnd.github+json`
+  - `Authorization: Bearer YOUR_GITHUB_PAT`
+  - `X-GitHub-Api-Version: 2022-11-28`
+  - `Content-Type: application/json`
+- **Body:**
+```json
+{
+  "ref": "main",
+  "inputs": {
+    "privacy": "public",
+    "duration_minutes": "40",
+    "demo_seconds": ""
+  }
+}
 ```
 
-**Inputs**
+**3. Cron example**
+
+```bash
+# crontab -e   →   e.g. every 2 hours
+curl -sS -X POST \
+  -H "Accept: application/vnd.github+json" \
+  -H "Authorization: Bearer YOUR_GITHUB_PAT" \
+  -H "X-GitHub-Api-Version: 2022-11-28" \
+  -H "Content-Type: application/json" \
+  https://api.github.com/repos/yung1022/Flagbattle/actions/workflows/go-live.yml/dispatches \
+  -d '{"ref":"main","inputs":{"privacy":"public","duration_minutes":"40","demo_seconds":""}}'
+```
+
+**Inputs (optional)**
 
 | Input | Default | Meaning |
 |-------|---------|---------|
-| `mode` | `qualifying` | **`qualifying`** or **`final`** (required for cron) |
 | `privacy` | `public` | `public` / `unlisted` / `private` |
 | `duration_minutes` | `40` | Kill the Actions runner after N minutes |
 | `demo_seconds` | `""` | Leave empty for full length; set e.g. `"120"` for short tests |
 
-**Or** Actions UI → **Go Live — FLAG BATTLE** → **Run workflow** with `mode` set.
+**Or** Actions UI → **Go Live — FLAG BATTLE** → **Run workflow**.
