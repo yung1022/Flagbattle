@@ -9,8 +9,10 @@
     }
   ],
   "votes": {
-    "ge": 0
+    "ge": 1
   },
-  "voters": {},
-  "updatedAt": 1785637635005
+  "voters": {
+    "v_afjucyn9": "ge"
+  },
+  "updatedAt": 1785639172903
 }
