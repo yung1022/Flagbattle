@@ -4,6 +4,8 @@
  * Non-finalists show as "nq".
  */
 
+import { previousPointsRanks, rankDelta } from "./rank-delta.js";
+
 export const POINTS_TOP_N = 50;
 
 export function pointsForRank(rank) {
@@ -59,6 +61,11 @@ export function buildSeasonSheet(streams, countries) {
 
   const rows = countries.map((c) => {
     const results = battles.map((s) => battleResult(s, c.code));
+    /** Delta vs previous battle column (places gained). */
+    const deltas = results.map((curr, i) => {
+      if (i === 0) return null;
+      return rankDelta(results[i - 1], curr);
+    });
     let points = 0;
     let finishes = 0;
     let best = null;
@@ -74,6 +81,7 @@ export function buildSeasonSheet(streams, countries) {
       name: c.name,
       img: `https://flagcdn.com/w40/${c.code}.png`,
       results,
+      deltas,
       points,
       finishes,
       best,
@@ -100,6 +108,31 @@ export function buildSeasonSheet(streams, countries) {
 
 /** Standalone points leaderboard (same ordering as sheet). */
 export function buildPointsLeaderboard(streams, countries) {
+  const { rows } = buildSeasonSheet(streams, countries);
+  const ranked = rows.map((r, i) => ({
+    rank: i + 1,
+    code: r.code,
+    name: r.name,
+    img: r.img,
+    points: r.points,
+    finishes: r.finishes,
+    best: r.best,
+  }));
+
+  const prevRanks = previousPointsRanks(
+    streams,
+    countries,
+    (s, c) => buildPointsLeaderboardBare(s, c)
+  );
+  for (const row of ranked) {
+    const prev = prevRanks.get(row.code);
+    row.delta = prev != null ? rankDelta(prev, row.rank) : null;
+  }
+  return ranked;
+}
+
+/** Leaderboard without recursive delta (used for “previous season” snapshot). */
+function buildPointsLeaderboardBare(streams, countries) {
   const { rows } = buildSeasonSheet(streams, countries);
   return rows.map((r, i) => ({
     rank: i + 1,

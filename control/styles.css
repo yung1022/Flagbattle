@@ -68,6 +68,29 @@ body {
   gap: 8px;
   margin: 22px 0 16px;
 }
+.tabs.tabs-4 {
+  grid-template-columns: repeat(4, 1fr);
+}
+.tabs.tabs-4 .tab {
+  font-size: 10px;
+  padding: 12px 4px;
+}
+
+.hl-preview-wrap {
+  margin-top: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: #050b11;
+  min-height: 80px;
+  display: grid;
+  place-items: center;
+  padding: 10px;
+}
+.hl-preview-wrap video {
+  width: min(100%, 280px);
+  aspect-ratio: 9 / 16;
+  background: #000;
+  display: block;
+}
 
 .tab {
   border: 1px solid var(--line);
