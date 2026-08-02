@@ -602,8 +602,10 @@
     "ga": 0,
     "br": 0,
     "ie": 0,
-    "sg": 0
+    "sg": 1
   },
-  "voters": {},
-  "updatedAt": 1785639432834
+  "voters": {
+    "v_afjucyn9": "sg"
+  },
+  "updatedAt": 1785639460086
 }
