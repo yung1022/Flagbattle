@@ -2,7 +2,7 @@
   "live": {
     "streamId": "fb_msc3wr7w_2k2817",
     "mode": "final",
-    "phase": "final",
+    "phase": "finished",
     "round": 59,
     "qualified": [
       {
@@ -368,20 +368,19 @@
     ],
     "standing": [
       {
-        "code": "cv",
-        "name": "Cabo Verde",
-        "img": "https://flagcdn.com/w80/cv.png"
-      },
-      {
         "code": "no",
         "name": "Norway",
         "img": "https://flagcdn.com/w80/no.png"
       }
     ],
-    "winner": null,
+    "winner": {
+      "code": "no",
+      "name": "Norway",
+      "img": "https://flagcdn.com/w80/no.png"
+    },
     "qualifyingRemainingMs": 0,
     "intermissionRemainingMs": 0,
-    "updatedAt": 1785693857045
+    "updatedAt": 1785693861429
   },
   "streams": [
     {
@@ -402603,5 +402602,5 @@
     }
   ],
   "api": "https://berkeley-entrepreneurs-samples-cartoons.trycloudflare.com",
-  "updatedAt": 1785693861961
+  "updatedAt": 1785693862507
 }
