@@ -5,9 +5,12 @@ name: Deploy GitHub Pages
 on:
   push:
     branches: [main]
+    # Data-only commits should not thrash the site deploy.
+    paths-ignore:
+      - "data/**"
+      - ".data/**"
   workflow_dispatch:
-  # GITHUB_TOKEN commits from go-live do not trigger push workflows;
-  # redeploy Pages after a stream finishes so ranking history is public.
+  # Redeploy Pages after a stream finishes so ranking history is public.
   workflow_run:
     workflows: ["Go Live — FLAG BATTLE"]
     types: [completed]
@@ -19,7 +22,8 @@ permissions:
 
 concurrency:
   group: pages
-  cancel-in-progress: true
+  # Let an in-flight deploy finish; don't cancel on every follow-up push.
+  cancel-in-progress: false
 
 jobs:
   deploy:
