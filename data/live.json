@@ -2,7 +2,7 @@
   "live": {
     "streamId": "fb_msd6irq7_tslqlg",
     "mode": "qualifying",
-    "phase": "qualifying",
+    "phase": "finished",
     "round": 60,
     "qualified": [
       {
@@ -376,7 +376,7 @@
     "winner": null,
     "qualifyingRemainingMs": 0,
     "intermissionRemainingMs": 0,
-    "updatedAt": 1785760394109
+    "updatedAt": 1785760395531
   },
   "streams": [
     {
@@ -525448,5 +525448,5 @@
     }
   ],
   "api": "https://threatening-museum-concerned-tex.trycloudflare.com",
-  "updatedAt": 1785760395959
+  "updatedAt": 1785760396500
 }
