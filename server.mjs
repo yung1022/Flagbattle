@@ -14,6 +14,11 @@ import {
   mirrorAndSync,
   enqueueGithubFile,
 } from "./github-sync.mjs";
+import { COUNTRIES } from "./js/countries.js";
+
+const COUNTRY_BY_CODE = new Map(
+  COUNTRIES.map((c) => [String(c.code).toLowerCase(), c])
+);
 
 let announceQueue = Promise.resolve();
 let lastAnnounceText = "";
@@ -281,6 +286,101 @@ function mergePoll(existing, incoming) {
   };
 }
 
+/** Nightbot sends: name=x&displayName=y&provider=youtube&providerId=… */
+function parseNightbotUserHeader(raw) {
+  if (!raw) return null;
+  try {
+    const params = new URLSearchParams(String(raw));
+    return {
+      name: params.get("name") || "",
+      displayName: params.get("displayName") || "",
+      provider: params.get("provider") || "",
+      providerId: params.get("providerId") || "",
+    };
+  } catch {
+    return null;
+  }
+}
+
+function applyPollVote({ streamId, code, voterId }) {
+  if (!streamId || !code || !voterId) {
+    return {
+      ok: false,
+      status: 400,
+      error: !code ? "usage" : "streamId, code, voterId required",
+    };
+  }
+  if (code.length !== 2 || !COUNTRY_BY_CODE.has(code)) {
+    return { ok: false, status: 400, error: "unknown_country" };
+  }
+  const poll = readJson(pollPath(streamId), {
+    streamId,
+    options: [],
+    votes: {},
+    voters: {},
+  });
+  if (!poll.options?.length) {
+    return { ok: false, status: 409, error: "poll_closed" };
+  }
+  const allowed = new Set(
+    poll.options.map((o) => String(o.code || "").toLowerCase())
+  );
+  if (!allowed.has(code)) {
+    return { ok: false, status: 400, error: "not_an_option" };
+  }
+  const prev = poll.voters[voterId];
+  if (prev && poll.votes[prev] > 0) poll.votes[prev] -= 1;
+  poll.voters[voterId] = code;
+  poll.votes[code] = (poll.votes[code] || 0) + 1;
+  poll.updatedAt = Date.now();
+  writeJson(pollPath(streamId), poll);
+  schedulePublicSync({ pollId: streamId, github: true });
+  return {
+    ok: true,
+    status: 200,
+    error: null,
+    poll,
+    country: COUNTRY_BY_CODE.get(code),
+  };
+}
+
+/** Plain-text reply for Nightbot urlfetch (< 400 chars). */
+function formatVoteText(result, voterLabel) {
+  const who = String(voterLabel || "Viewer").slice(0, 40);
+  if (result.ok) {
+    const name = result.country?.name || "OK";
+    return `${who} voted ${name} successfully`.slice(0, 200);
+  }
+  switch (result.error) {
+    case "usage":
+      return "Usage: !vote XX (country code, e.g. !vote us)";
+    case "unknown_country":
+    case "not_an_option":
+      return `${who} country does not exist.`;
+    case "poll_closed":
+      return `${who} poll is not open yet.`;
+    default:
+      return `${who} vote failed — try again.`;
+  }
+}
+
+function writeNightbotPointer() {
+  const live = readJson(LIVE_FILE, { live: null, streams: [] });
+  const payload = {
+    api: publicApi || null,
+    streamId: live?.live?.streamId || null,
+    updatedAt: Date.now(),
+  };
+  writeJson(path.join(PUBLIC_DATA, "nightbot.json"), payload);
+  if (githubSyncEnabled()) {
+    enqueueGithubFile(
+      "data/nightbot.json",
+      JSON.stringify(payload, null, 2),
+      `chore(data): nightbot vote pointer`
+    );
+  }
+}
+
 function seedFromPublicData() {
   const pubRank = path.join(PUBLIC_DATA, "rankings.json");
   if (!fs.existsSync(RANK_FILE) && fs.existsSync(pubRank)) {
@@ -313,6 +413,7 @@ async function handleApi(req, res, url) {
       // Tunnel URL must land on Pages so phones can find the API.
       schedulePublicSync({ forceLive: true, github: true });
       flushPublicSync({ github: true });
+      writeNightbotPointer();
     }
     return send(res, 200, { ok: true, api: publicApi });
   }
@@ -456,42 +557,73 @@ async function handleApi(req, res, url) {
     );
   }
 
-  if (url.pathname === "/api/poll/vote" && req.method === "POST") {
-    const body = await parseBody(req);
-    const { streamId, voterId } = body;
-    const code = String(body.code || "")
+  // Nightbot $(urlfetch) is GET-only — also keep POST for the web poll.
+  if (
+    url.pathname === "/api/poll/vote" &&
+    (req.method === "GET" || req.method === "POST")
+  ) {
+    const wantText =
+      url.searchParams.get("format") === "text" ||
+      String(req.headers.accept || "").includes("text/plain");
+
+    let streamId;
+    let code;
+    let voterId;
+    let voterName;
+
+    if (req.method === "GET") {
+      streamId = url.searchParams.get("streamId") || "";
+      code = url.searchParams.get("code") || url.searchParams.get("query") || "";
+      voterName =
+        url.searchParams.get("voter") ||
+        url.searchParams.get("user") ||
+        url.searchParams.get("displayName") ||
+        "";
+      voterId =
+        url.searchParams.get("voterId") ||
+        url.searchParams.get("userId") ||
+        "";
+      const nbUser = parseNightbotUserHeader(req.headers["nightbot-user"]);
+      if (nbUser) {
+        if (!voterName) voterName = nbUser.displayName || nbUser.name || "";
+        if (!voterId && nbUser.providerId) {
+          voterId = `nb:${nbUser.provider || "yt"}:${nbUser.providerId}`;
+        }
+      }
+      if (!voterId && voterName) voterId = `nb:${voterName}`;
+    } else {
+      const body = await parseBody(req);
+      streamId = body.streamId || "";
+      code = body.code || "";
+      voterId = body.voterId || body.voter || "";
+      voterName = body.voterName || body.voter || "";
+    }
+
+    // First token only — Nightbot $(query) is everything after !vote.
+    code = String(code || "")
+      .trim()
+      .split(/\s+/)[0]
       .toLowerCase()
       .replace(/[^a-z]/g, "");
-    if (!streamId || !code || !voterId) {
-      return send(res, 400, { error: "streamId, code, voterId required" });
+
+    if (!streamId) {
+      const live = readJson(LIVE_FILE, { live: null });
+      streamId = live?.live?.streamId || "";
     }
-    if (code.length !== 2) {
-      return send(res, 400, { error: "unknown_country" });
+
+    const result = applyPollVote({ streamId, code, voterId });
+    if (wantText) {
+      return send(
+        res,
+        result.status,
+        formatVoteText(result, voterName || voterId),
+        "text/plain; charset=utf-8"
+      );
     }
-    const poll = readJson(pollPath(streamId), {
-      streamId,
-      options: [],
-      votes: {},
-      voters: {},
-    });
-    if (!poll.options?.length) {
-      return send(res, 409, { error: "poll_closed" });
+    if (!result.ok) {
+      return send(res, result.status, { error: result.error });
     }
-    const allowed = new Set(
-      poll.options.map((o) => String(o.code || "").toLowerCase())
-    );
-    if (!allowed.has(code)) {
-      return send(res, 400, { error: "not_an_option" });
-    }
-    const prev = poll.voters[voterId];
-    if (prev && poll.votes[prev] > 0) poll.votes[prev] -= 1;
-    poll.voters[voterId] = code;
-    poll.votes[code] = (poll.votes[code] || 0) + 1;
-    poll.updatedAt = Date.now();
-    writeJson(pollPath(streamId), poll);
-    // Local poll file + coalesced GitHub publish (not every vote).
-    schedulePublicSync({ pollId: streamId, github: true });
-    return send(res, 200, poll);
+    return send(res, 200, result.poll);
   }
 
   if (url.pathname === "/api/announce" && req.method === "POST") {

@@ -25,6 +25,7 @@ import {
   DEFAULT_LIVE_KEYWORDS,
 } from "./youtube.js";
 import { startChatVoteLoop } from "./chat-vote.js";
+import { syncNightbotVoteCommand, nightbotVoteMessage } from "./nightbot.js";
 
 loadEnv();
 
@@ -142,16 +143,33 @@ async function main() {
 
   await postChatLinks(youtubeClient, broadcastId, tunnelUrl, MODE);
 
-  // Chat !vote loop (Final poll; also works if a poll is open).
-  chatAbort = new AbortController();
+  // Nightbot owns !vote (saves YouTube Data API quota). Opt-in old loop: CHAT_VOTE=1
   const apiBase = tunnelUrl || `http://127.0.0.1:${PORT}`;
-  startChatVoteLoop({
-    youtube: youtubeClient,
-    broadcastId,
-    apiBase,
-    signal: chatAbort.signal,
-    getStreamId: () => readLiveStreamId(PORT),
-  }).catch((err) => console.warn("[chat-vote] stopped:", err.message || err));
+  const nightbot = await syncNightbotVoteCommand(apiBase);
+  if (nightbot.ok) {
+    console.log("[nightbot] !vote command synced to tunnel");
+  } else if (nightbot.error && nightbot.error !== "NIGHTBOT_TOKEN not set") {
+    console.warn("[nightbot] sync failed:", nightbot.error);
+  } else {
+    console.log(
+      "[nightbot] Set NIGHTBOT_TOKEN to auto-update !vote, or add manually:"
+    );
+    console.log(`  ${nightbotVoteMessage(apiBase)}`);
+  }
+
+  if (String(process.env.CHAT_VOTE || "").trim() === "1") {
+    chatAbort = new AbortController();
+    startChatVoteLoop({
+      youtube: youtubeClient,
+      broadcastId,
+      apiBase,
+      signal: chatAbort.signal,
+      getStreamId: () => readLiveStreamId(PORT),
+    }).catch((err) => console.warn("[chat-vote] stopped:", err.message || err));
+    console.log("[chat-vote] YouTube poll loop enabled (CHAT_VOTE=1)");
+  } else {
+    console.log("[chat-vote] YouTube poll loop off — use Nightbot !vote");
+  }
 
   console.log(`\n🔴 LIVE (${MODE}) — press Ctrl+C to end the stream\n`);
   console.log(live.watchUrl);
@@ -187,7 +205,7 @@ async function postChatLinks(youtube, id, apiUrl, mode = "qualifying") {
   const lines =
     mode === "final"
       ? [
-          `Vote in chat: !vote XX (country code) or ${poll}`,
+          `Vote: !vote XX (Nightbot) or ${poll}`,
           `Rankings: ${rank}`,
         ]
       : [
