@@ -1,7 +1,8 @@
 /**
  * Season sheet + points from stream ranking history.
+ * Qualifying + Final livestreams are paired into one battle column.
  * Points: 1st→50, 2nd→49, … 50th→1 (ranks beyond 50 score 0).
- * Non-finalists show as "nq".
+ * Finished battles: place or "nq" (never "Q").
  */
 
 import { previousPointsRanks, rankDelta } from "./rank-delta.js";
@@ -14,11 +15,118 @@ export function pointsForRank(rank) {
   return POINTS_TOP_N + 1 - r;
 }
 
+function isFinalStream(s) {
+  if (!s) return false;
+  if (s.mode === "final") return true;
+  if (Array.isArray(s.final?.ranking) && s.final.ranking.length) return true;
+  return false;
+}
+
+function isQualifyingStream(s) {
+  if (!s || isFinalStream(s)) return false;
+  if (s.mode === "qualifying") return true;
+  // Legacy / unfinished: has qualifiers or rounds but no Final ranking yet.
+  return (
+    Array.isArray(s.qualified) ||
+    Array.isArray(s.rounds) ||
+    Boolean(s.endedAt)
+  );
+}
+
+/**
+ * Pair a finished qualifying stream with the following Final into one battle.
+ * Old combined streams (qual + final on one record) stay a single column.
+ * @returns {Array<{
+ *   id: string,
+ *   qualifying: object|null,
+ *   final: object|null,
+ *   startedAt: string|null,
+ *   ended: boolean,
+ *   winner: object|null,
+ * }>}
+ */
+export function pairBattles(streams) {
+  const sorted = [...(streams || [])].sort((a, b) =>
+    (a.startedAt || "").localeCompare(b.startedAt || "")
+  );
+  const battles = [];
+  let i = 0;
+  while (i < sorted.length) {
+    const s = sorted[i];
+
+    // Single record that already includes a Final ranking (legacy combined).
+    if (isFinalStream(s) && Array.isArray(s.qualified) && s.mode !== "final") {
+      battles.push(makeBattle({ qualifying: s, final: s }));
+      i += 1;
+      continue;
+    }
+
+    if (isQualifyingStream(s)) {
+      const next = sorted[i + 1];
+      if (next && isFinalStream(next) && next.mode === "final") {
+        battles.push(makeBattle({ qualifying: s, final: next }));
+        i += 2;
+        continue;
+      }
+      // Qualifying followed by a Final that carries ranking but no mode tag.
+      if (
+        next &&
+        isFinalStream(next) &&
+        !isQualifyingStream(next) &&
+        next.id !== s.id
+      ) {
+        battles.push(makeBattle({ qualifying: s, final: next }));
+        i += 2;
+        continue;
+      }
+      battles.push(makeBattle({ qualifying: s, final: null }));
+      i += 1;
+      continue;
+    }
+
+    if (isFinalStream(s)) {
+      battles.push(makeBattle({ qualifying: null, final: s }));
+      i += 1;
+      continue;
+    }
+
+    battles.push(makeBattle({ qualifying: s, final: null }));
+    i += 1;
+  }
+  return battles;
+}
+
+function makeBattle({ qualifying, final }) {
+  const primary = final || qualifying;
+  const ended = Boolean(
+    final?.endedAt ||
+      (final?.final?.ranking && final.final.ranking.length) ||
+      (qualifying &&
+        final &&
+        qualifying.id === final.id &&
+        final?.final?.ranking?.length)
+  );
+  const ids = [...new Set([qualifying?.id, final?.id].filter(Boolean))];
+  return {
+    id: ids.join("+") || primary?.id || "battle",
+    qualifying: qualifying || null,
+    final: final || null,
+    startedAt: qualifying?.startedAt || final?.startedAt || null,
+    ended,
+    winner: final?.winner || final?.final?.winner || null,
+  };
+}
+
 /** Stable short label for a battle column. */
-export function battleLabel(stream, index, total) {
-  const when = stream.startedAt ? new Date(stream.startedAt) : null;
-  const modeTag =
-    stream?.mode === "final" ? " F" : stream?.mode === "qualifying" ? " Q" : "";
+export function battleLabel(battle, index, total) {
+  const when = battle.startedAt ? new Date(battle.startedAt) : null;
+  const tag = battle.ended
+    ? ""
+    : battle.final
+      ? ""
+      : battle.qualifying
+        ? " · qual"
+        : "";
   if (when && !Number.isNaN(when.getTime())) {
     const md = when.toLocaleDateString(undefined, {
       month: "short",
@@ -28,49 +136,60 @@ export function battleLabel(stream, index, total) {
       hour: "2-digit",
       minute: "2-digit",
     });
-    return `${md} ${hm}${modeTag}`;
+    return `${md} ${hm}${tag}`;
   }
-  return `B${total - index}${modeTag}`;
+  return `B${total - index}${tag}`;
 }
 
 /**
- * Placement / qualification for a country in one stream.
- * Qualifying streams: "Q" or "nq". Final streams: rank number or "nq".
+ * @deprecated Prefer battleResultForBattle — kept for callers with a raw stream.
  * @returns {number | "nq" | "Q" | "—"}
  */
 export function battleResult(stream, code) {
-  const mode = stream?.mode || (stream?.final?.ranking?.length ? "final" : null);
-  const qualified = stream?.qualified || [];
-  const ranking = stream?.final?.ranking;
+  if (!stream) return "—";
+  const battle = isFinalStream(stream)
+    ? makeBattle({
+        qualifying: Array.isArray(stream.qualified) ? stream : null,
+        final: stream,
+      })
+    : makeBattle({ qualifying: stream, final: null });
+  return battleResultForBattle(battle, code);
+}
 
-  // Recovered Finals may only know #1 — keep Q marks for other qualifiers.
-  if (stream?.final?.recovered) {
-    if (
-      stream.winner?.code === code ||
-      stream.final?.winner?.code === code
-    ) {
-      return 1;
-    }
-    if (qualified.some((q) => q.code === code)) return "Q";
-    if (stream?.endedAt) return "nq";
-    return "—";
-  }
+/**
+ * Placement for a country in one (possibly merged) battle.
+ * Finished battles never return "Q" — only place numbers or "nq".
+ * @returns {number | "nq" | "Q" | "—"}
+ */
+export function battleResultForBattle(battle, code) {
+  const final = battle?.final;
+  const qualifying = battle?.qualifying;
+  const ranking = final?.final?.ranking;
 
-  if (mode === "qualifying" || (!mode && !ranking?.length)) {
-    if (qualified.some((q) => q.code === code)) return "Q";
-    if (stream?.endedAt) return "nq";
-    if ((stream?.rounds || []).length) return "—";
-    return "—";
-  }
-
+  // Finished Final (or legacy combined) → place or nq only.
   if (Array.isArray(ranking) && ranking.length) {
     const row = ranking.find((r) => r.code === code);
-    return row?.rank != null ? Number(row.rank) : "nq";
+    if (row?.rank != null) return Number(row.rank);
+    return "nq";
   }
 
-  if (qualified.some((q) => q.code === code)) return "Q";
-  if (stream?.endedAt || stream?.winner) return "nq";
-  if ((stream?.rounds || []).length) return "—";
+  // Final stream ended with a winner but no full ranking (recovered).
+  if (battle?.ended && (final?.winner || final?.final?.winner)) {
+    const w = final.winner || final.final.winner;
+    if (w?.code === code) return 1;
+    return "nq";
+  }
+
+  // Qualifying only — battle not finished yet. Q/nq while waiting for Final.
+  const qualList = qualifying?.qualified || final?.qualified || [];
+  if (Array.isArray(qualList) && qualList.length) {
+    if (qualList.some((q) => q.code === code)) return "Q";
+    if (qualifying?.endedAt || final?.endedAt) return "nq";
+    if ((qualifying?.rounds || []).length) return "—";
+    return "—";
+  }
+
+  if ((qualifying?.rounds || final?.rounds || []).length) return "—";
   return "—";
 }
 
@@ -79,12 +198,10 @@ export function battleResult(stream, code) {
  * @param {Array<{code:string,name:string}>} countries
  */
 export function buildSeasonSheet(streams, countries) {
-  const battles = [...(streams || [])].sort((a, b) =>
-    (a.startedAt || "").localeCompare(b.startedAt || "")
-  );
+  const battles = pairBattles(streams);
 
   const rows = countries.map((c) => {
-    const results = battles.map((s) => battleResult(s, c.code));
+    const results = battles.map((b) => battleResultForBattle(b, c.code));
     /** Delta vs previous battle column (places gained). */
     const deltas = results.map((curr, i) => {
       if (i === 0) return null;
@@ -119,14 +236,19 @@ export function buildSeasonSheet(streams, countries) {
   });
 
   return {
-    battles: battles.map((s, i) => ({
-      id: s.id,
-      label: battleLabel(s, i, battles.length),
-      startedAt: s.startedAt || null,
-      mode: s.mode || (s.final?.ranking?.length ? "final" : "qualifying"),
-      winner: s.winner?.name || s.final?.winner?.name || null,
-      hasFinal: Boolean(s.final?.ranking?.length),
-      qualifiedCount: Array.isArray(s.qualified) ? s.qualified.length : 0,
+    battles: battles.map((b, i) => ({
+      id: b.id,
+      label: battleLabel(b, i, battles.length),
+      startedAt: b.startedAt || null,
+      mode: b.ended ? "final" : b.final ? "final" : "qualifying",
+      winner: b.winner?.name || null,
+      hasFinal: Boolean(b.final?.final?.ranking?.length || b.ended),
+      ended: b.ended,
+      qualifiedCount: Array.isArray(b.qualifying?.qualified)
+        ? b.qualifying.qualified.length
+        : Array.isArray(b.final?.qualified)
+          ? b.final.qualified.length
+          : 0,
     })),
     rows,
   };

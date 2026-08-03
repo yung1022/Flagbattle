@@ -24,9 +24,10 @@
         <button type="button" class="btn primary" id="btn-refresh">Refresh</button>
       </div>
       <p class="lede">
-        Qualifying columns: <strong>Q</strong> = qualified,
-        <strong>nq</strong> = did not. Final columns: place or
-        <strong>nq</strong>. Points only from Finals (50→1). Arrows =
+        Qualifying + Final are <strong>one column</strong> per battle.
+        Finished battles show place or <strong>nq</strong> (no <strong>Q</strong>).
+        <strong>Q</strong> only while waiting for that battle’s Final.
+        Points from Finals only (50→1). Arrows =
         <span class="delta-up">↑</span>/<span class="delta-down">↓</span> vs
         previous battle.
       </p>
@@ -257,7 +258,7 @@
         headRow.innerHTML = `<th class="sticky-col">Country</th><th class="pts-col">Pts</th>`;
         for (const b of sheet.battles) {
           const th = document.createElement("th");
-          th.title = `${b.id}${b.winner ? ` · ${b.winner}` : ""}${b.hasFinal ? "" : " · no final yet"}`;
+          th.title = `${b.id}${b.winner ? ` · ${b.winner}` : ""}${b.ended || b.hasFinal ? "" : " · waiting for Final"}`;
           th.innerHTML = `<span>${b.label}</span>`;
           headRow.appendChild(th);
         }
