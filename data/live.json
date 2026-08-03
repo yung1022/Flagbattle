@@ -2,7 +2,7 @@
   "live": {
     "streamId": "fb_msdasd99_y4up9i",
     "mode": "final",
-    "phase": "final",
+    "phase": "finished",
     "round": 59,
     "qualified": [
       {
@@ -368,20 +368,19 @@
     ],
     "standing": [
       {
-        "code": "es",
-        "name": "Spain",
-        "img": "https://flagcdn.com/w80/es.png"
-      },
-      {
         "code": "gn",
         "name": "Guinea",
         "img": "https://flagcdn.com/w80/gn.png"
       }
     ],
-    "winner": null,
+    "winner": {
+      "code": "gn",
+      "name": "Guinea",
+      "img": "https://flagcdn.com/w80/gn.png"
+    },
     "qualifyingRemainingMs": 0,
     "intermissionRemainingMs": 0,
-    "updatedAt": 1785765878576
+    "updatedAt": 1785765884427
   },
   "streams": [
     {
@@ -526139,5 +526138,5 @@
     }
   ],
   "api": "https://emotions-walnut-showed-nearly.trycloudflare.com",
-  "updatedAt": 1785765885118
+  "updatedAt": 1785765885756
 }
