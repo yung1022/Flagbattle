@@ -30,7 +30,7 @@ Qualifying and Final are **separate livestreams**.
 
 Stream ranking history is stored in [`data/rankings.json`](data/rankings.json) and published with Pages after each go-live.
 
-Battle sheet: qualifying columns show **Q** / **nq**; Final columns show place / **nq**. Points only from Finals.
+Battle sheet: each battle is one column (qualifying + Final paired). Finished battles show place / <strong>nq</strong> (not <strong>Q</strong>). Points only from Finals.
 
 ### Chat voting (Final) — Nightbot
 
