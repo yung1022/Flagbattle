@@ -32,23 +32,37 @@ Stream ranking history is stored in [`data/rankings.json`](data/rankings.json) a
 
 Battle sheet: qualifying columns show **Q** / **nq**; Final columns show place / **nq**. Points only from Finals.
 
-### Chat voting (Final)
+### Chat voting (Final) — Nightbot
 
-Viewers can vote in YouTube live chat:
+YouTube Data API chat polling is **off** by default (quota). Use **Nightbot**:
+
+1. Join Nightbot to your YouTube channel: https://nightbot.tv  
+2. Add a repo / `stream/.env` secret **`NIGHTBOT_TOKEN`** (Nightbot OAuth token with `commands` scope).  
+   Go-live will create/update `!vote` to hit the live tunnel automatically.  
+3. Viewers type:
 
 ```
 !vote us
 ```
 
-Replies:
-- `{Channel name} voted United States successfully`
-- `{Channel name} country does not exist.`
+Replies (from Nightbot):
+- `{name} voted United States successfully`
+- `{name} country does not exist.`
+- `{name} poll is not open yet.`
+
+Without a token, add the command yourself after each go-live (tunnel URL is printed in the Action log):
+
+```
+!commands add !vote $(urlfetch https://YOUR-TUNNEL.trycloudflare.com/api/poll/vote?code=$(query)&voter=$(user)&format=text)
+```
+
+Web poll still works. To re-enable the old YouTube API vote loop: `CHAT_VOTE=1`.
 
 ### How polls work for viewers
 
 1. Go-live starts a **Cloudflare quick tunnel** to the stream API.
 2. Poll + rankings links are **posted to YouTube live chat** (pin manually in Studio — the API cannot pin).
-3. Votes hit the tunnel (web or `!vote`); rankings/poll snapshots are mirrored into `data/` for history.
+3. Votes hit the tunnel (web poll or Nightbot `!vote`); rankings/poll snapshots are mirrored into `data/` for history.
 
 ## Local run
 
@@ -76,6 +90,7 @@ See [`control/`](control/) and [`stream/`](stream/). Repo Action secrets:
 - `GOOGLE_CLIENT_ID`
 - `GOOGLE_CLIENT_SECRET`
 - `GOOGLE_REFRESH_TOKEN`
+- Optional `NIGHTBOT_TOKEN` — auto-points Nightbot `!vote` at each stream’s tunnel
 - Optional `GH_PAT` (contents write) for data commits that retrigger Pages
 
 ### Trigger go-live from your own cronjob
