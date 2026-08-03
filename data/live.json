@@ -2,7 +2,7 @@
   "live": {
     "streamId": "fb_msd27dxe_f1rxnr",
     "mode": "final",
-    "phase": "final",
+    "phase": "finished",
     "round": 61,
     "qualified": [
       {
@@ -380,20 +380,19 @@
     ],
     "standing": [
       {
-        "code": "fr",
-        "name": "France",
-        "img": "https://flagcdn.com/w80/fr.png"
-      },
-      {
         "code": "by",
         "name": "Belarus",
         "img": "https://flagcdn.com/w80/by.png"
       }
     ],
-    "winner": null,
+    "winner": {
+      "code": "by",
+      "name": "Belarus",
+      "img": "https://flagcdn.com/w80/by.png"
+    },
     "qualifyingRemainingMs": 0,
     "intermissionRemainingMs": 0,
-    "updatedAt": 1785751469836
+    "updatedAt": 1785751470529
   },
   "streams": [
     {
@@ -465212,5 +465211,5 @@
     }
   ],
   "api": "https://units-affiliated-dude-weblog.trycloudflare.com",
-  "updatedAt": 1785751471191
+  "updatedAt": 1785751471769
 }
