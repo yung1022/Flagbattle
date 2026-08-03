@@ -524,6 +524,35 @@ function syncHighlightTitle() {
   $("hl-title").dataset.auto = "1";
 }
 
+async function resolveChannelName() {
+  const cached = (state.channelTitle || "").trim();
+  if (cached) return cached;
+  if (!state.clientId || !state.clientSecret || !state.refreshToken) {
+    return "FLAG BATTLE";
+  }
+  try {
+    const accessToken = await refreshAccessToken({
+      clientId: state.clientId,
+      clientSecret: state.clientSecret,
+      refreshToken: state.refreshToken,
+    });
+    const res = await fetch(
+      "https://www.googleapis.com/youtube/v3/channels?part=snippet&mine=true",
+      { headers: { Authorization: `Bearer ${accessToken}` } }
+    );
+    const data = await res.json();
+    const title = data.items?.[0]?.snippet?.title;
+    if (title) {
+      state.channelTitle = title;
+      save();
+      return title;
+    }
+  } catch (err) {
+    console.warn("channel name", err);
+  }
+  return "FLAG BATTLE";
+}
+
 async function generateHighlight() {
   const format = highlightFormat();
   const stream = selectedHighlightStream();
@@ -543,17 +572,23 @@ async function generateHighlight() {
     log(
       "hl-log",
       format === "season"
-        ? "Generating Season Top 10 Short (Wikimedia anthems + ↑/↓)…"
-        : "Generating Final Top 10 Short (Wikimedia anthems)…"
+        ? "Generating Season Top 10 Short (results board + anthems)…"
+        : "Generating Final Top 10 Short (results board + anthems)…"
     );
+
+    const channelName = await resolveChannelName();
+    log("hl-log", `Channel footer: ${channelName}`);
 
     const onProgress = ({ phase, progress }) => {
       $("btn-hl-generate").textContent = `${phase} ${Math.round(progress * 100)}%`;
     };
     const result =
       format === "season"
-        ? await generateSeasonHighlightShort(hlStreams, { onProgress })
-        : await generateHighlightShort(stream, { onProgress });
+        ? await generateSeasonHighlightShort(hlStreams, {
+            onProgress,
+            channelName,
+          })
+        : await generateHighlightShort(stream, { onProgress, channelName });
     if (highlightFormat() !== format) {
       log("hl-log", "Format changed during generate — discarded. Generate again.");
       return;
