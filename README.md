@@ -32,7 +32,7 @@ Stream ranking history is stored in [`data/rankings.json`](data/rankings.json) a
 
 Battle sheet: each battle is one column (qualifying + Final paired). Finalists show Final place; non-qualifiers are ranked by average place across all qualifying rounds. <strong>Q</strong> only while waiting for that battle’s Final. Points only from Finals.
 
-Control hub Highlights also offers a **landscape full-rankings video** (every country + avg qualifying place) that encodes faster than realtime.
+Control hub Highlights also offers a **landscape full-rankings video**: every country revealed one-by-one (last→#1) with 5s national anthem each, plus avg qualifying place. Encodes faster than realtime via WebCodecs.
 
 ### Chat voting (Final) — Nightbot
 
