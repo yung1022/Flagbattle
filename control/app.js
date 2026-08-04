@@ -562,14 +562,14 @@ function onHighlightFormatChange() {
         : format === "battle"
           ? "Battle sim: one hole-circle round — last flag standing wins."
           : format === "full"
-            ? "Full rankings: each country one-by-one (last→#1) with 5s national anthem. Landscape; encodes faster than realtime (Chrome)."
+            ? "Full rankings: spotlight one country at a time (last→#1), each with 5s national anthem + avg qualifying. Hard-refresh if you still see the old static board."
             : "Final: pick a finished stream below, then Generate.";
   }
   const note = $("hl-extra-note");
   if (note) {
     note.textContent =
       format === "full"
-        ? "Landscape 1920×1080. ~5s × every country (long video, fast encode). Shows place + avg qualifying. Prefer Chrome (WebCodecs)."
+        ? "Landscape 1920×1080 · one country per screen · 5s anthem each (~16 min video). Prefer Chrome. Hard-refresh (bypass cache) before generating."
         : "Anthems load from Wikimedia Commons (no API/tunnel needed). A short fanfare plays if a file can’t load. Prefer Chrome.";
   }
   $("hl-title").dataset.auto = "1";
@@ -682,7 +682,7 @@ async function generateHighlight() {
         : format === "battle"
           ? "Generating battle simulation Short (one round)…"
           : format === "full"
-            ? "Generating full rankings video (5s anthem each, fast encode)…"
+            ? "Generating full rankings (one-by-one spotlight + 5s anthem)…"
             : "Generating Final Top 10 Short (results board + anthems)…"
     );
 
