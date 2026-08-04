@@ -12,6 +12,7 @@ import {
   generateSeasonHighlightShort,
   downloadBlob,
 } from "../js/highlight-short.js";
+import { generateBattleSimShort } from "../js/battle-sim-short.js";
 import {
   refreshAccessToken,
   uploadYoutubeShort,
@@ -456,7 +457,9 @@ function selectedHighlightStream() {
 
 function highlightFormat() {
   const el = $("hl-format");
-  return el && el.value === "season" ? "season" : "final";
+  const v = el?.value || "final";
+  if (v === "season" || v === "battle") return v;
+  return "final";
 }
 
 function clearHighlightPreview() {
@@ -480,33 +483,45 @@ function clearHighlightPreview() {
 }
 
 function onHighlightFormatChange() {
-  const season = highlightFormat() === "season";
+  const format = highlightFormat();
   const field = $("hl-stream-field");
+  const needsStream = format === "final";
   if (field) {
-    field.hidden = season;
-    field.style.display = season ? "none" : "";
+    field.hidden = !needsStream;
+    field.style.display = needsStream ? "" : "none";
   }
   const hint = $("hl-format-hint");
   if (hint) {
-    hint.textContent = season
-      ? "Season: Generate to reveal points Top 10 with ↑/↓ and anthems."
-      : "Final: pick a finished stream below, then Generate.";
+    hint.textContent =
+      format === "season"
+        ? "Season: Generate to reveal points Top 10 with ↑/↓ and anthems."
+        : format === "battle"
+          ? "Battle sim: one hole-circle round — last flag standing wins."
+          : "Final: pick a finished stream below, then Generate.";
   }
   $("hl-title").dataset.auto = "1";
   syncHighlightTitle();
   clearHighlightPreview();
   log(
     "hl-log",
-    season
+    format === "season"
       ? "Format: Season Top 10 — tap Generate Short."
-      : "Format: Final Top 10 — pick a stream, then Generate Short."
+      : format === "battle"
+        ? "Format: Battle simulation — tap Generate Short."
+        : "Format: Final Top 10 — pick a stream, then Generate Short."
   );
 }
 
 function syncHighlightTitle() {
   if ($("hl-title").value && $("hl-title").dataset.auto !== "1") return;
-  if (highlightFormat() === "season") {
+  const format = highlightFormat();
+  if (format === "season") {
     $("hl-title").value = "FLAG BATTLE Season Top 10 · Rank changes #Shorts";
+    $("hl-title").dataset.auto = "1";
+    return;
+  }
+  if (format === "battle") {
+    $("hl-title").value = "FLAG BATTLE · Last Flag Standing #Shorts";
     $("hl-title").dataset.auto = "1";
     return;
   }
@@ -573,7 +588,9 @@ async function generateHighlight() {
       "hl-log",
       format === "season"
         ? "Generating Season Top 10 Short (results board + anthems)…"
-        : "Generating Final Top 10 Short (results board + anthems)…"
+        : format === "battle"
+          ? "Generating battle simulation Short (one round)…"
+          : "Generating Final Top 10 Short (results board + anthems)…"
     );
 
     const channelName = await resolveChannelName();
@@ -582,13 +599,17 @@ async function generateHighlight() {
     const onProgress = ({ phase, progress }) => {
       $("btn-hl-generate").textContent = `${phase} ${Math.round(progress * 100)}%`;
     };
-    const result =
-      format === "season"
-        ? await generateSeasonHighlightShort(hlStreams, {
-            onProgress,
-            channelName,
-          })
-        : await generateHighlightShort(stream, { onProgress, channelName });
+    let result;
+    if (format === "season") {
+      result = await generateSeasonHighlightShort(hlStreams, {
+        onProgress,
+        channelName,
+      });
+    } else if (format === "battle") {
+      result = await generateBattleSimShort({ onProgress, channelName });
+    } else {
+      result = await generateHighlightShort(stream, { onProgress, channelName });
+    }
     if (highlightFormat() !== format) {
       log("hl-log", "Format changed during generate — discarded. Generate again.");
       return;
@@ -602,9 +623,13 @@ async function generateHighlight() {
     vid.muted = false;
     $("btn-hl-download").disabled = false;
     $("btn-hl-upload").disabled = false;
+    const win =
+      result.winner?.name || result.winner?.code
+        ? ` · winner ${result.winner.name || result.winner.code}`
+        : "";
     log(
       "hl-log",
-      `Ready · ${(hlBlob.size / 1024 / 1024).toFixed(1)} MB · ${result.durationSec.toFixed(0)}s · ${hlMime}`
+      `Ready · ${(hlBlob.size / 1024 / 1024).toFixed(1)} MB · ${result.durationSec.toFixed(0)}s${win} · ${hlMime}`
     );
   } catch (err) {
     log("hl-log", `Generate failed: ${err.message || err}`);
@@ -621,7 +646,9 @@ function downloadHighlight() {
   const name =
     format === "season"
       ? "flag-battle-season-top10.webm"
-      : `flag-battle-final-top10-${stream?.id || "final"}.webm`;
+      : format === "battle"
+        ? "flag-battle-sim-round.webm"
+        : `flag-battle-final-top10-${stream?.id || "final"}.webm`;
   downloadBlob(hlBlob, name);
   log("hl-log", `Download started: ${name}`);
 }
@@ -651,7 +678,9 @@ async function uploadHighlight() {
       $("hl-title").value.trim() ||
       (format === "season"
         ? "FLAG BATTLE Season Top 10 #Shorts"
-        : `FLAG BATTLE Final Top 10 · ${winner} #Shorts`);
+        : format === "battle"
+          ? "FLAG BATTLE · Last Flag Standing #Shorts"
+          : `FLAG BATTLE Final Top 10 · ${winner} #Shorts`);
     const description =
       format === "season"
         ? [
@@ -661,18 +690,26 @@ async function uploadHighlight() {
             "Rankings: https://yung1022.github.io/Flagbattle/rankings.html",
             "#Shorts #FlagBattle #LastFlagStanding #Geography",
           ].join("\n")
-        : [
-            "FLAG BATTLE — Final Top 10 with national anthems.",
-            `Champion: ${winner}`,
-            stream?.startedAt
-              ? `Battle: ${new Date(stream.startedAt).toLocaleString()}`
-              : "",
-            "",
-            "Rankings: https://yung1022.github.io/Flagbattle/rankings.html",
-            "#Shorts #FlagBattle #LastFlagStanding #Geography",
-          ]
-            .filter(Boolean)
-            .join("\n");
+        : format === "battle"
+          ? [
+              "FLAG BATTLE — one-round hole-circle simulation.",
+              "Last flag standing wins.",
+              "",
+              "Play: https://yung1022.github.io/Flagbattle/",
+              "#Shorts #FlagBattle #LastFlagStanding #Geography",
+            ].join("\n")
+          : [
+              "FLAG BATTLE — Final Top 10 with national anthems.",
+              `Champion: ${winner}`,
+              stream?.startedAt
+                ? `Battle: ${new Date(stream.startedAt).toLocaleString()}`
+                : "",
+              "",
+              "Rankings: https://yung1022.github.io/Flagbattle/rankings.html",
+              "#Shorts #FlagBattle #LastFlagStanding #Geography",
+            ]
+              .filter(Boolean)
+              .join("\n");
 
     log("hl-log", "Uploading to YouTube…");
     const uploaded = await uploadYoutubeShort({
