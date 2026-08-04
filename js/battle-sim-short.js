@@ -10,18 +10,19 @@ const W = 1080;
 const H = 1920;
 const FPS = 30;
 const HOLD_WIN_SEC = 6;
-const MAX_BATTLE_SEC = 75;
+/** Soft cap so a Short cannot run forever if one flag never falls. */
+const MAX_BATTLE_SEC = 90;
 
-/** Short-friendly speeds (same rules, tighter pacing). */
+/** Match live qualifying physics in js/game.js CONFIG (real-time, not sped up). */
 const SIM = {
   arenaRadius: 0.42,
-  holeWidth: 1.0,
-  holeSpeed: 2.55,
-  maxSpeed: 1.5,
-  pushStrength: 0.85,
-  outwardForce: 0.55,
+  holeWidth: 0.85,
+  holeSpeed: 1.8,
+  maxSpeed: 1.15,
+  pushStrength: 0.8,
+  outwardForce: 0.35,
   shrinkMinScale: 0.68,
-  shrinkDurationSec: 22,
+  shrinkDurationSec: 40,
 };
 
 function sleep(ms) {
@@ -275,7 +276,8 @@ function resolveCollisions(sim) {
 function applyCircleAndHole(sim, roundProgress) {
   const R = SIM.arenaRadius * sim.arenaScale;
   const fr = flagRadius(sim);
-  const holeHalf = SIM.holeWidth * (0.85 + 0.25 * roundProgress);
+  // Same half-hole growth as js/game.js applyCircleAndHole.
+  const holeHalf = (SIM.holeWidth * (1 + roundProgress * 0.65)) / 2;
 
   for (const f of sim.fighters) {
     if (!f.alive || f.falling) continue;
@@ -365,9 +367,9 @@ function paintFrame(ctx, sim, { channelName, phaseLabel }) {
   ctx.lineWidth = 10;
   ctx.stroke();
 
-  // Hole gap
-  const holeHalf =
-    SIM.holeWidth * (0.85 + 0.25 * Math.min(1, sim.elapsed / SIM.shrinkDurationSec));
+  // Hole gap (same formula as physics)
+  const roundProgress = Math.min(1, sim.elapsed / SIM.shrinkDurationSec);
+  const holeHalf = (SIM.holeWidth * (1 + roundProgress * 0.65)) / 2;
   ctx.beginPath();
   ctx.strokeStyle = "#071018";
   ctx.lineWidth = 14;
@@ -517,10 +519,21 @@ export async function generateBattleSimShort(opts = {}) {
   recorder.start(200);
 
   const dt = 1 / FPS;
+  const frameMs = 1000 / FPS;
+  const t0 = performance.now();
   let frames = 0;
-  const maxFrames = Math.ceil((MAX_BATTLE_SEC + HOLD_WIN_SEC + 2) * FPS);
+  const maxBattleFrames = Math.ceil(MAX_BATTLE_SEC * FPS);
 
-  while (!sim.done && frames < maxFrames) {
+  /** Keep MediaRecorder wall-clock in lockstep with FPS (1 sim second = 1 video second). */
+  async function waitForFrame() {
+    frames += 1;
+    const target = t0 + frames * frameMs;
+    const wait = target - performance.now();
+    if (wait > 8) await sleep(wait);
+    else await nextFrame();
+  }
+
+  while (!sim.done && frames < maxBattleFrames) {
     stepSim(sim, dt);
     paintFrame(ctx, sim, {
       channelName: opts.channelName,
@@ -531,12 +544,10 @@ export async function generateBattleSimShort(opts = {}) {
       `${standing(sim).length} left`,
       0.08 + 0.75 * clamp01(sim.elapsed / MAX_BATTLE_SEC)
     );
-    frames += 1;
-    if (frames % 2 === 0) await nextFrame();
-    else await sleep(0);
+    await waitForFrame();
   }
 
-  // Winner hold + anthem
+  // Winner hold + anthem (same FPS clock — no speed-up)
   if (sim.winner && audioCtx && dest) {
     try {
       let buf = await loadAnthemBuffer(sim.winner.code, audioCtx);
@@ -562,9 +573,8 @@ export async function generateBattleSimShort(opts = {}) {
         ? `${sim.winner.name} WINS`
         : "LAST FLAG STANDING",
     });
-    reportProgress(opts.onProgress, "Winner", 0.85 + 0.15 * (i / holdFrames));
-    if (i % 2 === 0) await nextFrame();
-    else await sleep(0);
+    reportProgress(opts.onProgress, "Winner", 0.85 + 0.15 * ((i + 1) / holdFrames));
+    await waitForFrame();
   }
 
   recorder.stop();
@@ -585,7 +595,7 @@ export async function generateBattleSimShort(opts = {}) {
   return {
     blob,
     mimeType,
-    durationSec: frames / FPS + HOLD_WIN_SEC,
+    durationSec: frames / FPS,
     mode: "battle",
     winner: sim.winner
       ? { code: sim.winner.code, name: sim.winner.name }
