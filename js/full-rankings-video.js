@@ -1,10 +1,10 @@
 /**
- * Landscape (16:9) full battle rankings video — every country in one board.
- * Shows battle place + average qualifying-round place when available.
- * Encodes faster than realtime via MediaStreamTrackGenerator + VideoFrame
- * timestamps (falls back to a short wall-clock capture if unavailable).
+ * Landscape (16:9) full battle rankings video.
+ * Reveals every country one-by-one (last place → #1) with 5s national anthem each.
+ * Encodes faster than realtime via WebCodecs + webm-muxer (video + Opus audio).
  */
 
+import { loadAnthemBuffer, makeFanfareBuffer } from "./anthem.js";
 import { COUNTRIES, flagUrl } from "./countries.js";
 import {
   averageQualifyingRating,
@@ -16,20 +16,22 @@ import {
 const W = 1920;
 const H = 1080;
 const FPS = 30;
-/** Hold long enough to read; encode is still near-instant with track generator. */
-const DURATION_SEC = 12;
-const COLS = 5;
+const ANTHEM_SEC = 5;
+const HOLD_SEC = 3;
+const SAMPLE_RATE = 48000;
+const AUDIO_CH = 2;
 
 function sleep(ms) {
   return new Promise((r) => setTimeout(r, ms));
 }
 
-function nextFrame() {
-  return new Promise((r) => requestAnimationFrame(() => r()));
-}
-
 function clamp01(t) {
   return Math.max(0, Math.min(1, t));
+}
+
+function easeOutCubic(t) {
+  const x = clamp01(t);
+  return 1 - (1 - x) ** 3;
 }
 
 function loadImage(url) {
@@ -40,20 +42,6 @@ function loadImage(url) {
     img.onerror = () => resolve(null);
     img.src = url;
   });
-}
-
-function pickMime() {
-  const candidates = [
-    "video/webm;codecs=vp9",
-    "video/webm;codecs=vp8",
-    "video/webm",
-  ];
-  for (const type of candidates) {
-    if (typeof MediaRecorder !== "undefined" && MediaRecorder.isTypeSupported?.(type)) {
-      return type;
-    }
-  }
-  return "video/webm";
 }
 
 function reportProgress(onProgress, phase, progress) {
@@ -76,12 +64,14 @@ function roundRectPath(ctx, x, y, w, h, r) {
   ctx.closePath();
 }
 
+function roundRectFill(ctx, x, y, w, h, r, fill) {
+  roundRectPath(ctx, x, y, w, h, r);
+  ctx.fillStyle = fill;
+  ctx.fill();
+}
+
 /**
  * Resolve a battle from an explicit battle, a Final stream + history, or streams list.
- * @param {object} opts
- * @param {object} [opts.battle]
- * @param {object} [opts.stream] finished Final (paired with prior qualifying when possible)
- * @param {Array} [opts.streams] full rankings history for pairing
  */
 export function resolveBattle(opts = {}) {
   if (opts.battle?.final || opts.battle?.qualifying) return opts.battle;
@@ -105,11 +95,13 @@ export function resolveBattle(opts = {}) {
       winner: opts.stream.final?.winner || opts.stream.winner || null,
     };
   }
-  return battles.filter((b) => b.ended || b.final?.final?.ranking?.length).at(-1) || null;
+  return (
+    battles.filter((b) => b.ended || b.final?.final?.ranking?.length).at(-1) ||
+    null
+  );
 }
 
 /**
- * @param {object} battle
  * @returns {Array<{
  *   code: string,
  *   name: string,
@@ -117,6 +109,7 @@ export function resolveBattle(opts = {}) {
  *   avgQual: number|null,
  *   finalist: boolean,
  *   img: CanvasImageSource|null,
+ *   heroImg: CanvasImageSource|null,
  * }>}
  */
 export function buildFullRankingRows(battle) {
@@ -133,27 +126,13 @@ export function buildFullRankingRows(battle) {
       avgQual: Number.isFinite(avgRaw) ? avgRaw : null,
       finalist: isFinalistInBattle(battle, c.code),
       img: null,
+      heroImg: null,
       imgUrl: flagUrl(c.code, 40),
+      heroUrl: flagUrl(c.code, 320),
     });
   }
   rows.sort((a, b) => a.place - b.place || a.name.localeCompare(b.name));
   return rows;
-}
-
-async function preloadFlags(rows, onProgress) {
-  const batch = 32;
-  for (let i = 0; i < rows.length; i += batch) {
-    const slice = rows.slice(i, i + batch);
-    const imgs = await Promise.all(slice.map((r) => loadImage(r.imgUrl)));
-    slice.forEach((r, j) => {
-      r.img = imgs[j];
-    });
-    reportProgress(
-      onProgress,
-      `Flags ${Math.min(i + batch, rows.length)}/${rows.length}`,
-      0.05 + 0.35 * ((i + batch) / rows.length)
-    );
-  }
 }
 
 function formatAvg(avg) {
@@ -161,7 +140,112 @@ function formatAvg(avg) {
   return avg < 10 ? avg.toFixed(1) : String(Math.round(avg * 10) / 10);
 }
 
-function paintBoard(ctx, { rows, battle, channelName, t }) {
+async function mapPool(items, concurrency, fn) {
+  const results = new Array(items.length);
+  let next = 0;
+  async function worker() {
+    while (next < items.length) {
+      const i = next++;
+      results[i] = await fn(items[i], i);
+    }
+  }
+  const n = Math.max(1, Math.min(concurrency, items.length));
+  await Promise.all(Array.from({ length: n }, () => worker()));
+  return results;
+}
+
+async function preloadFlags(rows, onProgress) {
+  await mapPool(rows, 24, async (r) => {
+    const [img, hero] = await Promise.all([
+      loadImage(r.imgUrl),
+      loadImage(r.heroUrl),
+    ]);
+    r.img = img;
+    r.heroImg = hero || img;
+  });
+  reportProgress(onProgress, "Flags ready", 0.28);
+}
+
+/**
+ * Load anthems in parallel (rate-limited). Fanfare fallback when missing.
+ * @returns {Promise<AudioBuffer[]>} aligned with reveal order
+ */
+async function loadAnthems(revealRows, audioCtx, onProgress) {
+  const total = revealRows.length;
+  let done = 0;
+  const bufs = await mapPool(revealRows, 4, async (row) => {
+    let buf = await loadAnthemBuffer(row.code, audioCtx);
+    if (!buf) buf = makeFanfareBuffer(audioCtx, Math.min(10, row.place));
+    done += 1;
+    if (done % 3 === 0 || done === total) {
+      reportProgress(
+        onProgress,
+        `Anthem ${done}/${total}`,
+        0.28 + 0.22 * (done / total)
+      );
+    }
+    return buf;
+  });
+  return bufs;
+}
+
+/** Resample / mix an AudioBuffer to stereo @ SAMPLE_RATE, clipped to ANTHEM_SEC. */
+async function normalizeAnthemBuffer(buf, audioCtx) {
+  if (!buf) return null;
+  const dur = Math.min(ANTHEM_SEC, buf.duration || ANTHEM_SEC);
+  const frames = Math.max(1, Math.floor(SAMPLE_RATE * dur));
+  const OfflineCtx =
+    window.OfflineAudioContext || window.webkitOfflineAudioContext;
+  if (!OfflineCtx) {
+    // Manual copy / truncate without resample
+    const out = audioCtx.createBuffer(AUDIO_CH, frames, SAMPLE_RATE);
+    const copyFrames = Math.min(frames, buf.length);
+    for (let ch = 0; ch < AUDIO_CH; ch++) {
+      const src = buf.getChannelData(Math.min(ch, buf.numberOfChannels - 1));
+      out.copyToChannel(src.subarray(0, copyFrames), ch);
+    }
+    return out;
+  }
+  const offline = new OfflineCtx(AUDIO_CH, frames, SAMPLE_RATE);
+  const src = offline.createBufferSource();
+  src.buffer = buf;
+  const gain = offline.createGain();
+  gain.gain.value = 0.9;
+  // Soft fade out last 0.25s
+  const end = dur;
+  gain.gain.setValueAtTime(0.9, Math.max(0, end - 0.25));
+  gain.gain.exponentialRampToValueAtTime(0.0001, end);
+  src.connect(gain);
+  gain.connect(offline.destination);
+  src.start(0, 0, dur);
+  return offline.startRendering();
+}
+
+/**
+ * Reveal order: worst place first → #1 last (same drama as Top 10 Shorts).
+ * @returns {{ slots: Array<{entry:object, start:number, dur:number}>, total: number }}
+ */
+function buildTimeline(rows) {
+  const reveal = [...rows].sort(
+    (a, b) => b.place - a.place || a.name.localeCompare(b.name)
+  );
+  const slots = [];
+  let t = 0;
+  for (const entry of reveal) {
+    slots.push({ entry, start: t, dur: ANTHEM_SEC });
+    t += ANTHEM_SEC;
+  }
+  return { slots, reveal, total: t + HOLD_SEC };
+}
+
+function activeSlotAt(slots, t) {
+  for (const s of slots) {
+    if (t >= s.start && t < s.start + s.dur) return s;
+  }
+  return slots[slots.length - 1];
+}
+
+function paintReveal(ctx, { rows, battle, channelName, t, slots, total }) {
   const bg = ctx.createLinearGradient(0, 0, 0, H);
   bg.addColorStop(0, "#0d1c28");
   bg.addColorStop(0.55, "#08131c");
@@ -169,22 +253,34 @@ function paintBoard(ctx, { rows, battle, channelName, t }) {
   ctx.fillStyle = bg;
   ctx.fillRect(0, 0, W, H);
 
-  const pulse = 0.06 + 0.03 * Math.sin(t * 2.2);
-  const glow = ctx.createRadialGradient(W * 0.5, 80, 20, W * 0.5, 120, 520);
-  glow.addColorStop(0, `rgba(230,184,74,${pulse})`);
-  glow.addColorStop(1, "rgba(230,184,74,0)");
+  const inHold = t >= slots[slots.length - 1].start + slots[slots.length - 1].dur;
+  const slot = activeSlotAt(slots, t);
+  const entry = slot.entry;
+  const local = inHold ? 1 : clamp01((t - slot.start) / slot.dur);
+  const pop = easeOutCubic(Math.min(1, local * 3.2));
+
+  const pulse = 0.07 + 0.04 * Math.sin(t * 2.4);
+  const glow = ctx.createRadialGradient(520, 420, 40, 520, 420, 520);
+  glow.addColorStop(
+    0,
+    entry.finalist
+      ? `rgba(230,184,74,${pulse})`
+      : `rgba(46,196,182,${pulse * 0.85})`
+  );
+  glow.addColorStop(1, "rgba(0,0,0,0)");
   ctx.fillStyle = glow;
   ctx.fillRect(0, 0, W, H);
 
+  // Header
   ctx.fillStyle = "#e6b84a";
-  ctx.font = '700 52px "Bebas Neue", Impact, sans-serif';
+  ctx.font = '700 48px "Bebas Neue", Impact, sans-serif';
   ctx.textAlign = "left";
   ctx.textBaseline = "middle";
-  ctx.fillText("FLAG BATTLE", 48, 44);
+  ctx.fillText("FLAG BATTLE", 48, 42);
 
   ctx.fillStyle = "#f4f7fa";
-  ctx.font = '800 28px "Manrope", system-ui, sans-serif';
-  ctx.fillText("FULL RANKINGS", 320, 46);
+  ctx.font = '800 26px "Manrope", system-ui, sans-serif';
+  ctx.fillText("FULL RANKINGS", 300, 44);
 
   const when = battle?.startedAt ? new Date(battle.startedAt) : null;
   const whenLabel =
@@ -195,87 +291,148 @@ function paintBoard(ctx, { rows, battle, channelName, t }) {
           day: "numeric",
         })
       : "";
-  const winner = battle?.winner?.name || battle?.final?.final?.winner?.name || "";
-  const finalists = battle?.final?.final?.ranking?.length || 0;
-  const sub = [
-    whenLabel,
-    winner ? `Winner · ${winner}` : "",
-    finalists ? `${finalists} finalists` : "",
-    `${rows.length} countries`,
-  ]
-    .filter(Boolean)
-    .join("   ·   ");
+  const winnerName =
+    battle?.winner?.name || battle?.final?.final?.winner?.name || "";
+  ctx.fillStyle = "#8fa6b8";
+  ctx.font = '600 16px "Manrope", system-ui, sans-serif';
+  ctx.fillText(
+    [whenLabel, winnerName ? `Winner · ${winnerName}` : "", `${rows.length} countries`]
+      .filter(Boolean)
+      .join("   ·   "),
+    48,
+    78
+  );
+
+  // Progress
+  const revealedCount = inHold
+    ? slots.length
+    : slots.findIndex((s) => s === slot) + 1;
+  ctx.textAlign = "right";
+  ctx.fillStyle = "#8fa6b8";
+  ctx.font = '700 18px "Manrope", system-ui, sans-serif';
+  ctx.fillText(`${revealedCount} / ${slots.length}`, W - 48, 44);
+
+  const barX = 48;
+  const barW = W - 96;
+  const barY = 100;
+  roundRectFill(ctx, barX, barY, barW, 8, 4, "rgba(255,255,255,0.08)");
+  roundRectFill(
+    ctx,
+    barX,
+    barY,
+    barW * clamp01(t / Math.max(0.001, total)),
+    8,
+    4,
+    entry.finalist ? "#e6b84a" : "#2ec4b6"
+  );
+
+  // ——— Hero (left) ———
+  const heroX = 80;
+  const heroY = 160;
+  ctx.save();
+  ctx.globalAlpha = 0.35 + 0.65 * pop;
+  ctx.translate(0, (1 - pop) * 28);
+
+  ctx.textAlign = "left";
+  ctx.fillStyle = entry.finalist ? "#e6b84a" : "#2ec4b6";
+  ctx.font = '700 120px "Bebas Neue", Impact, sans-serif';
+  ctx.fillText(`#${entry.place}`, heroX, heroY + 70);
+
+  const fw = 420;
+  const fh = 280;
+  const fx = heroX;
+  const fy = heroY + 110;
+  roundRectFill(ctx, fx - 8, fy - 8, fw + 16, fh + 16, 18, "rgba(0,0,0,0.35)");
+  if (entry.heroImg || entry.img) {
+    roundRectPath(ctx, fx, fy, fw, fh, 14);
+    ctx.save();
+    ctx.clip();
+    ctx.drawImage(entry.heroImg || entry.img, fx, fy, fw, fh);
+    ctx.restore();
+  } else {
+    roundRectFill(ctx, fx, fy, fw, fh, 14, "#1a3040");
+  }
+
+  ctx.fillStyle = "#f4f7fa";
+  ctx.font = '800 44px "Manrope", system-ui, sans-serif';
+  ctx.fillText(String(entry.name).toUpperCase(), heroX, fy + fh + 50, 900);
 
   ctx.fillStyle = "#8fa6b8";
-  ctx.font = '600 18px "Manrope", system-ui, sans-serif';
-  ctx.fillText(sub, 48, 84);
+  ctx.font = '700 22px "Manrope", system-ui, sans-serif';
+  const meta = [
+    entry.finalist ? "FINALIST" : "NON-QUALIFIER",
+    `Avg qualifying · ${formatAvg(entry.avgQual)}`,
+  ].join("    ·    ");
+  ctx.fillText(meta, heroX, fy + fh + 92);
 
-  // Column legend strip
-  ctx.fillStyle = "rgba(255,255,255,0.06)";
-  ctx.fillRect(40, 108, W - 80, 28);
+  ctx.restore();
+
+  // ——— Revealed list (right) ———
+  const listX = 1100;
+  const listTop = 140;
+  const listW = W - listX - 48;
+  const rowH = 34;
+  const visible = Math.floor((H - listTop - 70) / rowH);
+  // Show most recently revealed entries (toward #1 at bottom of drama = end of list)
+  const revealedEntries = [];
+  for (const s of slots) {
+    if (inHold || t >= s.start) revealedEntries.push(s.entry);
+    if (!inHold && s === slot) break;
+  }
+  const startIdx = Math.max(0, revealedEntries.length - visible);
+
+  roundRectFill(
+    ctx,
+    listX - 16,
+    listTop - 16,
+    listW + 32,
+    visible * rowH + 32,
+    16,
+    "rgba(255,255,255,0.04)"
+  );
+
   ctx.fillStyle = "#8fa6b8";
-  ctx.font = '700 13px "Manrope", system-ui, sans-serif';
-  ctx.fillText("PLACE  ·  COUNTRY  ·  AVG QUALIFYING PLACE", 52, 122);
+  ctx.font = '700 14px "Manrope", system-ui, sans-serif';
+  ctx.textAlign = "left";
+  ctx.fillText("REVEALED", listX, listTop - 28);
 
-  const top = 148;
-  const bottom = H - 58;
-  const boardH = bottom - top;
-  const boardW = W - 64;
-  const colW = boardW / COLS;
-  const rowsPerCol = Math.ceil(rows.length / COLS);
-  const rowH = Math.min(22, boardH / Math.max(1, rowsPerCol));
-
-  for (let i = 0; i < rows.length; i++) {
-    const col = Math.floor(i / rowsPerCol);
-    const row = i % rowsPerCol;
-    const x = 32 + col * colW;
-    const y = top + row * rowH;
-    const entry = rows[i];
-    const zebra = row % 2 === 0;
-
-    if (zebra) {
-      ctx.fillStyle = "rgba(255,255,255,0.03)";
-      ctx.fillRect(x, y, colW - 8, rowH);
+  for (let i = startIdx; i < revealedEntries.length; i++) {
+    const e = revealedEntries[i];
+    const y = listTop + (i - startIdx) * rowH;
+    const isActive = !inHold && e.code === entry.code;
+    if (isActive) {
+      roundRectFill(ctx, listX - 8, y, listW + 16, rowH - 2, 8, "rgba(46,196,182,0.18)");
     }
 
-    // Place
     ctx.textAlign = "right";
-    ctx.textBaseline = "middle";
-    ctx.fillStyle = entry.finalist ? "#e6b84a" : "#7f96a8";
-    ctx.font = '800 14px "Manrope", system-ui, sans-serif';
-    ctx.fillText(String(entry.place), x + 36, y + rowH / 2);
+    ctx.fillStyle = e.finalist ? "#e6b84a" : "#7f96a8";
+    ctx.font = '800 15px "Manrope", system-ui, sans-serif';
+    ctx.fillText(String(e.place), listX + 36, y + rowH / 2);
 
-    // Flag
-    const fx = x + 44;
-    const fy = y + (rowH - 12) / 2;
-    if (entry.img) {
-      roundRectPath(ctx, fx, fy, 18, 12, 2);
+    const thumb = e.img;
+    if (thumb) {
+      roundRectPath(ctx, listX + 48, y + 8, 24, 16, 3);
       ctx.save();
       ctx.clip();
-      ctx.drawImage(entry.img, fx, fy, 18, 12);
+      ctx.drawImage(thumb, listX + 48, y + 8, 24, 16);
       ctx.restore();
-    } else {
-      ctx.fillStyle = "#2a4050";
-      ctx.fillRect(fx, fy, 18, 12);
     }
 
-    // Name
     ctx.textAlign = "left";
-    ctx.fillStyle = entry.finalist ? "#f4f7fa" : "#c5d3de";
-    ctx.font = `${entry.finalist ? "700" : "600"} 13px "Manrope", system-ui, sans-serif`;
-    const nameMax = colW - 140;
-    let name = entry.name;
+    ctx.fillStyle = isActive ? "#f4f7fa" : "#c5d3de";
+    ctx.font = `${isActive ? "800" : "600"} 15px "Manrope", system-ui, sans-serif`;
+    let name = e.name;
+    const nameMax = listW - 160;
     while (name.length > 3 && ctx.measureText(name).width > nameMax) {
       name = name.slice(0, -2);
     }
-    if (name !== entry.name) name = `${name}…`;
-    ctx.fillText(name, x + 68, y + rowH / 2);
+    if (name !== e.name) name = `${name}…`;
+    ctx.fillText(name, listX + 80, y + rowH / 2);
 
-    // Avg qualifying
     ctx.textAlign = "right";
-    ctx.fillStyle = entry.avgQual != null ? "#2ec4b6" : "#5a7080";
-    ctx.font = '700 12px "Manrope", system-ui, sans-serif';
-    ctx.fillText(formatAvg(entry.avgQual), x + colW - 16, y + rowH / 2);
+    ctx.fillStyle = "#2ec4b6";
+    ctx.font = '700 13px "Manrope", system-ui, sans-serif';
+    ctx.fillText(formatAvg(e.avgQual), listX + listW - 4, y + rowH / 2);
   }
 
   // Footer
@@ -283,11 +440,10 @@ function paintBoard(ctx, { rows, battle, channelName, t }) {
   ctx.fillStyle = "#5a7080";
   ctx.font = '600 14px "Manrope", system-ui, sans-serif';
   ctx.fillText(
-    "Gold place = Finalist   ·   Avg = mean place across qualifying rounds",
+    "5s national anthem each   ·   Gold = Finalist   ·   Avg = qualifying rounds",
     48,
     H - 28
   );
-
   ctx.textAlign = "right";
   ctx.fillStyle = "#ffffff";
   ctx.font = '800 22px "Bebas Neue", Impact, sans-serif';
@@ -298,187 +454,187 @@ function paintBoard(ctx, { rows, battle, channelName, t }) {
   );
 }
 
+/** Encode AudioBuffers onto an AudioEncoder timeline (microseconds). */
+async function encodeAnthemAudio(audioEncoder, normalizedBufs, slots) {
+  const frameSize = 960; // 20ms @ 48k
+  for (let i = 0; i < slots.length; i++) {
+    const buf = normalizedBufs[i];
+    if (!buf) continue;
+    const startUs = Math.round(slots[i].start * 1_000_000);
+    const channels = Math.min(AUDIO_CH, buf.numberOfChannels);
+    const totalFrames = buf.length;
+    const planes = [];
+    for (let ch = 0; ch < AUDIO_CH; ch++) {
+      const src = buf.getChannelData(Math.min(ch, channels - 1));
+      planes.push(src);
+    }
+    for (let offset = 0; offset < totalFrames; offset += frameSize) {
+      const n = Math.min(frameSize, totalFrames - offset);
+      const data = new Float32Array(n * AUDIO_CH);
+      for (let ch = 0; ch < AUDIO_CH; ch++) {
+        data.set(planes[ch].subarray(offset, offset + n), ch * n);
+      }
+      const audioData = new AudioData({
+        format: "f32-planar",
+        sampleRate: SAMPLE_RATE,
+        numberOfFrames: n,
+        numberOfChannels: AUDIO_CH,
+        timestamp: startUs + Math.round((offset / SAMPLE_RATE) * 1_000_000),
+        data,
+      });
+      audioEncoder.encode(audioData);
+      audioData.close();
+      if (audioEncoder.encodeQueueSize > 20) await sleep(0);
+    }
+  }
+}
+
 /**
- * Encode canvas frames faster than realtime with correct duration.
- * Prefers WebCodecs + webm-muxer; falls back to MediaStreamTrackGenerator,
- * then short wall-clock MediaRecorder.
+ * Fast A/V encode with correct timestamps. Requires WebCodecs + webm-muxer.
  */
-async function recordFramesFast(canvas, frameCount, fps, paint, onProgress) {
-  const mimeType = "video/webm";
-  const durationSec = frameCount / fps;
-  const frameDurUs = Math.round(1_000_000 / fps);
+async function recordAvFast({
+  canvas,
+  frameCount,
+  fps,
+  paint,
+  slots,
+  anthemBufs,
+  audioCtx,
+  onProgress,
+}) {
+  if (typeof VideoEncoder !== "function" || typeof VideoFrame !== "function") {
+    throw new Error("WebCodecs VideoEncoder required for full rankings + anthems.");
+  }
+  if (typeof AudioEncoder !== "function" || typeof AudioData !== "function") {
+    throw new Error("WebCodecs AudioEncoder required for full rankings + anthems.");
+  }
 
-  // 1) WebCodecs + muxer (fast + correct timestamps)
-  if (typeof VideoEncoder === "function" && typeof VideoFrame === "function") {
-    try {
-      const { Muxer, ArrayBufferTarget } = await import(
-        "https://esm.sh/webm-muxer@5.0.2"
+  const { Muxer, ArrayBufferTarget } = await import(
+    "https://esm.sh/webm-muxer@5.0.2"
+  );
+
+  const codecCandidates = [
+    { mux: "V_VP9", enc: "vp09.00.10.08" },
+    { mux: "V_VP8", enc: "vp8" },
+  ];
+  let chosen = null;
+  for (const c of codecCandidates) {
+    const ok = await VideoEncoder.isConfigSupported?.({
+      codec: c.enc,
+      width: canvas.width,
+      height: canvas.height,
+      bitrate: 6_000_000,
+      framerate: fps,
+    })
+      .then((r) => r?.supported)
+      .catch(() => false);
+    if (ok) {
+      chosen = c;
+      break;
+    }
+  }
+  if (!chosen) throw new Error("No supported WebCodecs video codec (VP9/VP8).");
+
+  const audioOk = await AudioEncoder.isConfigSupported?.({
+    codec: "opus",
+    sampleRate: SAMPLE_RATE,
+    numberOfChannels: AUDIO_CH,
+    bitrate: 128_000,
+  })
+    .then((r) => r?.supported)
+    .catch(() => false);
+  if (!audioOk) throw new Error("Opus AudioEncoder not supported in this browser.");
+
+  reportProgress(onProgress, "Preparing audio", 0.52);
+  const normalized = [];
+  for (let i = 0; i < anthemBufs.length; i++) {
+    normalized.push(await normalizeAnthemBuffer(anthemBufs[i], audioCtx));
+    if (i % 10 === 0) {
+      reportProgress(
+        onProgress,
+        `Audio ${i + 1}/${anthemBufs.length}`,
+        0.52 + 0.08 * ((i + 1) / anthemBufs.length)
       );
-      const codecCandidates = [
-        { mux: "V_VP9", enc: "vp09.00.10.08" },
-        { mux: "V_VP8", enc: "vp8" },
-      ];
-      let chosen = null;
-      for (const c of codecCandidates) {
-        if (await VideoEncoder.isConfigSupported?.({
-          codec: c.enc,
-          width: canvas.width,
-          height: canvas.height,
-          bitrate: 8_000_000,
-          framerate: fps,
-        }).then((r) => r?.supported).catch(() => false)) {
-          chosen = c;
-          break;
-        }
-      }
-      if (chosen) {
-        const target = new ArrayBufferTarget();
-        const muxer = new Muxer({
-          target,
-          video: {
-            codec: chosen.mux,
-            width: canvas.width,
-            height: canvas.height,
-            frameRate: fps,
-          },
-        });
-        let encError = null;
-        const encoder = new VideoEncoder({
-          output: (chunk, meta) => muxer.addVideoChunk(chunk, meta),
-          error: (e) => {
-            encError = e;
-          },
-        });
-        encoder.configure({
-          codec: chosen.enc,
-          width: canvas.width,
-          height: canvas.height,
-          bitrate: 8_000_000,
-          framerate: fps,
-        });
-
-        for (let i = 0; i < frameCount; i++) {
-          paint(i / fps);
-          const frame = new VideoFrame(canvas, {
-            timestamp: i * frameDurUs,
-            duration: frameDurUs,
-          });
-          encoder.encode(frame, { keyFrame: i % fps === 0 });
-          frame.close();
-          while (encoder.encodeQueueSize > 10) await sleep(0);
-          if (i % 10 === 0) {
-            reportProgress(onProgress, "Encoding", 0.45 + 0.5 * (i / frameCount));
-            await sleep(0);
-          }
-          if (encError) throw encError;
-        }
-        await encoder.flush();
-        encoder.close();
-        muxer.finalize();
-        const blob = new Blob([target.buffer], { type: mimeType });
-        if (blob.size) {
-          return { blob, mimeType, durationSec };
-        }
-      }
-    } catch (err) {
-      console.warn("WebCodecs fast encode failed, falling back:", err);
     }
   }
 
-  // 2) Insertable Streams + MediaRecorder
-  const canTrackGen =
-    typeof MediaStreamTrackGenerator === "function" &&
-    typeof VideoFrame === "function";
-  if (canTrackGen) {
-    try {
-      const recorderMime = pickMime();
-      const generator = new MediaStreamTrackGenerator({ kind: "video" });
-      const writer = generator.writable.getWriter();
-      const stream = new MediaStream([generator]);
-      const recorder = new MediaRecorder(stream, {
-        mimeType: recorderMime,
-        videoBitsPerSecond: 10_000_000,
-      });
-      const chunks = [];
-      recorder.ondataavailable = (e) => {
-        if (e.data?.size) chunks.push(e.data);
-      };
-      const doneRec = new Promise((resolve, reject) => {
-        recorder.onstop = () => resolve();
-        recorder.onerror = () =>
-          reject(recorder.error || new Error("Recording failed"));
-      });
-      recorder.start(100);
-
-      for (let i = 0; i < frameCount; i++) {
-        paint(i / fps);
-        const frame = new VideoFrame(canvas, {
-          timestamp: i * frameDurUs,
-          duration: frameDurUs,
-        });
-        await writer.write(frame);
-        frame.close();
-        if (i % 8 === 0) {
-          reportProgress(onProgress, "Encoding", 0.45 + 0.5 * (i / frameCount));
-          await sleep(0);
-        }
-      }
-
-      recorder.stop();
-      try {
-        await writer.close();
-      } catch {
-        /* ignore */
-      }
-      generator.stop?.();
-      await doneRec;
-      stream.getTracks().forEach((tr) => tr.stop());
-
-      const blob = new Blob(chunks, {
-        type: recorderMime.includes("webm") ? "video/webm" : recorderMime,
-      });
-      if (blob.size) {
-        return { blob, mimeType: recorderMime, durationSec };
-      }
-    } catch (err) {
-      console.warn("TrackGenerator encode failed, falling back:", err);
-    }
-  }
-
-  // 3) Wall-clock MediaRecorder (short clip — still only ~DURATION_SEC)
-  const recorderMime = pickMime();
-  const stream = canvas.captureStream(fps);
-  const recorder = new MediaRecorder(stream, {
-    mimeType: recorderMime,
-    videoBitsPerSecond: 10_000_000,
+  const target = new ArrayBufferTarget();
+  const muxer = new Muxer({
+    target,
+    video: {
+      codec: chosen.mux,
+      width: canvas.width,
+      height: canvas.height,
+      frameRate: fps,
+    },
+    audio: {
+      codec: "A_OPUS",
+      sampleRate: SAMPLE_RATE,
+      numberOfChannels: AUDIO_CH,
+    },
   });
-  const chunks = [];
-  recorder.ondataavailable = (e) => {
-    if (e.data?.size) chunks.push(e.data);
-  };
-  const doneRec = new Promise((resolve, reject) => {
-    recorder.onstop = () => resolve();
-    recorder.onerror = () =>
-      reject(recorder.error || new Error("Recording failed"));
+
+  let encError = null;
+  const videoEncoder = new VideoEncoder({
+    output: (chunk, meta) => muxer.addVideoChunk(chunk, meta),
+    error: (e) => {
+      encError = e;
+    },
   });
-  recorder.start(100);
-  const t0 = performance.now();
-  const frameMs = 1000 / fps;
+  videoEncoder.configure({
+    codec: chosen.enc,
+    width: canvas.width,
+    height: canvas.height,
+    bitrate: 6_000_000,
+    framerate: fps,
+  });
+
+  const audioEncoder = new AudioEncoder({
+    output: (chunk, meta) => muxer.addAudioChunk(chunk, meta),
+    error: (e) => {
+      encError = e;
+    },
+  });
+  audioEncoder.configure({
+    codec: "opus",
+    sampleRate: SAMPLE_RATE,
+    numberOfChannels: AUDIO_CH,
+    bitrate: 128_000,
+  });
+
+  // Encode all audio first (timeline-based), then video frames.
+  await encodeAnthemAudio(audioEncoder, normalized, slots);
+  await audioEncoder.flush();
+  audioEncoder.close();
+  if (encError) throw encError;
+
+  const frameDurUs = Math.round(1_000_000 / fps);
   for (let i = 0; i < frameCount; i++) {
     paint(i / fps);
-    reportProgress(onProgress, "Recording", 0.45 + 0.5 * (i / frameCount));
-    const target = t0 + (i + 1) * frameMs;
-    const wait = target - performance.now();
-    if (wait > 8) await sleep(wait);
-    else await nextFrame();
+    const frame = new VideoFrame(canvas, {
+      timestamp: i * frameDurUs,
+      duration: frameDurUs,
+    });
+    videoEncoder.encode(frame, { keyFrame: i % (fps * 2) === 0 });
+    frame.close();
+    while (videoEncoder.encodeQueueSize > 12) await sleep(0);
+    if (i % 20 === 0) {
+      reportProgress(onProgress, "Encoding", 0.6 + 0.38 * (i / frameCount));
+      await sleep(0);
+    }
+    if (encError) throw encError;
   }
-  recorder.stop();
-  await doneRec;
-  stream.getTracks().forEach((tr) => tr.stop());
-  const blob = new Blob(chunks, {
-    type: recorderMime.includes("webm") ? "video/webm" : recorderMime,
-  });
-  return { blob, mimeType: recorderMime, durationSec };
+  await videoEncoder.flush();
+  videoEncoder.close();
+  muxer.finalize();
+
+  const blob = new Blob([target.buffer], { type: "video/webm" });
+  if (!blob.size) throw new Error("Encoding produced an empty file.");
+  return {
+    blob,
+    mimeType: "video/webm",
+    durationSec: frameCount / fps,
+  };
 }
 
 /**
@@ -490,9 +646,6 @@ async function recordFramesFast(canvas, frameCount, fps, paint, onProgress) {
  * @param {(p:{phase:string,progress:number})=>void} [opts.onProgress]
  */
 export async function generateFullRankingsVideo(opts = {}) {
-  if (typeof MediaRecorder === "undefined") {
-    throw new Error("MediaRecorder is not available in this browser.");
-  }
   if (document.fonts?.ready) await document.fonts.ready;
 
   reportProgress(opts.onProgress, "Building ranks", 0.02);
@@ -502,7 +655,18 @@ export async function generateFullRankingsVideo(opts = {}) {
   const rows = buildFullRankingRows(battle);
   if (!rows.length) throw new Error("No ranking rows for this battle.");
 
+  const { slots, total } = buildTimeline(rows);
+  const revealRows = slots.map((s) => s.entry);
+
   await preloadFlags(rows, opts.onProgress);
+
+  const AudioCtx = window.AudioContext || window.webkitAudioContext;
+  if (!AudioCtx) throw new Error("Web Audio API is not available.");
+  const audioCtx = new AudioCtx({ sampleRate: SAMPLE_RATE });
+  if (audioCtx.state === "suspended") await audioCtx.resume();
+
+  reportProgress(opts.onProgress, "Loading anthems", 0.3);
+  const anthemBufs = await loadAnthems(revealRows, audioCtx, opts.onProgress);
 
   const canvas = document.createElement("canvas");
   canvas.width = W;
@@ -510,30 +674,42 @@ export async function generateFullRankingsVideo(opts = {}) {
   const ctx = canvas.getContext("2d");
   if (!ctx) throw new Error("Could not create canvas context.");
 
-  const frameCount = Math.ceil(DURATION_SEC * FPS);
-  reportProgress(opts.onProgress, "Encoding", 0.42);
+  const frameCount = Math.ceil(total * FPS);
+  reportProgress(opts.onProgress, "Encoding", 0.5);
 
-  const { blob, mimeType, durationSec } = await recordFramesFast(
-    canvas,
-    frameCount,
-    FPS,
-    (t) =>
-      paintBoard(ctx, {
-        rows,
-        battle,
-        channelName: opts.channelName,
-        t,
-      }),
-    opts.onProgress
-  );
+  let result;
+  try {
+    result = await recordAvFast({
+      canvas,
+      frameCount,
+      fps: FPS,
+      paint: (t) =>
+        paintReveal(ctx, {
+          rows,
+          battle,
+          channelName: opts.channelName,
+          t,
+          slots,
+          total,
+        }),
+      slots,
+      anthemBufs,
+      audioCtx,
+      onProgress: opts.onProgress,
+    });
+  } finally {
+    try {
+      await audioCtx.close?.();
+    } catch {
+      /* ignore */
+    }
+  }
 
-  if (!blob.size) throw new Error("Recording produced an empty file.");
   reportProgress(opts.onProgress, "Done", 1);
-
   return {
-    blob,
-    mimeType,
-    durationSec,
+    blob: result.blob,
+    mimeType: result.mimeType,
+    durationSec: result.durationSec,
     mode: "full-rankings",
     width: W,
     height: H,

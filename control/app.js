@@ -562,14 +562,14 @@ function onHighlightFormatChange() {
         : format === "battle"
           ? "Battle sim: one hole-circle round — last flag standing wins."
           : format === "full"
-            ? "Full rankings: landscape video of every country (place + avg qualifying). Encodes fast — no anthems."
+            ? "Full rankings: each country one-by-one (last→#1) with 5s national anthem. Landscape; encodes faster than realtime (Chrome)."
             : "Final: pick a finished stream below, then Generate.";
   }
   const note = $("hl-extra-note");
   if (note) {
     note.textContent =
       format === "full"
-        ? "Landscape 1920×1080. Shows Final place (gold) or non-qualifier place from average qualifying rounds, plus that average. Prefer Chrome."
+        ? "Landscape 1920×1080. ~5s × every country (long video, fast encode). Shows place + avg qualifying. Prefer Chrome (WebCodecs)."
         : "Anthems load from Wikimedia Commons (no API/tunnel needed). A short fanfare plays if a file can’t load. Prefer Chrome.";
   }
   $("hl-title").dataset.auto = "1";
@@ -583,7 +583,7 @@ function onHighlightFormatChange() {
       : format === "battle"
         ? "Format: Battle simulation — tap Generate Short."
         : format === "full"
-          ? "Format: Full rankings landscape video — pick a battle, then Generate."
+          ? "Format: Full rankings + 5s anthems — pick a battle, then Generate."
           : "Format: Final Top 10 — pick a stream, then Generate Short."
   );
 }
@@ -607,7 +607,7 @@ function syncHighlightTitle() {
     const when = b?.startedAt
       ? new Date(b.startedAt).toLocaleDateString()
       : "Battle";
-    $("hl-title").value = `FLAG BATTLE Full Rankings · ${winner} · ${when}`;
+    $("hl-title").value = `FLAG BATTLE Full Rankings · Anthems · ${winner} · ${when}`;
     $("hl-title").dataset.auto = "1";
     return;
   }
@@ -682,7 +682,7 @@ async function generateHighlight() {
         : format === "battle"
           ? "Generating battle simulation Short (one round)…"
           : format === "full"
-            ? "Generating full rankings landscape video (fast encode)…"
+            ? "Generating full rankings video (5s anthem each, fast encode)…"
             : "Generating Final Top 10 Short (results board + anthems)…"
     );
 
@@ -790,7 +790,7 @@ async function uploadHighlight() {
         : format === "battle"
           ? "FLAG BATTLE · Last Flag Standing #Shorts"
           : format === "full"
-            ? `FLAG BATTLE Full Rankings · ${winner}`
+            ? `FLAG BATTLE Full Rankings · Anthems · ${winner}`
             : `FLAG BATTLE Final Top 10 · ${winner} #Shorts`);
     const description =
       format === "season"
@@ -812,6 +812,7 @@ async function uploadHighlight() {
           : format === "full"
             ? [
                 "FLAG BATTLE — full battle rankings (landscape).",
+                "Every country revealed one-by-one with 5 seconds of its national anthem.",
                 "Finalists show Final place; others are ranked by average place across all qualifying rounds.",
                 `Champion: ${winner}`,
                 battle?.startedAt
@@ -819,7 +820,7 @@ async function uploadHighlight() {
                   : "",
                 "",
                 "Rankings: https://yung1022.github.io/Flagbattle/rankings.html",
-                "#FlagBattle #LastFlagStanding #Geography #Rankings",
+                "#FlagBattle #LastFlagStanding #Geography #Rankings #Anthems",
               ]
                 .filter(Boolean)
                 .join("\n")
@@ -845,6 +846,7 @@ async function uploadHighlight() {
             "rankings",
             "geography",
             "results",
+            "national anthems",
           ]
         : undefined;
 
