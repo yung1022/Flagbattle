@@ -25,7 +25,9 @@
       </div>
       <p class="lede">
         Qualifying + Final are <strong>one column</strong> per battle.
-        Finished battles show place or <strong>nq</strong> (no <strong>Q</strong>).
+        Finalists show Final place; non-qualifiers are ranked by
+        <strong>average place across all qualifying rounds</strong>
+        (no <strong>Q</strong> after the battle ends).
         <strong>Q</strong> only while waiting for that battle’s Final.
         Points from Finals only (50→1). Arrows =
         <span class="delta-up">↑</span>/<span class="delta-down">↓</span> vs
@@ -216,7 +218,7 @@
             const note = document.createElement("div");
             note.className = "meta";
             note.style.marginTop = "12px";
-            note.textContent = `${zero.length} countries still at 0 pts (nq every battle so far). See Battle sheet for full grid.`;
+            note.textContent = `${zero.length} countries still at 0 pts (no Final points yet). See Battle sheet for full grid.`;
             pointsList.appendChild(note);
           }
         }
