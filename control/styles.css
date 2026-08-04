@@ -91,6 +91,10 @@ body {
   background: #000;
   display: block;
 }
+.hl-preview-wrap video.is-landscape {
+  width: min(100%, 480px);
+  aspect-ratio: 16 / 9;
+}
 
 .tab {
   border: 1px solid var(--line);
