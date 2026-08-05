@@ -77,6 +77,9 @@ export const CONFIG = {
   swissEliminate: 12,
   swissRounds: 5,
   baseHp: 100,
+  /** HP lost per collision hit during battling modes. */
+  hitDamage: 5,
+  hitCooldownSec: 0.35,
   battleRate: 2.2,
   /** Skip full UI notifications; physics still every frame. */
   uiThrottleMs: 250,
@@ -185,6 +188,12 @@ export class FlagBattleGame {
     this._pendingQualComplete = false;
     this._pendingSwissCut = false;
     this._pendingSwissNext = false;
+    this._pendingSwissPair = false;
+    this._pendingFinalReset = false;
+    this._finalResetRemaining = null;
+    this._finalElimLock = false;
+    this._swissPairQueue = [];
+    this._swissMatchOver = false;
     this._battleAccum = 0;
     this._raf = 0;
     this._lastTs = 0;
@@ -221,12 +230,18 @@ export class FlagBattleGame {
     this._pendingQualComplete = false;
     this._pendingSwissCut = false;
     this._pendingSwissNext = false;
+    this._pendingSwissPair = false;
+    this._pendingFinalReset = false;
+    this._finalResetRemaining = null;
+    this._finalElimLock = false;
+    this._swissPairQueue = [];
+    this._swissMatchOver = false;
     this._battleAccum = 0;
     this._uiDirty = true;
     this._emit(
       "reset",
       this.streamMode === "final"
-        ? "Final ready — hole circle, then Swiss battling, then last flag standing."
+        ? "Final ready — hole (reset on fall) → Swiss 1v1 → last flag standing."
         : "Qualifying ready — last flag in the circle qualifies."
     );
     this._flushUi(true);
@@ -252,7 +267,7 @@ export class FlagBattleGame {
       vx: Math.cos(dir) * speed,
       vy: Math.sin(dir) * speed,
       img: flagUrl(country.code, 80),
-      pulse: 0,
+      hitCd: 0,
     };
   }
 
@@ -655,15 +670,20 @@ export class FlagBattleGame {
         if (this._pendingQualComplete) {
           this._pendingQualComplete = false;
           this._finishQualifyingStream();
+        } else if (this._pendingFinalReset) {
+          this._pendingFinalReset = false;
+          const remaining = this._finalResetRemaining || [];
+          this._finalResetRemaining = null;
+          this._resetFinalHoleRound(remaining);
+        } else if (this._pendingSwissPair) {
+          this._pendingSwissPair = false;
+          this._startNextSwissPair();
         } else if (this._pendingSwissNext) {
           this._pendingSwissNext = false;
           this._beginSwissRound();
         } else if (this._pendingSwissCut) {
           this._pendingSwissCut = false;
           this._cutSwissAndBeginBattle();
-        } else if (this.streamMode === "final" && this.finalStage === "hole") {
-          // Should not normally land here; hole stage is continuous.
-          this._startNextQualifyingRound();
         } else {
           this._startNextQualifyingRound();
         }
@@ -697,8 +717,7 @@ export class FlagBattleGame {
 
       if (battling) {
         this._moveFighters(dt, { physicsRim: true, solidRim: true });
-        this._resolveCollisions();
-        this._runBattles(dt);
+        this._resolveCollisions({ dealHits: true });
         this._checkBattleStage();
       } else {
         const elapsed = (now - this.roundStartedAt) / 1000;
@@ -729,25 +748,22 @@ export class FlagBattleGame {
             this._emit("phase", "Everyone fell — restarting round.");
             this._startNextQualifyingRound();
           }
-        } else if (this.phase === "final" && this.finalStage === "hole") {
-          // Continuous hole elimination until Swiss cutoff.
-          if (standingNow.length <= CONFIG.swissCutoff && standingNow.length > 0) {
-            for (const f of this.fighters) {
-              if (f.falling && f.alive) this._markFallen(f);
-            }
-            this._beginSwissFromHole(standingNow);
-          } else if (alive.length === 0) {
-            const remaining = this._finalRemainingFromFall();
-            if (remaining.length <= CONFIG.swissCutoff && remaining.length > 0) {
-              this._beginSwissFromHole(
-                remaining.map((c, i) => this._makeFighter(c, i, remaining.length))
-              );
-            } else if (remaining.length === 0) {
-              this._emit("phase", "Everyone fell — restarting Final hole stage.");
-              this._beginFinalHole(this.qualified);
-            } else {
-              this._beginFinalHole(remaining);
-            }
+        } else if (
+          this.phase === "final" &&
+          this.finalStage === "hole" &&
+          alive.length === 0 &&
+          !this._finalElimLock
+        ) {
+          const remaining = this._finalRemainingFromFall();
+          if (remaining.length <= CONFIG.swissCutoff && remaining.length > 0) {
+            this._beginSwissFromHole(
+              remaining.map((c, i) => this._makeFighter(c, i, remaining.length))
+            );
+          } else if (remaining.length === 0) {
+            this._emit("phase", "Everyone fell — restarting Final hole stage.");
+            this._beginFinalHole(this.qualified);
+          } else {
+            this._resetFinalHoleRound(remaining);
           }
         }
       }
@@ -800,6 +816,7 @@ export class FlagBattleGame {
       f.x += f.vx * dt;
       f.y += f.vy * dt;
       if (f.pulse > 0) f.pulse = Math.max(0, f.pulse - dt * 4);
+      if (f.hitCd > 0) f.hitCd = Math.max(0, f.hitCd - dt);
 
       if (solidRim) {
         const fr = this._flagRadius();
@@ -830,7 +847,7 @@ export class FlagBattleGame {
     }
   }
 
-  _resolveCollisions() {
+  _resolveCollisions({ dealHits = false } = {}) {
     const active = [];
     for (const f of this.fighters) {
       if (f.alive && !f.falling) active.push(f);
@@ -895,9 +912,32 @@ export class FlagBattleGame {
             A.vy -= exchange * ny;
             B.vx += exchange * nx;
             B.vy += exchange * ny;
+
+            if (dealHits) {
+              // Closing speed — only count as a "hit" when they slam together.
+              const closing = bvn - avn;
+              if (closing > 0.12) {
+                this._applyHit(A);
+                this._applyHit(B);
+              }
+            }
           }
         }
       }
+    }
+  }
+
+  _applyHit(f) {
+    if (!f?.alive || f.falling) return;
+    if ((f.hitCd || 0) > 0) return;
+    f.hitCd = CONFIG.hitCooldownSec;
+    f.hp = Math.max(0, (f.hp ?? CONFIG.baseHp) - CONFIG.hitDamage);
+    f.pulse = 1;
+    this._uiDirty = true;
+    if (f.hp <= 0) {
+      // Find a living opponent as the scorer when possible.
+      const foe = this.fighters.find((o) => o !== f && o.alive && !o.falling);
+      this._battleEliminate(f, foe || null);
     }
   }
 
@@ -970,7 +1010,45 @@ export class FlagBattleGame {
     this._fallOrder.push({ code: f.code, name: f.name, img: f.img });
     this._emit("elim", `${f.name} fell through the hole!`);
     this._uiDirty = true;
-    // Final hole stage is continuous — no reset-on-fall.
+
+    // Final hole: one elimination → round resets with remaining countries.
+    if (
+      this.phase === "final" &&
+      this.finalStage === "hole" &&
+      !this._finalElimLock
+    ) {
+      this._finalElimLock = true;
+      for (const other of this.fighters) {
+        if (other === f || !other.alive) continue;
+        if (other.falling) {
+          other.falling = false;
+          other.vx *= 0.3;
+          other.vy *= 0.3;
+        }
+      }
+      const remaining = this._finalRemainingFromFall();
+      if (remaining.length <= CONFIG.swissCutoff && remaining.length > 0) {
+        this._beginSwissFromHole(
+          remaining.map((c, i) => this._makeFighter(c, i, remaining.length))
+        );
+        return;
+      }
+      if (remaining.length <= 0) {
+        this._emit("phase", "No flags left — restarting hole field.");
+        this._finalElimLock = false;
+        this._beginFinalHole(this.qualified);
+        return;
+      }
+      this.phase = "between_rounds";
+      this._pendingFinalReset = true;
+      this._finalResetRemaining = remaining;
+      this._betweenUntil =
+        performance.now() + Math.max(1200, CONFIG.betweenRoundMs);
+      this._emit(
+        "phase",
+        `${f.name} eliminated — ${remaining.length} left. Resetting round…`
+      );
+    }
   }
 
   _finalRemainingFromFall() {
@@ -978,42 +1056,27 @@ export class FlagBattleGame {
     return (this.qualified || []).filter((q) => !out.has(q.code));
   }
 
-  _runBattles(dt) {
-    const pool = this.fighters.filter((f) => f.alive && !f.falling);
-    if (pool.length < 2) return;
-    const density = Math.min(4, Math.sqrt(pool.length) / 3);
-    this._battleAccum += dt * CONFIG.battleRate * density;
-    while (this._battleAccum >= 1) {
-      this._battleAccum -= 1;
-      this._clash(pool.filter((f) => f.alive));
-      if (pool.filter((f) => f.alive).length < 2) break;
-    }
-  }
-
-  _clash(pool) {
-    const alive = pool.filter((f) => f.alive);
-    if (alive.length < 2) return;
-    const a = alive[Math.floor(Math.random() * alive.length)];
-    let b = alive[Math.floor(Math.random() * alive.length)];
-    let guard = 0;
-    while (b === a && guard++ < 8) {
-      b = alive[Math.floor(Math.random() * alive.length)];
-    }
-    if (a === b) return;
-
-    const dmgA = rand(14, 30);
-    const dmgB = rand(14, 30);
-    if (Math.random() < 0.5) {
-      b.hp -= dmgA;
-      a.pulse = 1;
-      if (b.hp <= 0) this._battleEliminate(b, a);
-      else a.points += 1;
-    } else {
-      a.hp -= dmgB;
-      b.pulse = 1;
-      if (a.hp <= 0) this._battleEliminate(a, b);
-      else b.points += 1;
-    }
+  _resetFinalHoleRound(remaining) {
+    this._finalElimLock = false;
+    this._pendingFinalReset = false;
+    this.finalStage = "hole";
+    this.phase = "final";
+    this.round += 1;
+    const list = shuffle(remaining);
+    this.fighters = list.map((c, i) => {
+      const f = this._makeFighter(c, i, list.length);
+      f.qualified = true;
+      return f;
+    });
+    this.holeAngle = rand(0, Math.PI * 2);
+    this.roundStartedAt = performance.now();
+    this.arenaScale = 1;
+    this._uiDirty = true;
+    this._emit(
+      "phase",
+      `FINAL hole — ${this.fighters.length} remaining. Fall = out, then reset.`
+    );
+    this._publishLive();
   }
 
   _battleEliminate(loser, winner) {
@@ -1021,30 +1084,60 @@ export class FlagBattleGame {
     loser.alive = false;
     loser.hp = 0;
     this.eliminated.push(loser);
-    if (winner) {
-      winner.points += 3;
-      winner.pulse = 1;
-    }
+    if (winner) winner.pulse = 1;
     this._emit(
       "elim",
       `${loser.name} eliminated${winner ? ` by ${winner.name}` : ""}`
     );
     this._uiDirty = true;
+
+    if (this.finalStage === "swiss" && !this._swissMatchOver) {
+      this._swissMatchOver = true;
+      this._recordSwissMatchResult(winner, loser);
+    }
+  }
+
+  _recordSwissMatchResult(winner, loser) {
+    // +1 only for the win; loser gets 0 this match (pool score unchanged).
+    if (winner) {
+      const row = (this._swissPool || []).find((p) => p.code === winner.code);
+      if (row) {
+        row.points = (Number(row.points) || 0) + 1;
+        winner.points = row.points;
+      } else {
+        winner.points = (Number(winner.points) || 0) + 1;
+      }
+      this._emit(
+        "phase",
+        `${winner.name} wins 1v1 (+1) · ${loser?.name || "opponent"} +0`
+      );
+    }
+    this.phase = "between_rounds";
+    this._pendingSwissPair = true;
+    this._betweenUntil =
+      performance.now() + Math.max(900, CONFIG.betweenRoundMs);
   }
 
   _checkBattleStage() {
-    const alive = this.fighters.filter((f) => f.alive);
     if (this.finalStage === "swiss") {
-      // End a Swiss round when half (or fewer) remain.
-      const startN = Math.max(2, this._swissRoundStartCount || CONFIG.swissCutoff);
-      const threshold = Math.max(1, Math.ceil(startN / 2));
-      if (alive.length <= threshold) {
-        for (const f of alive) f.points += 2;
-        this._finishSwissRound();
+      if (this._swissMatchOver) return;
+      const alive = this.fighters.filter((f) => f.alive);
+      if (alive.length === 1) {
+        const winner = alive[0];
+        const loser = this.fighters.find((f) => f !== winner);
+        this._swissMatchOver = true;
+        this._recordSwissMatchResult(winner, loser);
+      } else if (alive.length === 0) {
+        this._swissMatchOver = true;
+        this._pendingSwissPair = true;
+        this.phase = "between_rounds";
+        this._betweenUntil =
+          performance.now() + Math.max(900, CONFIG.betweenRoundMs);
       }
       return;
     }
     if (this.finalStage === "battle") {
+      const alive = this.fighters.filter((f) => f.alive);
       if (alive.length === 1) {
         this._onLastFlag(alive[0]);
       } else if (alive.length === 0) {
@@ -1055,22 +1148,6 @@ export class FlagBattleGame {
   }
 
   _finishSwissRound() {
-    // Persist scores onto the Swiss pool for the cut / next round.
-    const byCode = new Map(
-      (this._swissPool || []).map((p) => [p.code, { ...p }])
-    );
-    for (const f of this.fighters) {
-      const row = byCode.get(f.code) || {
-        code: f.code,
-        name: f.name,
-        img: f.img,
-        points: 0,
-      };
-      row.points = Number(f.points) || 0;
-      byCode.set(f.code, row);
-    }
-    this._swissPool = [...byCode.values()];
-
     this.swissRound += 1;
     this._emit(
       "phase",
@@ -1079,15 +1156,18 @@ export class FlagBattleGame {
     if (this.swissRound >= CONFIG.swissRounds) {
       this.phase = "between_rounds";
       this._pendingSwissCut = true;
-      this._betweenUntil = performance.now() + Math.max(1600, CONFIG.betweenRoundMs);
+      this._betweenUntil =
+        performance.now() + Math.max(1600, CONFIG.betweenRoundMs);
       return;
     }
     this.phase = "between_rounds";
     this._pendingSwissNext = true;
-    this._betweenUntil = performance.now() + Math.max(1200, CONFIG.betweenRoundMs);
+    this._betweenUntil =
+      performance.now() + Math.max(1200, CONFIG.betweenRoundMs);
   }
 
   _beginSwissFromHole(standingFighters) {
+    this._finalElimLock = false;
     const list = standingFighters
       .map((f) => ({
         code: f.code,
@@ -1096,17 +1176,18 @@ export class FlagBattleGame {
         points: Number(f.points) || 0,
       }))
       .slice(0, CONFIG.swissCutoff);
-    // Anyone still falling is out of Swiss.
     this._emit(
       "phase",
-      `${list.length} remain — Swiss battling begins (no hole · HP combat).`
+      `${list.length} remain — Swiss 1v1 begins (${CONFIG.swissRounds} rounds · +1 per win).`
     );
     this.swissRound = 0;
     this._swissPool = list;
+    this._swissPairQueue = [];
     this.phase = "between_rounds";
     this.finalStage = "swiss";
     this._pendingSwissNext = true;
-    this._betweenUntil = performance.now() + Math.max(1800, CONFIG.betweenRoundMs);
+    this._betweenUntil =
+      performance.now() + Math.max(1800, CONFIG.betweenRoundMs);
     this._uiDirty = true;
     this._publishLive();
   }
@@ -1120,42 +1201,67 @@ export class FlagBattleGame {
     this.finalStage = "swiss";
     this.phase = "final";
     this.round += 1;
-    this._swissRoundStartCount = pool.length;
-    this._battleAccum = 0;
     this.arenaScale = 1;
-    this.fighters = shuffle(pool).map((c, i) => {
-      const f = this._makeFighter(c, i, pool.length);
+    this._swissMatchOver = false;
+
+    // Pair everyone 1v1; odd one out gets a bye (+1).
+    const shuffled = shuffle(pool.map((p) => ({ ...p })));
+    const pairs = [];
+    if (shuffled.length % 2 === 1) {
+      const bye = shuffled.pop();
+      const row = this._swissPool.find((p) => p.code === bye.code);
+      if (row) row.points = (Number(row.points) || 0) + 1;
+      this._emit("phase", `${bye.name} gets a bye (+1).`);
+    }
+    for (let i = 0; i < shuffled.length; i += 2) {
+      pairs.push([shuffled[i], shuffled[i + 1]]);
+    }
+    this._swissPairQueue = pairs;
+    this._emit(
+      "phase",
+      `SWISS ${this.swissRound + 1}/${CONFIG.swissRounds} — ${pairs.length}× 1v1`
+    );
+    this._startNextSwissPair();
+  }
+
+  _startNextSwissPair() {
+    this._swissMatchOver = false;
+    if (!this._swissPairQueue.length) {
+      this._finishSwissRound();
+      return;
+    }
+    const [a, b] = this._swissPairQueue.shift();
+    this.finalStage = "swiss";
+    this.phase = "final";
+    this.arenaScale = 1;
+    this.roundStartedAt = performance.now();
+    const pair = [a, b];
+    this.fighters = pair.map((c, i) => {
+      const f = this._makeFighter(c, i, 2);
       f.qualified = true;
-      f.points = Number(c.points) || 0;
+      f.points = Number(
+        this._swissPool.find((p) => p.code === c.code)?.points ?? c.points
+      ) || 0;
       f.hp = CONFIG.baseHp;
       f.maxHp = CONFIG.baseHp;
+      f.hitCd = 0;
       return f;
     });
-    this.roundStartedAt = performance.now();
+    // Place them opposite each other for a clean 1v1.
+    this.fighters[0].x = 0.35;
+    this.fighters[0].y = 0.5;
+    this.fighters[1].x = 0.65;
+    this.fighters[1].y = 0.5;
     this._uiDirty = true;
     this._emit(
       "phase",
-      `SWISS ${this.swissRound + 1}/${CONFIG.swissRounds} — ${pool.length} flags · battling`
+      `1v1 · ${a.name} vs ${b.name} · scores ${this.fighters[0].points}–${this.fighters[1].points}`
     );
     this._publishLive();
   }
 
   _cutSwissAndBeginBattle() {
-    // Merge latest fighter points back into pool.
-    const byCode = new Map(
-      (this._swissPool || []).map((p) => [p.code, { ...p }])
-    );
-    for (const f of this.fighters) {
-      const prev = byCode.get(f.code) || {
-        code: f.code,
-        name: f.name,
-        img: f.img,
-        points: 0,
-      };
-      prev.points = Number(f.points) || 0;
-      byCode.set(f.code, prev);
-    }
-    const ranked = [...byCode.values()].sort(
+    const ranked = [...(this._swissPool || [])].sort(
       (a, b) => b.points - a.points || a.name.localeCompare(b.name)
     );
     const targetKeep = Math.max(1, CONFIG.swissCutoff - CONFIG.swissEliminate);
@@ -1163,7 +1269,10 @@ export class FlagBattleGame {
     const kept = ranked.slice(0, keepN);
     const cut = ranked.slice(keepN);
     for (const c of cut) {
-      this._emit("elim", `${c.name} eliminated after Swiss (score ${c.points}).`);
+      this._emit(
+        "elim",
+        `${c.name} eliminated after Swiss (score ${c.points}).`
+      );
     }
     this._emit(
       "phase",
@@ -1180,7 +1289,6 @@ export class FlagBattleGame {
     this.finalStage = "battle";
     this.phase = "final";
     this.round += 1;
-    this._battleAccum = 0;
     this.arenaScale = 1;
     this.fighters = shuffle(field).map((c, i) => {
       const f = this._makeFighter(c, i, field.length);
@@ -1188,13 +1296,14 @@ export class FlagBattleGame {
       f.points = Number(c.points) || 0;
       f.hp = CONFIG.baseHp;
       f.maxHp = CONFIG.baseHp;
+      f.hitCd = 0;
       return f;
     });
     this.roundStartedAt = performance.now();
     this._uiDirty = true;
     this._emit(
       "phase",
-      `FINAL BATTLE — ${this.fighters.length} flags. Last one standing wins!`
+      `FINAL BATTLE — ${this.fighters.length} flags · 100 HP · −${CONFIG.hitDamage} per hit`
     );
     this._publishLive();
   }
@@ -1204,6 +1313,8 @@ export class FlagBattleGame {
     this.finalStage = "hole";
     this.phase = "final";
     this.round += 1;
+    this._finalElimLock = false;
+    this._pendingFinalReset = false;
     this.fighters = list.map((c, i) => {
       const f = this._makeFighter(c, i, list.length);
       f.qualified = true;
@@ -1216,7 +1327,7 @@ export class FlagBattleGame {
     this._uiDirty = true;
     this._emit(
       "phase",
-      `FINAL — hole circle · ${list.length} flags. Hole opens after ${CONFIG.holeClosedSec}s.`
+      `FINAL — hole circle · ${list.length} flags. Fall = out, round resets.`
     );
     this._publishLive();
   }
