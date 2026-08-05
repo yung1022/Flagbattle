@@ -27,10 +27,10 @@
         <button type="button" class="btn" id="btn-refresh">Refresh</button>
       </div>
       <p class="lede">
-        Sign in with Google, pick <strong>5 countries</strong>, and assign them to
-        win slots. If your pick <strong>wins</strong> the battle you score that
-        slot’s points. Each of your picks that <strong>qualifies</strong> adds
-        <strong>+5</strong>.
+        Sign in with Google and pick <strong>5 countries</strong> into win slots.
+        Selecting is open <strong>before qualifying starts</strong> and again
+        <strong>after the Final ends</strong> (until the next qualifying).
+        Win slots: 100 / 50 / 25 / 15 / 10 · Qualify: +5 each.
       </p>
 
       <div class="card pred-auth" id="auth-card">
@@ -52,8 +52,16 @@
       </div>
 
       <div class="card">
-        <h2>Battle</h2>
-        <div class="meta" id="battle-meta">Loading…</div>
+        <h2>Selecting sessions</h2>
+        <div class="pred-session" id="session-current">
+          <h3>Current</h3>
+          <div class="meta" id="session-current-meta">Loading…</div>
+        </div>
+        <div class="pred-session" id="session-next">
+          <h3>Next</h3>
+          <div class="meta" id="session-next-meta">—</div>
+        </div>
+        <div class="meta" id="battle-meta"></div>
         <p class="pred-rules">
           <span><strong>Slot 1</strong> · 100 pts</span>
           <span><strong>Slot 2</strong> · 50 pts</span>
@@ -67,7 +75,7 @@
       <div class="card" id="slots-card">
         <h2>Your slots</h2>
         <p class="meta" id="slots-hint">
-          Tap a slot, then tap a country below. Predictions lock when qualifying ends.
+          Tap a slot, then tap a country. Open only before qualifying or after the Final.
         </p>
         <div class="pred-slots" id="slots"></div>
         <div class="pred-actions">
@@ -99,17 +107,19 @@
     <script type="module">
       import { COUNTRIES, flagUrl } from "./js/countries.js";
       import { resolveApiBase } from "./js/public.js";
-        import { fetchStreamsFromApi, listStreams, fetchLiveFromApi } from "./js/store.js";
+      import { fetchStreamsFromApi, listStreams, fetchLiveFromApi } from "./js/store.js";
       import { pairBattles } from "./js/rankings-stats.js";
       import {
         SLOT_POINTS,
         QUALIFY_BONUS,
+        UPCOMING_BATTLE_ID,
         emptySlots,
         normalizeSlots,
         slotsAreComplete,
         scorePrediction,
-        predictionBattleTarget,
+        resolvePredictionSession,
         battleResultCodes,
+        formatSessionTime,
       } from "./js/predictions-score.js";
       import {
         loadSession,
@@ -126,11 +136,13 @@
       const $ = (id) => document.getElementById(id);
       let session = loadSession();
       let target = null;
+      let predSession = null;
       let slots = emptySlots();
       let activeSlot = 0;
       let locked = false;
       let board = { entries: [] };
       let clientId = "";
+      let tickTimer = null;
 
       function setStatus(el, text) {
         if (el) el.textContent = text;
@@ -287,37 +299,65 @@
       }
 
       function renderBattle() {
+        const now = Date.now();
+        const cur = predSession?.current;
+        const nxt = predSession?.next;
+
+        if (cur) {
+          const state = cur.open ? "OPEN" : "CLOSED";
+          $("session-current-meta").textContent = [
+            state,
+            cur.label,
+            `Starts · ${formatSessionTime(cur.startsAt, now)}`,
+            `Ends · ${formatSessionTime(cur.endsAt, now)}`,
+          ].join(" · ");
+          $("session-current").classList.toggle("is-open", cur.open);
+          $("session-current").classList.toggle("is-closed", !cur.open);
+        } else {
+          $("session-current-meta").textContent = "—";
+        }
+
+        if (nxt) {
+          $("session-next-meta").textContent = [
+            nxt.label,
+            `Starts · ${formatSessionTime(nxt.startsAt, now)}`,
+            `Ends · ${formatSessionTime(nxt.endsAt, now)}`,
+          ].join(" · ");
+        } else {
+          $("session-next-meta").textContent = "—";
+        }
+
         if (!target) {
-          setStatus(
-            $("battle-meta"),
-            "No battle yet. Predictions open when a qualifying stream starts."
-          );
+          setStatus($("battle-meta"), "No battle target yet.");
           locked = true;
-          $("slots-hint").textContent = "Waiting for the next battle.";
+          $("slots-hint").textContent = "Waiting for a selecting session.";
           return;
         }
+
+        locked = !predSession?.canSelect;
         const parts = [
-          target.label,
-          target.status === "open"
-            ? "Qualifying open — submit now"
-            : target.status === "pending-final"
-              ? "Qualifying done — Final pending (locked)"
-              : "Finished battle",
+          `Battle · ${target.label || target.battleId}`,
+          predSession?.canSelect
+            ? "Selecting open — save your 5 picks"
+            : "Selecting closed — wait for the next session",
           target.qualified?.length
             ? `${target.qualified.length} qualified`
             : null,
           target.winner ? `Winner · ${target.winner.name}` : null,
         ].filter(Boolean);
         setStatus($("battle-meta"), parts.join(" · "));
-        locked = Boolean(target.locked);
         $("slots-hint").textContent = locked
-          ? "Locked — qualifying has ended. Scores update when the Final finishes."
-          : "Tap a slot, then tap a country. You can change picks until qualifying ends.";
+          ? "Closed during Qualifying and Final. Opens again after the Final ends."
+          : "Tap a slot, then a country. Session closes when qualifying starts.";
       }
 
       function renderMyScore() {
         const box = $("my-score");
-        if (!target || !slotsAreComplete(slots)) {
+        if (
+          !target ||
+          !slotsAreComplete(slots) ||
+          target.status === "upcoming"
+        ) {
           box.hidden = true;
           return;
         }
@@ -376,7 +416,14 @@
 
       function loadMine() {
         if (!session?.userId || !target?.battleId) return;
-        const mine = getLocalPrediction(session.userId, target.battleId);
+        let mine = getLocalPrediction(session.userId, target.battleId);
+        if (!mine && target.battleId !== UPCOMING_BATTLE_ID) {
+          const upcoming = getLocalPrediction(
+            session.userId,
+            UPCOMING_BATTLE_ID
+          );
+          if (upcoming?.slots) mine = upcoming;
+        }
         if (mine?.slots) {
           slots = normalizeSlots(mine.slots);
         }
@@ -398,10 +445,18 @@
         const liveWrap = await fetchLiveFromApi();
         const liveSnap = liveWrap?.live || null;
         const battles = pairBattles(streams);
-        target = predictionBattleTarget(battles, liveSnap);
+        predSession = resolvePredictionSession(battles, liveSnap);
+        target = predSession.target;
         board = await fetchPredictionsBoard();
         loadMine();
         renderAll();
+      }
+
+      function startTicker() {
+        if (tickTimer) clearInterval(tickTimer);
+        tickTimer = setInterval(() => {
+          if (predSession) renderBattle();
+        }, 15_000);
       }
 
       $("btn-sign-out").addEventListener("click", () => {
@@ -455,6 +510,7 @@
         renderAuth();
         initGoogleButton();
         await refresh();
+        startTicker();
       })();
     </script>
   </body>
