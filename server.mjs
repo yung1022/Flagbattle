@@ -560,8 +560,12 @@ async function handleApi(req, res, url) {
     const cur = readJson(LIVE_FILE, { live: null, streams: [] });
     if (body.type === "live") {
       cur.live = body.live;
-      // Seed poll options from qualified list when present — never wipe votes.
-      if (body.live?.streamId && body.live?.qualified?.length) {
+      // Seed Final poll only — never during Qualifying (avoids 1-country poll).
+      if (
+        body.live?.mode === "final" &&
+        body.live?.streamId &&
+        body.live?.qualified?.length
+      ) {
         const existing = readJson(pollPath(body.live.streamId), null);
         if (!existing?.options?.length) {
           const poll = {

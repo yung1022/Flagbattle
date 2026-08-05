@@ -11,6 +11,17 @@ export function resolveNextMode(streams) {
   const list = Array.isArray(streams) ? [...streams] : [];
   list.sort((a, b) => (b.startedAt || "").localeCompare(a.startedAt || ""));
 
+  // Prefer an unfinished scheduled Final created at end of Qualifying.
+  const scheduledFinal = list.find(
+    (s) =>
+      s?.mode === "final" &&
+      !s?.endedAt &&
+      (s?.status === "scheduled" || s?.status === "pending") &&
+      Array.isArray(s.qualified) &&
+      s.qualified.length
+  );
+  if (scheduledFinal) return "final";
+
   const last = list.find((s) => s?.endedAt) || list[0] || null;
   if (!last) return "qualifying";
 
