@@ -31,6 +31,8 @@ const DATA = path.join(ROOT, ".data");
 const PUBLIC_DATA = path.join(ROOT, "data");
 const LIVE_FILE = path.join(DATA, "live.json");
 const RANK_FILE = path.join(DATA, "rankings.json");
+const PRED_FILE = path.join(DATA, "predictions.json");
+const PRED_CONFIG_FILE = path.join(PUBLIC_DATA, "predictions-config.json");
 const POLL_DIR = path.join(DATA, "polls");
 const CHANNEL_CACHE = path.join(DATA, "channel.json");
 
@@ -50,10 +52,12 @@ let syncTimer = null;
 let githubTimer = null;
 let dirtyLive = false;
 let dirtyRank = false;
+let dirtyPredictions = false;
 const dirtyPolls = new Set();
 /** GitHub publish intents (survive local-only flushes). */
 let githubLive = false;
 let githubRank = false;
+let githubPredictions = false;
 const githubPolls = new Set();
 
 function loadEnvFile(file) {
@@ -144,6 +148,7 @@ const GITHUB_SYNC_MS = Number(process.env.GITHUB_SYNC_DEBOUNCE_MS || 90_000);
 function schedulePublicSync({
   forceRank = false,
   forceLive = false,
+  forcePredictions = false,
   pollId = null,
   github = false,
 } = {}) {
@@ -154,6 +159,10 @@ function schedulePublicSync({
   if (forceLive) {
     dirtyLive = true;
     if (github) githubLive = true;
+  }
+  if (forcePredictions) {
+    dirtyPredictions = true;
+    if (github) githubPredictions = true;
   }
   if (pollId) {
     dirtyPolls.add(pollId);
@@ -168,7 +177,7 @@ function schedulePublicSync({
   }, LOCAL_SYNC_MS);
 
   // Coalesce GitHub Contents API puts — frequent main commits cancel Pages builds.
-  if (githubLive || githubRank || githubPolls.size) {
+  if (githubLive || githubRank || githubPredictions || githubPolls.size) {
     if (githubTimer) clearTimeout(githubTimer);
     githubTimer = setTimeout(() => {
       githubTimer = null;
@@ -197,6 +206,12 @@ function flushLocalPublicData() {
       : readJson(RANK_FILE, []);
     writeJson(path.join(PUBLIC_DATA, "rankings.json"), streams);
     writeJson(RANK_FILE, streams);
+  }
+
+  if (dirtyPredictions) {
+    dirtyPredictions = false;
+    const preds = readJson(PRED_FILE, { entries: [], updatedAt: null });
+    writeJson(path.join(PUBLIC_DATA, "predictions.json"), preds);
   }
 
   for (const streamId of dirtyPolls) {
@@ -244,6 +259,17 @@ function flushGithubPublicData() {
   } else if (githubRank && !streamFinished) {
     // Defer until a finished stream is present.
     githubRank = true;
+  }
+
+  if (githubPredictions) {
+    githubPredictions = false;
+    const preds = readJson(PRED_FILE, { entries: [], updatedAt: null });
+    writeJson(path.join(PUBLIC_DATA, "predictions.json"), preds);
+    enqueueGithubFile(
+      "data/predictions.json",
+      JSON.stringify(preds, null, 2),
+      `chore(data): update predictions ${new Date().toISOString()}`
+    );
   }
 
   for (const streamId of githubPolls) {
@@ -391,6 +417,21 @@ function seedFromPublicData() {
     const live = readJson(pubLive, { live: null, streams: [] });
     writeJson(LIVE_FILE, { live: live.live, streams: live.streams || [] });
     if (live.api && !publicApi) publicApi = live.api;
+  }
+  const pubPred = path.join(PUBLIC_DATA, "predictions.json");
+  if (!fs.existsSync(PRED_FILE) && fs.existsSync(pubPred)) {
+    writeJson(PRED_FILE, readJson(pubPred, { entries: [] }));
+  }
+  if (!fs.existsSync(PRED_FILE)) {
+    writeJson(PRED_FILE, { entries: [], updatedAt: null });
+  }
+  if (!fs.existsSync(PRED_CONFIG_FILE)) {
+    writeJson(PRED_CONFIG_FILE, {
+      googleClientId:
+        process.env.GOOGLE_PREDICTIONS_CLIENT_ID ||
+        process.env.GOOGLE_CLIENT_ID ||
+        "",
+    });
   }
 }
 
@@ -624,6 +665,107 @@ async function handleApi(req, res, url) {
       return send(res, result.status, { error: result.error });
     }
     return send(res, 200, result.poll);
+  }
+
+  if (url.pathname === "/api/predictions/config" && req.method === "GET") {
+    const cfg = readJson(PRED_CONFIG_FILE, {});
+    return send(res, 200, {
+      googleClientId:
+        process.env.GOOGLE_PREDICTIONS_CLIENT_ID ||
+        process.env.GOOGLE_CLIENT_ID ||
+        cfg.googleClientId ||
+        "",
+    });
+  }
+
+  if (url.pathname === "/api/predictions" && req.method === "GET") {
+    const store = readJson(PRED_FILE, { entries: [], updatedAt: null });
+    const battleId = url.searchParams.get("battleId");
+    if (battleId) {
+      return send(res, 200, {
+        ...store,
+        entries: (store.entries || []).filter((e) => e.battleId === battleId),
+      });
+    }
+    return send(res, 200, store);
+  }
+
+  if (url.pathname === "/api/predictions" && req.method === "POST") {
+    const body = await parseBody(req);
+    const entry = body.entry || {};
+    const idToken = String(body.idToken || "");
+    let userId = String(entry.userId || "");
+    let name = String(entry.name || "Player");
+    let email = String(entry.email || "");
+    let picture = String(entry.picture || "");
+
+    if (idToken) {
+      try {
+        const tres = await fetch(
+          `https://oauth2.googleapis.com/tokeninfo?id_token=${encodeURIComponent(idToken)}`
+        );
+        if (tres.ok) {
+          const info = await tres.json();
+          if (info.sub) {
+            userId = info.sub;
+            name = info.name || info.given_name || name;
+            email = info.email || email;
+            picture = info.picture || picture;
+          }
+        }
+      } catch {
+        /* keep body identity */
+      }
+    }
+
+    const battleId = String(entry.battleId || "").trim();
+    const slots = Array.isArray(entry.slots)
+      ? entry.slots
+          .slice(0, 5)
+          .map((c) =>
+            String(c || "")
+              .toLowerCase()
+              .replace(/[^a-z]/g, "")
+          )
+      : [];
+    if (!userId) return send(res, 401, { error: "Sign in required" });
+    if (!battleId) return send(res, 400, { error: "battleId required" });
+    if (slots.length !== 5 || slots.some((c) => !c) || new Set(slots).size !== 5) {
+      return send(res, 400, { error: "Need 5 different country codes" });
+    }
+
+    // Lock edits once that qualifying stream has ended.
+    const live = readJson(LIVE_FILE, { streams: [] });
+    const streams = live.streams?.length
+      ? live.streams
+      : readJson(RANK_FILE, []);
+    const qual = streams.find((s) => s.id === battleId);
+    if (qual?.endedAt && qual.mode !== "final") {
+      return send(res, 403, { error: "Predictions locked — qualifying ended" });
+    }
+
+    const saved = {
+      userId,
+      name,
+      email,
+      picture,
+      battleId,
+      slots,
+      submittedAt: new Date().toISOString(),
+      locked: Boolean(entry.locked),
+    };
+    const store = readJson(PRED_FILE, { entries: [] });
+    const entries = Array.isArray(store.entries) ? store.entries : [];
+    const idx = entries.findIndex(
+      (e) => e.userId === userId && e.battleId === battleId
+    );
+    if (idx >= 0) entries[idx] = saved;
+    else entries.unshift(saved);
+    store.entries = entries.slice(0, 2000);
+    store.updatedAt = new Date().toISOString();
+    writeJson(PRED_FILE, store);
+    schedulePublicSync({ forcePredictions: true, github: true });
+    return send(res, 200, { ok: true, entry: saved });
   }
 
   if (url.pathname === "/api/announce" && req.method === "POST") {

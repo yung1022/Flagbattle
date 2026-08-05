@@ -25,8 +25,15 @@ Qualifying and Final are **separate livestreams**.
 |------|-----|
 | Arena | https://yung1022.github.io/Flagbattle/ |
 | Rankings history | https://yung1022.github.io/Flagbattle/rankings.html |
+| Predictions | https://yung1022.github.io/Flagbattle/predictions.html |
 | Final poll | https://yung1022.github.io/Flagbattle/poll.html |
 | Mobile go-live | https://yung1022.github.io/Flagbattle/control/ |
+
+### Predictions (Google)
+
+Viewers sign in with Google on [`predictions.html`](predictions.html), pick **5 countries** into win slots (**100 / 50 / 25 / 15 / 10**), and earn **+5** per pick that qualifies. Predictions lock when that battle’s qualifying ends; win points apply when the Final winner is known.
+
+Set a **Google Web Client ID** (OAuth → Web application) with authorized JavaScript origin `https://yung1022.github.io` in [`data/predictions-config.json`](data/predictions-config.json) (`googleClientId`), or env `GOOGLE_PREDICTIONS_CLIENT_ID`. The page can also save a client ID locally for testing.
 
 Stream ranking history is stored in [`data/rankings.json`](data/rankings.json) and published with Pages after each go-live.
 
