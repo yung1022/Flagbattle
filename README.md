@@ -31,7 +31,7 @@ Qualifying and Final are **separate livestreams**.
 
 ### Predictions (Google)
 
-Viewers sign in with Google on [`predictions.html`](predictions.html), pick **5 countries** into win slots (**100 / 50 / 25 / 15 / 10**), and earn **+5** per pick that qualifies. Predictions lock when that battle’s qualifying ends; win points apply when the Final winner is known.
+Viewers sign in with Google on [`predictions.html`](predictions.html), pick **5 countries** into win slots (**100 / 50 / 25 / 15 / 10**), and earn **+5** per pick that qualifies. Selecting is open **before qualifying starts** and again **after the Final ends** (until the next qualifying). The page shows **current** and **next** selecting session times.
 
 Set a **Google Web Client ID** (OAuth → Web application) with authorized JavaScript origin `https://yung1022.github.io` in [`data/predictions-config.json`](data/predictions-config.json) (`googleClientId`), or env `GOOGLE_PREDICTIONS_CLIENT_ID`. Only the site owner configures this — viewers cannot change it on the page.
 

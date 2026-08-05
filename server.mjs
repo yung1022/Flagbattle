@@ -734,14 +734,51 @@ async function handleApi(req, res, url) {
       return send(res, 400, { error: "Need 5 different country codes" });
     }
 
-    // Lock edits once that qualifying stream has ended.
-    const live = readJson(LIVE_FILE, { streams: [] });
-    const streams = live.streams?.length
-      ? live.streams
+    // Selecting only before qualifying / after Final — not mid-battle.
+    const liveFile = readJson(LIVE_FILE, { live: null, streams: [] });
+    const liveSnap = liveFile.live || null;
+    const streams = liveFile.streams?.length
+      ? liveFile.streams
       : readJson(RANK_FILE, []);
-    const qual = streams.find((s) => s.id === battleId);
-    if (qual?.endedAt && qual.mode !== "final") {
-      return send(res, 403, { error: "Predictions locked — qualifying ended" });
+
+    const phase = liveSnap?.phase || "";
+    const mode = liveSnap?.mode || "";
+    const preQualIntermission =
+      liveSnap?.streamId &&
+      phase === "intermission" &&
+      mode !== "final";
+    const battleLocked =
+      liveSnap?.streamId &&
+      phase &&
+      phase !== "finished" &&
+      phase !== "idle" &&
+      !preQualIntermission;
+
+    if (battleLocked) {
+      return send(res, 403, {
+        error: "Predictions locked — wait until after the Final (or before qualifying)",
+      });
+    }
+
+    if (battleId !== "upcoming") {
+      const qual = streams.find((s) => s.id === battleId);
+      if (qual?.endedAt && qual.mode !== "final") {
+        return send(res, 403, {
+          error: "Predictions locked — qualifying already ended for this battle",
+        });
+      }
+      // Qualifying already started (rounds recorded) without being finished.
+      if (
+        qual &&
+        !qual.endedAt &&
+        Array.isArray(qual.rounds) &&
+        qual.rounds.length > 0 &&
+        !preQualIntermission
+      ) {
+        return send(res, 403, {
+          error: "Predictions locked — qualifying already started",
+        });
+      }
     }
 
     const saved = {

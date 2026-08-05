@@ -353,6 +353,24 @@ button.btn:disabled { opacity: 0.55; cursor: wait; }
   object-fit: cover;
   border: 1px solid rgba(255,255,255,0.2);
 }
+.pred-session {
+  margin-bottom: 12px;
+  padding: 10px 12px;
+  border: 1px solid rgba(255,255,255,0.08);
+  background: rgba(7, 16, 24, 0.65);
+}
+.pred-session h3 {
+  margin: 0 0 4px;
+  font-family: var(--font-display);
+  letter-spacing: 0.06em;
+  font-size: 22px;
+}
+.pred-session.is-open {
+  border-color: rgba(46, 196, 182, 0.45);
+}
+.pred-session.is-closed {
+  border-color: rgba(255, 77, 109, 0.28);
+}
 .pred-rules {
   display: flex;
   flex-wrap: wrap;
