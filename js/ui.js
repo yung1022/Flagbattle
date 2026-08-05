@@ -1,4 +1,4 @@
-import { FlagBattleGame, CONFIG, flagSizeForCount } from "./game.js";
+import { FlagBattleGame, CONFIG, flagSizeForCount, IS_TEST_STREAM, TEST_STREAM } from "./game.js";
 import { COUNTRIES } from "./countries.js";
 import { fetchPoll } from "./store.js";
 import { siteBase as resolveSiteBase } from "./public.js";
@@ -337,6 +337,20 @@ function renderHud() {
     "qual-complete",
     game.phase === "qualifying_complete"
   );
+  document.body.classList.toggle("test-stream", IS_TEST_STREAM);
+  let badge = document.getElementById("test-stream-badge");
+  if (IS_TEST_STREAM) {
+    if (!badge) {
+      badge = document.createElement("div");
+      badge.id = "test-stream-badge";
+      badge.className = "test-stream-badge";
+      document.querySelector(".stage")?.appendChild(badge);
+    }
+    badge.textContent = `TEST · ${TEST_STREAM} · no save`;
+    badge.hidden = false;
+  } else if (badge) {
+    badge.hidden = true;
+  }
 
   if (els.roundMeta) {
     if (game.phase === "idle") els.roundMeta.textContent = "Hole circle · no damage";
@@ -521,6 +535,7 @@ function renderStreamLinks() {
 }
 
 function shouldShowStreamPoll() {
+  if (IS_TEST_STREAM) return false;
   if (!game.stream?.id) return false;
   if (game.streamMode !== "final") return false;
   return (

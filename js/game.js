@@ -5,6 +5,7 @@ import {
   setLiveSnapshot,
   initLocalPoll,
   fetchStreamsFromApi,
+  setPersistEnabled,
 } from "./store.js";
 import { resolveApiBase, pagesDataUrl } from "./public.js";
 import { nextLiveSlotUtc } from "./live-schedule.js";
@@ -13,13 +14,43 @@ import { nextLiveSlotUtc } from "./live-schedule.js";
  * @typedef {"idle" | "intermission" | "qualifying" | "qualifying_hold" | "between_rounds" | "final" | "qualifying_complete" | "finished"} Phase
  * @typedef {"qualifying" | "final"} StreamMode
  * @typedef {"hole" | "swiss" | "battle" | null} FinalStage
+ * @typedef {"qualifying" | "hole" | "swiss" | "final4" | null} TestStreamKind
  */
 
 const params = new URLSearchParams(location.search);
+
+/** Easy/teststream: qualifying | hole | swiss | final4 (no save / no config). */
+export function normalizeTestStream(raw) {
+  const v = String(raw ?? "")
+    .trim()
+    .toLowerCase();
+  if (v === "" || v === "1" || v === "true" || v === "qual" || v === "qualifying") {
+    return "qualifying";
+  }
+  if (v === "hole" || v === "final" || v === "final1" || v === "part1") return "hole";
+  if (v === "swiss" || v === "part2") return "swiss";
+  if (v === "final4" || v === "battle" || v === "last" || v === "part3") {
+    return "final4";
+  }
+  return "qualifying";
+}
+
+export const TEST_STREAM = params.has("teststream")
+  ? normalizeTestStream(params.get("teststream"))
+  : null;
+export const IS_TEST_STREAM = Boolean(TEST_STREAM);
+
+if (IS_TEST_STREAM) {
+  // Easy path: never write rankings / live / polls / local config.
+  setPersistEnabled(false);
+}
+
 const STREAM_MODE =
-  String(params.get("mode") || "qualifying").toLowerCase() === "final"
+  TEST_STREAM === "hole" || TEST_STREAM === "swiss" || TEST_STREAM === "final4"
     ? "final"
-    : "qualifying";
+    : String(params.get("mode") || "qualifying").toLowerCase() === "final"
+      ? "final"
+      : "qualifying";
 
 export const CONFIG = {
   qualifyingMs: 30 * 60 * 1000,
@@ -51,6 +82,21 @@ export const CONFIG = {
   uiThrottleMs: 250,
 };
 
+function applyEasyTestConfig() {
+  CONFIG.qualifyingMs = 90 * 1000;
+  CONFIG.intermissionMs = 4 * 1000;
+  CONFIG.betweenRoundMs = 500;
+  CONFIG.holeSpeed = 2.4;
+  CONFIG.holeWidth = 1.0;
+  CONFIG.maxSpeed = 1.45;
+  CONFIG.outwardForce = 0.5;
+  CONFIG.shrinkDurationSec = 14;
+  CONFIG.holeClosedSec = 2;
+  CONFIG.holeOpenSec = 8;
+  CONFIG.swissRounds = 2;
+  CONFIG.battleRate = 5;
+}
+
 if (params.has("demo")) {
   const sec = Number(params.get("demo")) || 45;
   CONFIG.qualifyingMs = sec * 1000;
@@ -65,6 +111,14 @@ if (params.has("demo")) {
   CONFIG.holeOpenSec = 10;
   CONFIG.swissRounds = 3;
   CONFIG.battleRate = 5;
+}
+
+if (IS_TEST_STREAM) {
+  applyEasyTestConfig();
+  if (params.has("demo")) {
+    const sec = Number(params.get("demo")) || 45;
+    CONFIG.qualifyingMs = sec * 1000;
+  }
 }
 
 function shuffle(arr) {
@@ -122,6 +176,8 @@ export class FlagBattleGame {
     this.streamMode = STREAM_MODE;
     /** @type {FinalStage} */
     this.finalStage = null;
+    /** @type {TestStreamKind} */
+    this.testStream = null;
     this.swissRound = 0;
     this.finalLiveAt = null;
     this._fallOrder = [];
@@ -157,6 +213,7 @@ export class FlagBattleGame {
     this.stream = null;
     this.streamMode = STREAM_MODE;
     this.finalStage = null;
+    this.testStream = null;
     this.swissRound = 0;
     this.finalLiveAt = null;
     this._fallOrder = [];
@@ -213,6 +270,14 @@ export class FlagBattleGame {
     this.phaseStartedAt = performance.now();
     this.qualifyingEndsAt = 0;
     this.streamMode = STREAM_MODE;
+    this.testStream = TEST_STREAM;
+
+    if (IS_TEST_STREAM) {
+      this._startTestStream(TEST_STREAM);
+      this._startLoop();
+      this._flushUi(true);
+      return;
+    }
 
     if (this.streamMode === "final") {
       await this._adoptScheduledFinalStream();
@@ -258,8 +323,87 @@ export class FlagBattleGame {
     this._flushUi(true);
   }
 
+  /** Easy teststream — synthetic field, short timings, zero persistence. */
+  _startTestStream(kind) {
+    const mode =
+      kind === "qualifying" ? "qualifying" : "final";
+    this.streamMode = mode;
+    this.stream = {
+      id: `test_${kind}_${Date.now().toString(36)}`,
+      mode,
+      status: "test",
+      startedAt: new Date().toISOString(),
+      endedAt: null,
+      scheduledAt: null,
+      rounds: [],
+      final: null,
+      qualified: [],
+      winner: null,
+      sourceStreamId: null,
+      testStream: kind,
+    };
+    this._emit("phase", `TESTSTREAM · ${kind} (easy · no save)`);
+
+    if (kind === "qualifying") {
+      this._publishLive();
+      this._beginIntermission("open");
+      return;
+    }
+
+    if (kind === "hole") {
+      // Start above Swiss cutoff so the hole stage actually runs.
+      this.qualified = this._syntheticField(24);
+      this.stream.qualified = this.qualified.map((q) => ({
+        code: q.code,
+        name: q.name,
+        img: q.img,
+      }));
+      this._publishLive();
+      this._beginFinalHole(this.qualified);
+      return;
+    }
+
+    if (kind === "swiss") {
+      this.qualified = this._syntheticField(CONFIG.swissCutoff);
+      this.stream.qualified = this.qualified.map((q) => ({
+        code: q.code,
+        name: q.name,
+        img: q.img,
+      }));
+      this._publishLive();
+      this._beginSwissFromHole(
+        this.qualified.map((c, i) => this._makeFighter(c, i, this.qualified.length))
+      );
+      return;
+    }
+
+    // final4 — last-flag battling
+    this.qualified = this._syntheticField(4);
+    this.stream.qualified = this.qualified.map((q) => ({
+      code: q.code,
+      name: q.name,
+      img: q.img,
+    }));
+    this._swissPool = this.qualified.map((q) => ({ ...q, points: 3 }));
+    this._publishLive();
+    this._beginFinalBattle(this.qualified.map((q) => ({ ...q, points: 3 })));
+  }
+
+  _syntheticField(n) {
+    return shuffle(COUNTRIES)
+      .slice(0, Math.min(n, COUNTRIES.length))
+      .map((c) => ({
+        code: c.code,
+        name: c.name,
+        img: flagUrl(c.code, 80),
+        id: c.code,
+        points: 0,
+      }));
+  }
+
   /** Reuse the Final stream created when Qualifying ended. */
   async _adoptScheduledFinalStream() {
+    if (IS_TEST_STREAM) return;
     let streams = [];
     try {
       await resolveApiBase();
@@ -313,6 +457,10 @@ export class FlagBattleGame {
 
   /** Pull qualifiers from the latest finished qualifying livestream. */
   async _loadQualifiersFromHistory() {
+    if (IS_TEST_STREAM) {
+      this.qualified = this._syntheticField(24);
+      return;
+    }
     let streams = [];
     try {
       await resolveApiBase();

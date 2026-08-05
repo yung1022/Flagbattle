@@ -273,3 +273,19 @@ a.btn.primary {
 a {
   color: var(--teal);
 }
+
+.subhead {
+  margin: 22px 0 8px;
+  font-family: var(--font-display);
+  letter-spacing: 0.06em;
+  font-size: 22px;
+}
+
+.test-actions {
+  grid-template-columns: 1fr 1fr;
+}
+
+.test-actions .btn {
+  font-size: 12px;
+  padding: 12px 8px;
+}

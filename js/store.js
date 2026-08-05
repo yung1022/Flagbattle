@@ -5,6 +5,17 @@ import { apiFetch, pagesDataUrl, resolveApiBase } from "./public.js";
 const STREAMS_KEY = "flagbattle.streams.v1";
 const LIVE_KEY = "flagbattle.live.v1";
 
+/** When false (Easy teststream), skip localStorage + API writes entirely. */
+let persistEnabled = true;
+
+export function setPersistEnabled(on) {
+  persistEnabled = Boolean(on);
+}
+
+export function isPersistEnabled() {
+  return persistEnabled;
+}
+
 export function newStreamId() {
   return `fb_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 8)}`;
 }
@@ -18,6 +29,7 @@ export function listStreams() {
 }
 
 export function saveStream(stream) {
+  if (!persistEnabled) return;
   const all = listStreams().filter((s) => s.id !== stream.id);
   all.unshift(stream);
   localStorage.setItem(STREAMS_KEY, JSON.stringify(all.slice(0, 40)));
@@ -29,6 +41,7 @@ export function getStream(id) {
 }
 
 export function setLiveSnapshot(snap) {
+  if (!persistEnabled) return;
   localStorage.setItem(LIVE_KEY, JSON.stringify(snap));
   syncLive({ type: "live", live: snap }).catch(() => {});
 }
@@ -171,6 +184,15 @@ export function getLocalPoll(streamId) {
 }
 
 export function initLocalPoll(streamId, options) {
+  if (!persistEnabled) {
+    return {
+      streamId,
+      options,
+      votes: Object.fromEntries(options.map((o) => [o.code, 0])),
+      voters: {},
+      updatedAt: Date.now(),
+    };
+  }
   const prev = getLocalPoll(streamId);
   const sameOptions =
     Array.isArray(prev?.options) &&
