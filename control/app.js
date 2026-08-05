@@ -81,9 +81,23 @@ function init() {
     }
   }
 
-  // Fix relative arena link when served from /control/
+  // Fix relative arena / teststream links when served from /control/
   const arena = $("btn-open-arena");
   arena.href = new URL("../?stream=1&autostart=1&mobile=1", location.href).href;
+  const tests = [
+    ["btn-test-qual", "qualifying"],
+    ["btn-test-hole", "hole"],
+    ["btn-test-swiss", "swiss"],
+    ["btn-test-final4", "final4"],
+  ];
+  for (const [id, kind] of tests) {
+    const el = $(id);
+    if (!el) continue;
+    el.href = new URL(
+      `../?stream=1&autostart=1&mobile=1&teststream=${kind}`,
+      location.href
+    ).href;
+  }
 
   loadHighlightStreams();
 }

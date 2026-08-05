@@ -937,3 +937,24 @@ body.stream-mode .board-track {
 body.stream-mode:not(.mobile-mode) .mobile-fs-btn {
   display: none;
 }
+
+/* Easy teststream badge — dry-run, nothing persisted */
+.test-stream-badge {
+  position: absolute;
+  top: calc(var(--safe-top) + 1.5%);
+  right: calc(var(--safe-x) + 2%);
+  z-index: 20;
+  padding: 6px 10px;
+  border: 1px solid rgba(230, 184, 74, 0.55);
+  background: rgba(3, 7, 11, 0.82);
+  color: var(--gold);
+  font-weight: 800;
+  font-size: clamp(11px, 2.6vw, 14px);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  pointer-events: none;
+}
+
+body.test-stream .stream-poll {
+  display: none !important;
+}
