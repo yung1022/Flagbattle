@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>FLAG BATTLE — Predictions</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Manrope:wght@600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="css/site.css" />
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+  </head>
+  <body>
+    <main class="wrap wrap-wide">
+      <nav class="nav">
+        <a href="./">Arena</a>
+        <a href="rankings.html">Rankings</a>
+        <a href="poll.html">Final poll</a>
+        <a href="control/">Mobile go-live</a>
+      </nav>
+
+      <div class="title-row">
+        <h1>PREDICTIONS</h1>
+        <button type="button" class="btn" id="btn-refresh">Refresh</button>
+      </div>
+      <p class="lede">
+        Sign in with Google, pick <strong>5 countries</strong>, and assign them to
+        win slots. If your pick <strong>wins</strong> the battle you score that
+        slot’s points. Each of your picks that <strong>qualifies</strong> adds
+        <strong>+5</strong>.
+      </p>
+
+      <div class="card pred-auth" id="auth-card">
+        <h2>Account</h2>
+        <div id="auth-signed-out">
+          <p class="meta" id="auth-hint">Loading Google Sign-In…</p>
+          <div id="google-btn"></div>
+          <label class="field pred-client-field" id="client-id-field" hidden>
+            <span>Google Web Client ID</span>
+            <input
+              id="google-client-id"
+              autocomplete="off"
+              placeholder="….apps.googleusercontent.com"
+            />
+            <button type="button" class="btn" id="btn-save-client">Save &amp; reload</button>
+          </label>
+        </div>
+        <div id="auth-signed-in" hidden>
+          <div class="pred-user">
+            <img id="user-pic" alt="" width="40" height="40" hidden />
+            <div>
+              <strong id="user-name">—</strong>
+              <div class="meta" id="user-email"></div>
+            </div>
+            <button type="button" class="btn" id="btn-sign-out">Sign out</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>Battle</h2>
+        <div class="meta" id="battle-meta">Loading…</div>
+        <p class="pred-rules">
+          <span><strong>Slot 1</strong> · 100 pts</span>
+          <span><strong>Slot 2</strong> · 50 pts</span>
+          <span><strong>Slot 3</strong> · 25 pts</span>
+          <span><strong>Slot 4</strong> · 15 pts</span>
+          <span><strong>Slot 5</strong> · 10 pts</span>
+          <span><strong>Qualify</strong> · +5 each</span>
+        </p>
+      </div>
+
+      <div class="card" id="slots-card">
+        <h2>Your slots</h2>
+        <p class="meta" id="slots-hint">
+          Tap a slot, then tap a country below. Predictions lock when qualifying ends.
+        </p>
+        <div class="pred-slots" id="slots"></div>
+        <div class="pred-actions">
+          <button type="button" class="btn primary" id="btn-submit" disabled>
+            Save prediction
+          </button>
+          <button type="button" class="btn" id="btn-clear" disabled>Clear</button>
+        </div>
+        <div class="meta" id="submit-status"></div>
+        <div class="pred-score" id="my-score" hidden></div>
+      </div>
+
+      <div class="card" id="picker-card">
+        <h2>Pick countries</h2>
+        <label class="search-field">
+          <span>Search</span>
+          <input id="country-search" type="search" placeholder="Name or code…" autocomplete="off" />
+        </label>
+        <div class="pred-picker" id="picker"></div>
+      </div>
+
+      <div class="card">
+        <h2>Leaderboard</h2>
+        <div class="meta" id="board-meta">—</div>
+        <div id="leaderboard"></div>
+      </div>
+    </main>
+
+    <script type="module">
+      import { COUNTRIES, flagUrl } from "./js/countries.js";
+      import { resolveApiBase } from "./js/public.js";
+        import { fetchStreamsFromApi, listStreams, fetchLiveFromApi } from "./js/store.js";
+      import { pairBattles } from "./js/rankings-stats.js";
+      import {
+        SLOT_POINTS,
+        QUALIFY_BONUS,
+        emptySlots,
+        normalizeSlots,
+        slotsAreComplete,
+        scorePrediction,
+        predictionBattleTarget,
+        battleResultCodes,
+      } from "./js/predictions-score.js";
+      import {
+        loadSession,
+        saveSession,
+        clearSession,
+        fetchPredictionsConfig,
+        fetchPredictionsBoard,
+        submitPrediction,
+        getLocalPrediction,
+        buildLeaderboard,
+        decodeGoogleCredential,
+      } from "./js/predictions-store.js";
+
+      const $ = (id) => document.getElementById(id);
+      let session = loadSession();
+      let target = null;
+      let slots = emptySlots();
+      let activeSlot = 0;
+      let locked = false;
+      let board = { entries: [] };
+      let clientId = "";
+
+      function setStatus(el, text) {
+        if (el) el.textContent = text;
+      }
+
+      async function resolveClientId(config) {
+        const params = new URLSearchParams(location.search);
+        const fromParam = params.get("client") || params.get("googleClientId");
+        if (fromParam) return String(fromParam).trim();
+        try {
+          const stored = localStorage.getItem("flagbattle.predictions.clientId");
+          if (stored) return stored.trim();
+        } catch {
+          /* ignore */
+        }
+        return String(config?.googleClientId || "").trim();
+      }
+
+      function renderAuth() {
+        const out = $("auth-signed-out");
+        const inn = $("auth-signed-in");
+        if (session?.userId) {
+          out.hidden = true;
+          inn.hidden = false;
+          $("user-name").textContent = session.name || "Player";
+          $("user-email").textContent = session.email || session.userId;
+          const pic = $("user-pic");
+          if (session.picture) {
+            pic.src = session.picture;
+            pic.hidden = false;
+          } else {
+            pic.hidden = true;
+          }
+        } else {
+          out.hidden = false;
+          inn.hidden = true;
+        }
+        syncActionButtons();
+      }
+
+      function initGoogleButton() {
+        const hint = $("auth-hint");
+        const field = $("client-id-field");
+        if (!clientId) {
+          hint.textContent =
+            "Add a Google Web Client ID (OAuth → Web application) with origin https://yung1022.github.io, then save below — or set data/predictions-config.json.";
+          field.hidden = false;
+          return;
+        }
+        field.hidden = true;
+        hint.textContent = "Sign in to save predictions across devices when the live API is up.";
+        const tryRender = () => {
+          if (!window.google?.accounts?.id) {
+            setTimeout(tryRender, 200);
+            return;
+          }
+          window.google.accounts.id.initialize({
+            client_id: clientId,
+            callback: (resp) => {
+              const user = decodeGoogleCredential(resp.credential);
+              if (!user?.userId) {
+                setStatus($("submit-status"), "Google sign-in failed.");
+                return;
+              }
+              session = user;
+              saveSession(session);
+              renderAuth();
+              loadMine();
+              renderAll();
+            },
+            auto_select: false,
+          });
+          $("google-btn").innerHTML = "";
+          window.google.accounts.id.renderButton($("google-btn"), {
+            theme: "filled_black",
+            size: "large",
+            shape: "rectangular",
+            text: "signin_with",
+          });
+        };
+        tryRender();
+      }
+
+      function syncActionButtons() {
+        const canEdit = Boolean(session?.userId) && !locked && target?.battleId;
+        $("btn-submit").disabled = !canEdit || !slotsAreComplete(slots);
+        $("btn-clear").disabled = !canEdit;
+        $("picker-card").hidden = locked || !session?.userId;
+      }
+
+      function renderSlots() {
+        const root = $("slots");
+        root.innerHTML = "";
+        slots.forEach((code, i) => {
+          const btn = document.createElement("button");
+          btn.type = "button";
+          btn.className =
+            "pred-slot" +
+            (activeSlot === i ? " active" : "") +
+            (code ? " filled" : "");
+          btn.disabled = locked || !session?.userId;
+          const country = COUNTRIES.find((c) => c.code === code);
+          btn.innerHTML = `
+            <span class="pred-slot-pts">${SLOT_POINTS[i]} pts</span>
+            <span class="pred-slot-num">Slot ${i + 1}</span>
+            ${
+              code
+                ? `<img src="${flagUrl(code, 80)}" alt="" /><strong>${
+                    country?.name || code.toUpperCase()
+                  }</strong>`
+                : `<span class="pred-slot-empty">Tap to fill</span>`
+            }
+          `;
+          btn.addEventListener("click", () => {
+            if (locked || !session?.userId) return;
+            activeSlot = i;
+            renderSlots();
+          });
+          root.appendChild(btn);
+        });
+        syncActionButtons();
+      }
+
+      function renderPicker(filter = "") {
+        const q = filter.trim().toLowerCase();
+        const root = $("picker");
+        root.innerHTML = "";
+        const used = new Set(slots.filter(Boolean));
+        const list = COUNTRIES.filter((c) => {
+          if (!q) return true;
+          return (
+            c.name.toLowerCase().includes(q) ||
+            c.code.toLowerCase().includes(q)
+          );
+        }).slice(0, q ? 194 : 60);
+
+        for (const c of list) {
+          const btn = document.createElement("button");
+          btn.type = "button";
+          btn.className =
+            "pred-country" + (used.has(c.code) ? " used" : "");
+          btn.disabled = locked || !session?.userId || used.has(c.code);
+          btn.innerHTML = `<img src="${flagUrl(c.code, 40)}" alt="" /><span>${c.name}</span>`;
+          btn.title = c.code.toUpperCase();
+          btn.addEventListener("click", () => assignCountry(c.code));
+          root.appendChild(btn);
+        }
+      }
+
+      function assignCountry(code) {
+        if (locked || !session?.userId) return;
+        const next = normalizeSlots(slots);
+        // Remove if already in another slot
+        for (let i = 0; i < next.length; i++) {
+          if (next[i] === code) next[i] = null;
+        }
+        next[activeSlot] = code;
+        slots = next;
+        // Advance to next empty slot
+        const empty = slots.findIndex((c) => !c);
+        activeSlot = empty >= 0 ? empty : Math.min(activeSlot + 1, 4);
+        renderSlots();
+        renderPicker($("country-search").value);
+        renderMyScore();
+      }
+
+      function renderBattle() {
+        if (!target) {
+          setStatus(
+            $("battle-meta"),
+            "No battle yet. Predictions open when a qualifying stream starts."
+          );
+          locked = true;
+          $("slots-hint").textContent = "Waiting for the next battle.";
+          return;
+        }
+        const parts = [
+          target.label,
+          target.status === "open"
+            ? "Qualifying open — submit now"
+            : target.status === "pending-final"
+              ? "Qualifying done — Final pending (locked)"
+              : "Finished battle",
+          target.qualified?.length
+            ? `${target.qualified.length} qualified`
+            : null,
+          target.winner ? `Winner · ${target.winner.name}` : null,
+        ].filter(Boolean);
+        setStatus($("battle-meta"), parts.join(" · "));
+        locked = Boolean(target.locked);
+        $("slots-hint").textContent = locked
+          ? "Locked — qualifying has ended. Scores update when the Final finishes."
+          : "Tap a slot, then tap a country. You can change picks until qualifying ends.";
+      }
+
+      function renderMyScore() {
+        const box = $("my-score");
+        if (!target || !slotsAreComplete(slots)) {
+          box.hidden = true;
+          return;
+        }
+        const score = scorePrediction(slots, battleResultCodes(target));
+        box.hidden = false;
+        const winLine = score.win
+          ? `Win slot ${score.winSlot}: +${score.win}`
+          : target.winner
+            ? "Win: 0 (winner not in your slots)"
+            : "Win: pending Final";
+        const qualLine = target.qualified?.length
+          ? `Qualify: +${score.qualify} (${score.qualifiedHits.length} × ${QUALIFY_BONUS})`
+          : "Qualify: pending";
+        box.innerHTML = `<strong>Your score · ${score.total}</strong><div class="meta">${winLine} · ${qualLine}</div>`;
+      }
+
+      function renderLeaderboard() {
+        const rows = buildLeaderboard(board, target);
+        $("board-meta").textContent = target
+          ? `${rows.length} player${rows.length === 1 ? "" : "s"} · battle ${target.battleId}`
+          : "No battle selected";
+        const root = $("leaderboard");
+        root.innerHTML = "";
+        if (!rows.length) {
+          root.innerHTML = `<p class="empty">No predictions yet for this battle.</p>`;
+          return;
+        }
+        rows.forEach((row, i) => {
+          const el = document.createElement("div");
+          el.className = "pred-board-row";
+          const flags = (row.slots || [])
+            .map(
+              (code) =>
+                `<img src="${flagUrl(code, 40)}" alt="${code}" title="${code}" />`
+            )
+            .join("");
+          el.innerHTML = `
+            <span class="rank-num">${i + 1}</span>
+            ${
+              row.picture
+                ? `<img class="pred-avatar" src="${row.picture}" alt="" />`
+                : `<span class="pred-avatar pred-avatar-fallback"></span>`
+            }
+            <div>
+              <strong>${row.name || "Player"}</strong>
+              <div class="pred-mini-flags">${flags}</div>
+            </div>
+            <div class="pred-board-pts">
+              <strong>${row.score.total}</strong>
+              <span class="meta">W ${row.score.win} · Q ${row.score.qualify}</span>
+            </div>
+          `;
+          root.appendChild(el);
+        });
+      }
+
+      function loadMine() {
+        if (!session?.userId || !target?.battleId) return;
+        const mine = getLocalPrediction(session.userId, target.battleId);
+        if (mine?.slots) {
+          slots = normalizeSlots(mine.slots);
+        }
+      }
+
+      function renderAll() {
+        renderBattle();
+        renderSlots();
+        renderPicker($("country-search").value);
+        renderMyScore();
+        renderLeaderboard();
+        syncActionButtons();
+      }
+
+      async function refresh() {
+        await resolveApiBase();
+        const streams =
+          (await fetchStreamsFromApi()) || listStreams() || [];
+        const liveWrap = await fetchLiveFromApi();
+        const liveSnap = liveWrap?.live || null;
+        const battles = pairBattles(streams);
+        target = predictionBattleTarget(battles, liveSnap);
+        board = await fetchPredictionsBoard();
+        loadMine();
+        renderAll();
+      }
+
+      $("btn-sign-out").addEventListener("click", () => {
+        session = null;
+        clearSession();
+        slots = emptySlots();
+        renderAuth();
+        renderAll();
+      });
+
+      $("btn-clear").addEventListener("click", () => {
+        if (locked) return;
+        slots = emptySlots();
+        activeSlot = 0;
+        renderSlots();
+        renderPicker($("country-search").value);
+        renderMyScore();
+        setStatus($("submit-status"), "Cleared.");
+      });
+
+      $("btn-submit").addEventListener("click", async () => {
+        if (!session || !target?.battleId || locked) return;
+        $("btn-submit").disabled = true;
+        try {
+          await submitPrediction({
+            session,
+            battleId: target.battleId,
+            slots,
+            locked: false,
+          });
+          board = await fetchPredictionsBoard();
+          setStatus($("submit-status"), "Saved ✓");
+          renderLeaderboard();
+          renderMyScore();
+        } catch (err) {
+          setStatus($("submit-status"), err.message || String(err));
+        } finally {
+          syncActionButtons();
+        }
+      });
+
+      $("country-search").addEventListener("input", (e) => {
+        renderPicker(e.target.value);
+      });
+
+      $("btn-refresh").addEventListener("click", () => refresh());
+
+      $("btn-save-client").addEventListener("click", () => {
+        const v = $("google-client-id").value.trim();
+        if (!v) return;
+        localStorage.setItem("flagbattle.predictions.clientId", v);
+        location.reload();
+      });
+
+      (async () => {
+        const config = await fetchPredictionsConfig();
+        clientId = await resolveClientId(config);
+        if (clientId) $("google-client-id").value = clientId;
+        renderAuth();
+        initGoogleButton();
+        await refresh();
+      })();
+    </script>
+  </body>
+</html>
