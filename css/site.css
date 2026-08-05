@@ -353,20 +353,6 @@ button.btn:disabled { opacity: 0.55; cursor: wait; }
   object-fit: cover;
   border: 1px solid rgba(255,255,255,0.2);
 }
-.pred-client-field {
-  display: grid;
-  gap: 8px;
-  margin-top: 12px;
-}
-.pred-client-field input {
-  border: 1px solid var(--line);
-  background: #071018;
-  color: var(--ink);
-  font: inherit;
-  font-weight: 700;
-  padding: 10px 12px;
-  width: 100%;
-}
 .pred-rules {
   display: flex;
   flex-wrap: wrap;
