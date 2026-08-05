@@ -89,7 +89,10 @@ function ensureFighterEl(f) {
   el = document.createElement("div");
   el.className = "fighter";
   el.dataset.id = f.id;
-  el.innerHTML = `<img alt="${f.name}" src="${f.img}" loading="lazy" decoding="async" />`;
+  el.innerHTML = `
+    <img alt="${f.name}" src="${f.img}" loading="lazy" decoding="async" />
+    <div class="hp-bar" hidden><i></i></div>
+  `;
   els.arena.appendChild(el);
   fighterEls.set(f.id, el);
   return el;
@@ -198,6 +201,25 @@ function syncArena() {
     if (el.classList.contains("falling") !== f.falling) {
       el.classList.toggle("falling", f.falling);
     }
+
+    const bar = el.querySelector(".hp-bar");
+    if (bar) {
+      const showHp =
+        (game.finalStage === "swiss" || game.finalStage === "battle") &&
+        f.alive &&
+        !f.falling;
+      bar.hidden = !showHp;
+      if (showHp) {
+        const maxHp = f.maxHp || CONFIG.baseHp || 100;
+        const pct = Math.max(0, Math.min(100, ((f.hp ?? maxHp) / maxHp) * 100));
+        const fill = bar.querySelector("i");
+        if (fill) {
+          fill.style.width = `${pct}%`;
+          bar.classList.toggle("low", pct <= 30);
+          bar.classList.toggle("mid", pct > 30 && pct <= 60);
+        }
+      }
+    }
   }
 
   if (fighterEls.size !== visibleIds.size) {
@@ -227,8 +249,8 @@ function renderBoard() {
       els.boardLabel.textContent = "CHAMPION";
       els.boardMeta.textContent = game.winner.name;
     } else if (game.finalStage === "swiss") {
-      els.boardLabel.textContent = "SWISS BATTLING";
-      els.boardMeta.textContent = `${flags.length} in · round ${game.swissRound + 1}`;
+      els.boardLabel.textContent = "SWISS 1V1";
+      els.boardMeta.textContent = `Round ${game.swissRound + 1}/${CONFIG.swissRounds}`;
     } else if (game.finalStage === "battle") {
       els.boardLabel.textContent = "LAST FLAG STANDING";
       els.boardMeta.textContent = `${flags.length} left`;
@@ -364,13 +386,13 @@ function renderHud() {
     else if (game.phase === "qualifying_complete")
       els.roundMeta.textContent = "Finalists locked · see overlay";
     else if (inFinal && game.finalStage === "swiss")
-      els.roundMeta.textContent = `Swiss · Round ${game.swissRound + 1}/${CONFIG.swissRounds}`;
+      els.roundMeta.textContent = `Swiss 1v1 · Round ${game.swissRound + 1}/${CONFIG.swissRounds}`;
     else if (inFinal && game.finalStage === "battle")
-      els.roundMeta.textContent = `Final battle · Round ${game.round}`;
+      els.roundMeta.textContent = `Final battle · 100 HP · −${CONFIG.hitDamage}/hit`;
     else if (inFinal && (game.phase === "final" || game.phase === "finished"))
       els.roundMeta.textContent =
         game.finalStage === "hole" || !game.finalStage
-          ? `Final hole · Round ${game.round}`
+          ? `Final hole · reset on fall · Round ${game.round}`
           : `Final · Round ${game.round}`;
     else if (game.phase === "between_rounds" && !inFinal)
       els.roundMeta.textContent = `Qualifying · Round ${game.round}`;
@@ -386,7 +408,7 @@ function renderHud() {
     els.timer.hidden = true;
   } else if (inFinal && (game.phase === "final" || game.phase === "between_rounds")) {
     if (game.finalStage === "swiss") {
-      els.phaseText.textContent = "Swiss Battling";
+      els.phaseText.textContent = "Swiss 1v1";
       els.timer.textContent = `${fighting} LEFT`;
     } else if (game.finalStage === "battle") {
       els.phaseText.textContent = "Last Flag Standing";
@@ -431,7 +453,7 @@ function renderHud() {
       els.intermissionTitle.textContent = opening ? "GET READY" : "FINAL INCOMING";
       els.intermissionSub.textContent = opening
         ? `${COUNTRIES.length} countries · hole circle qualifying`
-        : `${game.qualified.length} qualified · hole → Swiss → last standing`;
+        : `${game.qualified.length} qualified · hole → Swiss 1v1 → last standing`;
       els.intermissionTimer.textContent = formatMs(game.intermissionRemainingMs());
     }
   }

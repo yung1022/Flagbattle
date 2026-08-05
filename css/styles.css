@@ -418,6 +418,38 @@ body.final-mode .timer {
   transition: opacity 0.35s ease;
 }
 
+.fighter .hp-bar {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: calc(100% + 3px);
+  height: 4px;
+  background: rgba(0, 0, 0, 0.55);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.fighter .hp-bar[hidden] {
+  display: none !important;
+}
+
+.fighter .hp-bar i {
+  display: block;
+  height: 100%;
+  width: 100%;
+  background: #3dd68c;
+  transform-origin: left center;
+}
+
+.fighter .hp-bar.mid i {
+  background: #e0b14a;
+}
+
+.fighter .hp-bar.low i {
+  background: #ff4d6d;
+}
+
 /* —— On-stream poll / rankings (readable on YouTube) —— */
 .stream-links {
   position: absolute;
