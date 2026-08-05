@@ -33,6 +33,7 @@ const LIVE_FILE = path.join(DATA, "live.json");
 const RANK_FILE = path.join(DATA, "rankings.json");
 const PRED_FILE = path.join(DATA, "predictions.json");
 const PRED_CONFIG_FILE = path.join(PUBLIC_DATA, "predictions-config.json");
+const PRED_META_FILE = path.join(PUBLIC_DATA, "predictions-meta.json");
 const POLL_DIR = path.join(DATA, "polls");
 const CHANNEL_CACHE = path.join(DATA, "channel.json");
 
@@ -141,6 +142,79 @@ function publicPollRel(streamId) {
   return `data/polls/${safe}.json`;
 }
 
+/** Drop per-round rankings so predictions can load without multi-MB JSON. */
+function slimCountry(c) {
+  if (!c || typeof c !== "object") return null;
+  return {
+    code: c.code,
+    name: c.name,
+    img: c.img,
+  };
+}
+
+function slimStreamForPredictions(s) {
+  if (!s || typeof s !== "object") return null;
+  return {
+    id: s.id,
+    title: s.title,
+    mode: s.mode,
+    startedAt: s.startedAt,
+    endedAt: s.endedAt,
+    winner: slimCountry(s.winner),
+    qualified: Array.isArray(s.qualified)
+      ? s.qualified.map(slimCountry).filter(Boolean)
+      : undefined,
+    // Preserve lengths only — used by battle pairing / lock heuristics.
+    rounds: Array.isArray(s.rounds) ? s.rounds.map(() => ({})) : undefined,
+    final: s.final
+      ? {
+          at: s.final.at,
+          ranking: Array.isArray(s.final.ranking) ? [{}] : undefined,
+          winner: slimCountry(s.final.winner),
+        }
+      : undefined,
+  };
+}
+
+function buildPredictionsMeta(liveDoc = null) {
+  const live = liveDoc || readJson(LIVE_FILE, { live: null, streams: [] });
+  const streamsRaw = live.streams?.length
+    ? live.streams
+    : readJson(RANK_FILE, []);
+  const streams = (Array.isArray(streamsRaw) ? streamsRaw : [])
+    .slice(-40)
+    .map(slimStreamForPredictions)
+    .filter(Boolean);
+  const snap = live.live || null;
+  return {
+    updatedAt: new Date().toISOString(),
+    api: publicApi || live.api || null,
+    streams,
+    live: snap
+      ? {
+          streamId: snap.streamId || null,
+          title: snap.title || null,
+          mode: snap.mode || null,
+          phase: snap.phase || null,
+          startedAt: snap.startedAt || null,
+          intermissionRemainingMs: snap.intermissionRemainingMs ?? null,
+          qualifyingRemainingMs: snap.qualifyingRemainingMs ?? null,
+          qualified: Array.isArray(snap.qualified)
+            ? snap.qualified.map(slimCountry).filter(Boolean)
+            : [],
+          winner: slimCountry(snap.winner),
+          updatedAt: snap.updatedAt || null,
+        }
+      : null,
+  };
+}
+
+function writePredictionsMeta(liveDoc = null) {
+  const meta = buildPredictionsMeta(liveDoc);
+  writeJson(PRED_META_FILE, meta);
+  return meta;
+}
+
 /** Trailing debounce for local data/ mirrors + rare GitHub publishes. */
 const LOCAL_SYNC_MS = Number(process.env.LOCAL_SYNC_DEBOUNCE_MS || 2_000);
 const GITHUB_SYNC_MS = Number(process.env.GITHUB_SYNC_DEBOUNCE_MS || 90_000);
@@ -193,6 +267,7 @@ function flushLocalPublicData() {
     api: publicApi,
     updatedAt: Date.now(),
   };
+  const wroteLiveOrRank = dirtyLive || dirtyRank;
 
   if (dirtyLive) {
     dirtyLive = false;
@@ -206,6 +281,10 @@ function flushLocalPublicData() {
       : readJson(RANK_FILE, []);
     writeJson(path.join(PUBLIC_DATA, "rankings.json"), streams);
     writeJson(RANK_FILE, streams);
+  }
+
+  if (wroteLiveOrRank) {
+    writePredictionsMeta(live);
   }
 
   if (dirtyPredictions) {
@@ -235,8 +314,11 @@ function flushGithubPublicData() {
     updatedAt: Date.now(),
   };
 
+  let publishPredMeta = false;
+
   if (githubLive) {
     githubLive = false;
+    publishPredMeta = true;
     writeJson(path.join(PUBLIC_DATA, "live.json"), payload);
     enqueueGithubFile(
       "data/live.json",
@@ -247,6 +329,7 @@ function flushGithubPublicData() {
 
   if (githubRank && streamFinished) {
     githubRank = false;
+    publishPredMeta = true;
     const streams = live.streams?.length
       ? live.streams
       : readJson(RANK_FILE, []);
@@ -259,6 +342,15 @@ function flushGithubPublicData() {
   } else if (githubRank && !streamFinished) {
     // Defer until a finished stream is present.
     githubRank = true;
+  }
+
+  if (publishPredMeta) {
+    const meta = writePredictionsMeta(live);
+    enqueueGithubFile(
+      "data/predictions-meta.json",
+      JSON.stringify(meta),
+      `chore(data): update predictions meta ${new Date().toISOString()}`
+    );
   }
 
   if (githubPredictions) {
@@ -439,6 +531,10 @@ seedFromPublicData();
 
 async function handleApi(req, res, url) {
   if (req.method === "OPTIONS") return send(res, 204, "");
+
+  if (url.pathname === "/api/health" && req.method === "GET") {
+    return send(res, 200, { ok: true, api: publicApi, updatedAt: Date.now() });
+  }
 
   if (url.pathname === "/api/live" && req.method === "GET") {
     const cur = readJson(LIVE_FILE, { live: null, streams: [] });
@@ -676,6 +772,10 @@ async function handleApi(req, res, url) {
         cfg.googleClientId ||
         "",
     });
+  }
+
+  if (url.pathname === "/api/predictions/meta" && req.method === "GET") {
+    return send(res, 200, buildPredictionsMeta());
   }
 
   if (url.pathname === "/api/predictions" && req.method === "GET") {

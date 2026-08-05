@@ -106,8 +106,6 @@
 
     <script type="module">
       import { COUNTRIES, flagUrl } from "./js/countries.js";
-      import { resolveApiBase } from "./js/public.js";
-      import { fetchStreamsFromApi, listStreams, fetchLiveFromApi } from "./js/store.js";
       import { pairBattles } from "./js/rankings-stats.js";
       import {
         SLOT_POINTS,
@@ -126,6 +124,7 @@
         saveSession,
         clearSession,
         fetchPredictionsConfig,
+        fetchPredictionContext,
         fetchPredictionsBoard,
         submitPrediction,
         getLocalPrediction,
@@ -143,6 +142,7 @@
       let board = { entries: [] };
       let clientId = "";
       let tickTimer = null;
+      let refreshing = false;
 
       function setStatus(el, text) {
         if (el) el.textContent = text;
@@ -183,9 +183,16 @@
           return;
         }
         hint.textContent = "Sign in to save predictions across devices when the live API is up.";
+        let tries = 0;
         const tryRender = () => {
           if (!window.google?.accounts?.id) {
-            setTimeout(tryRender, 200);
+            tries += 1;
+            if (tries > 40) {
+              hint.textContent =
+                "Could not load Google Sign-In. Disable blockers or retry later.";
+              return;
+            }
+            setTimeout(tryRender, 250);
             return;
           }
           window.google.accounts.id.initialize({
@@ -439,17 +446,29 @@
       }
 
       async function refresh() {
-        await resolveApiBase();
-        const streams =
-          (await fetchStreamsFromApi()) || listStreams() || [];
-        const liveWrap = await fetchLiveFromApi();
-        const liveSnap = liveWrap?.live || null;
-        const battles = pairBattles(streams);
-        predSession = resolvePredictionSession(battles, liveSnap);
-        target = predSession.target;
-        board = await fetchPredictionsBoard();
-        loadMine();
-        renderAll();
+        if (refreshing) return;
+        refreshing = true;
+        const btn = $("btn-refresh");
+        if (btn) btn.disabled = true;
+        setStatus($("battle-meta"), "Loading battle data…");
+        try {
+          const ctx = await fetchPredictionContext();
+          const battles = pairBattles(ctx.streams);
+          predSession = resolvePredictionSession(battles, ctx.liveSnap);
+          target = predSession.target;
+          board = ctx.board;
+          loadMine();
+          renderAll();
+        } catch (err) {
+          console.error(err);
+          setStatus(
+            $("battle-meta"),
+            `Could not load data: ${err.message || err}`
+          );
+        } finally {
+          refreshing = false;
+          if (btn) btn.disabled = false;
+        }
       }
 
       function startTicker() {
@@ -487,7 +506,11 @@
             slots,
             locked: false,
           });
-          board = await fetchPredictionsBoard();
+          try {
+            board = await fetchPredictionsBoard();
+          } catch {
+            /* local merge still works */
+          }
           setStatus($("submit-status"), "Saved ✓");
           renderLeaderboard();
           renderMyScore();
@@ -505,10 +528,17 @@
       $("btn-refresh").addEventListener("click", () => refresh());
 
       (async () => {
-        const config = await fetchPredictionsConfig();
-        clientId = await resolveClientId(config);
+        // Paint shell first so the page never sits blank while JSON downloads.
         renderAuth();
-        initGoogleButton();
+        renderSlots();
+        try {
+          const config = await fetchPredictionsConfig();
+          clientId = await resolveClientId(config);
+          initGoogleButton();
+        } catch (err) {
+          setStatus($("auth-hint"), "Could not load Google config.");
+          console.error(err);
+        }
         await refresh();
         startTicker();
       })();

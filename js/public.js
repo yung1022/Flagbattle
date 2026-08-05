@@ -71,17 +71,20 @@ export async function resolveApiBase(search = location.search) {
     /* ignore */
   }
 
-  try {
-    const res = await fetch(pagesDataUrl("live.json"), { cache: "no-store" });
-    if (res.ok) {
-      const live = await res.json();
-      if (live?.api) {
-        cachedApiBase = String(live.api).replace(/\/$/, "");
-        return cachedApiBase;
+  // Prefer tiny pointer files — never download full live.json (~15MB) just for api.
+  for (const file of ["nightbot.json", "predictions-meta.json"]) {
+    try {
+      const res = await fetch(pagesDataUrl(file), { cache: "no-store" });
+      if (res.ok) {
+        const data = await res.json();
+        if (data?.api) {
+          cachedApiBase = String(data.api).replace(/\/$/, "");
+          return cachedApiBase;
+        }
       }
+    } catch {
+      /* try next */
     }
-  } catch {
-    /* ignore */
   }
 
   if (isLocalHost()) {
