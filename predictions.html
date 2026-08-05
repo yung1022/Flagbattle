@@ -38,15 +38,6 @@
         <div id="auth-signed-out">
           <p class="meta" id="auth-hint">Loading Google Sign-In…</p>
           <div id="google-btn"></div>
-          <label class="field pred-client-field" id="client-id-field" hidden>
-            <span>Google Web Client ID</span>
-            <input
-              id="google-client-id"
-              autocomplete="off"
-              placeholder="….apps.googleusercontent.com"
-            />
-            <button type="button" class="btn" id="btn-save-client">Save &amp; reload</button>
-          </label>
         </div>
         <div id="auth-signed-in" hidden>
           <div class="pred-user">
@@ -146,15 +137,7 @@
       }
 
       async function resolveClientId(config) {
-        const params = new URLSearchParams(location.search);
-        const fromParam = params.get("client") || params.get("googleClientId");
-        if (fromParam) return String(fromParam).trim();
-        try {
-          const stored = localStorage.getItem("flagbattle.predictions.clientId");
-          if (stored) return stored.trim();
-        } catch {
-          /* ignore */
-        }
+        // Only from site config / API — no public UI or URL overrides.
         return String(config?.googleClientId || "").trim();
       }
 
@@ -182,14 +165,11 @@
 
       function initGoogleButton() {
         const hint = $("auth-hint");
-        const field = $("client-id-field");
         if (!clientId) {
           hint.textContent =
-            "Add a Google Web Client ID (OAuth → Web application) with origin https://yung1022.github.io, then save below — or set data/predictions-config.json.";
-          field.hidden = false;
+            "Google Sign-In is not configured yet. The site owner must set googleClientId in data/predictions-config.json.";
           return;
         }
-        field.hidden = true;
         hint.textContent = "Sign in to save predictions across devices when the live API is up.";
         const tryRender = () => {
           if (!window.google?.accounts?.id) {
@@ -469,17 +449,9 @@
 
       $("btn-refresh").addEventListener("click", () => refresh());
 
-      $("btn-save-client").addEventListener("click", () => {
-        const v = $("google-client-id").value.trim();
-        if (!v) return;
-        localStorage.setItem("flagbattle.predictions.clientId", v);
-        location.reload();
-      });
-
       (async () => {
         const config = await fetchPredictionsConfig();
         clientId = await resolveClientId(config);
-        if (clientId) $("google-client-id").value = clientId;
         renderAuth();
         initGoogleButton();
         await refresh();
