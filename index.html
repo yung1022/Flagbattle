@@ -30,6 +30,7 @@
         <!-- Top LED-style board -->
         <header class="board" aria-live="polite">
           <div class="board-head">
+            <div class="brand-inline">FLAG BATTLE</div>
             <div class="board-label" id="board-label">QUALIFIED FOR FINAL</div>
             <div class="board-meta" id="board-meta">0 qualified</div>
           </div>
@@ -42,7 +43,6 @@
         </header>
 
         <div class="brand-bar">
-          <div class="brand">FLAG BATTLE</div>
           <div class="phase-pill">
             <span class="dot" aria-hidden="true"></span>
             <span id="phase-text">Ready</span>
@@ -110,6 +110,14 @@
           <h2 id="intermission-title">GET READY</h2>
           <p id="intermission-sub">Intermission</p>
           <div class="intermission-timer" id="intermission-timer">01:00</div>
+        </div>
+
+        <div class="finalists-reveal" id="finalists-reveal" hidden aria-live="polite">
+          <p class="finalists-kicker">FLAG BATTLE</p>
+          <h2 id="finalists-title">QUALIFIED FOR FINAL</h2>
+          <p class="finalists-live" id="finalists-live">Final live · TBD</p>
+          <div class="finalists-scroll" id="finalists-scroll"></div>
+          <p class="finalists-count" id="finalists-count">0 finalists</p>
         </div>
       </div>
     </div>

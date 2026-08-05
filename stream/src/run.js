@@ -52,8 +52,8 @@ const TITLE =
 const DESCRIPTION =
   process.env.YT_DESCRIPTION ||
   (MODE === "final"
-    ? "FLAG BATTLE Final livestream. Qualified countries fight — fall through the hole and you're out, then the round resets. Vote in chat: !vote XX (country code).\n\nPoll & rankings: https://yung1022.github.io/Flagbattle/"
-    : "FLAG BATTLE Qualifying livestream. Last flag in the circle qualifies. Results save when the stream ends — Final is a separate livestream.\n\nRankings: https://yung1022.github.io/Flagbattle/");
+    ? "FLAG BATTLE Final livestream. Hole circle → Swiss battling (top 4) → last flag standing. Vote in chat: !vote XX (country code).\n\nPoll & rankings: https://yung1022.github.io/Flagbattle/"
+    : "FLAG BATTLE Qualifying livestream. Last flag in the circle qualifies. Results save when the stream ends — Final is a separate livestream on the next 2-hour UTC slot.\n\nRankings: https://yung1022.github.io/Flagbattle/");
 
 const children = [];
 let display = null;

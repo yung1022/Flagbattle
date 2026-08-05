@@ -3,6 +3,7 @@ import { COUNTRIES } from "./countries.js";
 import { fetchPoll } from "./store.js";
 import { siteBase as resolveSiteBase } from "./public.js";
 import { announceRoundWinner, unlockAudio } from "./sfx.js";
+import { formatLiveSlot } from "./live-schedule.js";
 
 const game = new FlagBattleGame();
 const params = new URLSearchParams(location.search);
@@ -38,6 +39,11 @@ const els = {
   subsPill: document.getElementById("subs-pill"),
   subsCount: document.getElementById("subs-count"),
   subsChannel: document.getElementById("subs-channel"),
+  finalistsReveal: document.getElementById("finalists-reveal"),
+  finalistsTitle: document.getElementById("finalists-title"),
+  finalistsLive: document.getElementById("finalists-live"),
+  finalistsScroll: document.getElementById("finalists-scroll"),
+  finalistsCount: document.getElementById("finalists-count"),
 };
 
 /** Public site root for QR/links shown on the livestream (viewers can't click video). */
@@ -206,22 +212,42 @@ function syncArena() {
 
 function renderBoard() {
   const flags = game.boardFlags();
-  const showQualifiedBoard =
-    game.phase === "qualifying" ||
-    game.phase === "qualifying_hold" ||
-    game.phase === "idle" ||
-    game.phase === "between_rounds" ||
-    game.phase === "intermission";
-  els.boardLabel.textContent = showQualifiedBoard
-    ? "QUALIFIED FOR FINAL"
-    : game.phase === "finished"
-      ? "CHAMPION"
-      : "FLAGS STANDING";
-  els.boardMeta.textContent = showQualifiedBoard
-    ? `${flags.length} qualified`
-    : `${flags.length} standing`;
+  const qualBoard =
+    game.streamMode !== "final" &&
+    (game.phase === "qualifying" ||
+      game.phase === "qualifying_hold" ||
+      game.phase === "qualifying_complete" ||
+      game.phase === "idle" ||
+      game.phase === "between_rounds" ||
+      (game.phase === "intermission" && game.intermissionKind === "open") ||
+      (game.phase === "finished" && !game.winner));
 
-  const key = `${game.phase}:${flags.map((f) => f.code).join(",")}`;
+  if (game.streamMode === "final") {
+    if (game.phase === "finished" && game.winner) {
+      els.boardLabel.textContent = "CHAMPION";
+      els.boardMeta.textContent = game.winner.name;
+    } else if (game.finalStage === "swiss") {
+      els.boardLabel.textContent = "SWISS BATTLING";
+      els.boardMeta.textContent = `${flags.length} in · round ${game.swissRound + 1}`;
+    } else if (game.finalStage === "battle") {
+      els.boardLabel.textContent = "LAST FLAG STANDING";
+      els.boardMeta.textContent = `${flags.length} left`;
+    } else {
+      els.boardLabel.textContent = "FINAL";
+      els.boardMeta.textContent = `${flags.length} standing`;
+    }
+  } else {
+    els.boardLabel.textContent = qualBoard
+      ? "QUALIFIED FOR FINAL"
+      : game.phase === "finished"
+        ? "CHAMPION"
+        : "FLAGS STANDING";
+    els.boardMeta.textContent = qualBoard
+      ? `${flags.length} qualified`
+      : `${flags.length} standing`;
+  }
+
+  const key = `${game.phase}:${game.finalStage}:${flags.map((f) => f.code).join(",")}`;
   if (key === lastBoardKey) return;
   lastBoardKey = key;
 
@@ -293,6 +319,11 @@ function maybeAnnounce(event) {
 
 function renderHud() {
   const fighting = game.standing().length;
+  const inFinal =
+    game.streamMode === "final" ||
+    game.phase === "final" ||
+    (game.phase === "between_rounds" && game.finalStage);
+
   els.statCountries.textContent = String(COUNTRIES.length);
   els.statFighting.textContent = String(
     game.phase === "intermission"
@@ -300,6 +331,12 @@ function renderHud() {
       : fighting
   );
   els.statBoard.textContent = String(game.boardFlags().length);
+
+  document.body.classList.toggle("final-mode", game.streamMode === "final");
+  document.body.classList.toggle(
+    "qual-complete",
+    game.phase === "qualifying_complete"
+  );
 
   if (els.roundMeta) {
     if (game.phase === "idle") els.roundMeta.textContent = "Hole circle · no damage";
@@ -310,14 +347,40 @@ function renderHud() {
           : "Intermission · Qualifying next";
     else if (game.phase === "qualifying_hold")
       els.roundMeta.textContent = "All qualified · waiting on clock";
-    else if (game.phase === "final" || game.phase === "finished")
-      els.roundMeta.textContent = `Final · Round ${game.round}`;
+    else if (game.phase === "qualifying_complete")
+      els.roundMeta.textContent = "Finalists locked · see overlay";
+    else if (inFinal && game.finalStage === "swiss")
+      els.roundMeta.textContent = `Swiss · Round ${game.swissRound + 1}/${CONFIG.swissRounds}`;
+    else if (inFinal && game.finalStage === "battle")
+      els.roundMeta.textContent = `Final battle · Round ${game.round}`;
+    else if (inFinal && (game.phase === "final" || game.phase === "finished"))
+      els.roundMeta.textContent =
+        game.finalStage === "hole" || !game.finalStage
+          ? `Final hole · Round ${game.round}`
+          : `Final · Round ${game.round}`;
+    else if (game.phase === "between_rounds" && !inFinal)
+      els.roundMeta.textContent = `Qualifying · Round ${game.round}`;
     else els.roundMeta.textContent = `Qualifying · Round ${game.round}`;
   }
 
   if (game.phase === "intermission") {
     els.phaseText.textContent = "Intermission";
     els.timer.textContent = formatMs(game.intermissionRemainingMs());
+    els.timer.hidden = false;
+  } else if (game.phase === "qualifying_complete") {
+    els.phaseText.textContent = "Finalists";
+    els.timer.hidden = true;
+  } else if (inFinal && (game.phase === "final" || game.phase === "between_rounds")) {
+    if (game.finalStage === "swiss") {
+      els.phaseText.textContent = "Swiss Battling";
+      els.timer.textContent = `${fighting} LEFT`;
+    } else if (game.finalStage === "battle") {
+      els.phaseText.textContent = "Last Flag Standing";
+      els.timer.textContent = `${fighting} LEFT`;
+    } else {
+      els.phaseText.textContent = "Last Flag Standing";
+      els.timer.textContent = `${fighting} LEFT`;
+    }
     els.timer.hidden = false;
   } else if (
     game.phase === "qualifying" ||
@@ -332,13 +395,14 @@ function renderHud() {
           : "Qualifying";
     els.timer.textContent = formatMs(game.qualifyingRemainingMs());
     els.timer.hidden = false;
-  } else if (game.phase === "final") {
-    els.phaseText.textContent = "Last Flag Standing";
-    els.timer.textContent = `${fighting} LEFT`;
-    els.timer.hidden = false;
   } else if (game.phase === "finished") {
-    els.phaseText.textContent = "Champion";
-    els.timer.hidden = true;
+    if (game.streamMode === "qualifying" && !game.winner) {
+      els.phaseText.textContent = "Qualifying complete";
+      els.timer.hidden = true;
+    } else {
+      els.phaseText.textContent = "Champion";
+      els.timer.hidden = true;
+    }
   } else {
     els.phaseText.textContent = "Ready";
     els.timer.textContent = formatMs(CONFIG.qualifyingMs);
@@ -353,10 +417,12 @@ function renderHud() {
       els.intermissionTitle.textContent = opening ? "GET READY" : "FINAL INCOMING";
       els.intermissionSub.textContent = opening
         ? `${COUNTRIES.length} countries · hole circle qualifying`
-        : `${game.qualified.length} qualified · Last Flag Standing`;
+        : `${game.qualified.length} qualified · hole → Swiss → last standing`;
       els.intermissionTimer.textContent = formatMs(game.intermissionRemainingMs());
     }
   }
+
+  renderFinalistsReveal();
 
   if (els.streamLink && game.stream?.id) {
     els.streamLink.hidden = false;
@@ -369,12 +435,17 @@ function renderHud() {
   const busy =
     game.phase === "qualifying" ||
     game.phase === "qualifying_hold" ||
+    game.phase === "qualifying_complete" ||
     game.phase === "between_rounds" ||
     game.phase === "intermission" ||
     game.phase === "final";
   els.btnStart.disabled = busy;
   els.btnStart.textContent =
-    game.phase === "finished" || game.phase === "idle" ? "Start Battle" : "In Progress";
+    game.phase === "finished" ||
+    game.phase === "idle" ||
+    game.phase === "qualifying_complete"
+      ? "Start Battle"
+      : "In Progress";
 
   if (game.phase === "finished" && game.winner) {
     els.winnerBanner.classList.add("show");
@@ -383,6 +454,53 @@ function renderHud() {
     els.winnerName.textContent = game.winner.name;
   } else {
     els.winnerBanner.classList.remove("show");
+  }
+}
+
+let lastFinalistsKey = "";
+
+function renderFinalistsReveal() {
+  if (!els.finalistsReveal) return;
+  const show = game.phase === "qualifying_complete";
+  els.finalistsReveal.hidden = !show;
+  els.finalistsReveal.classList.toggle("show", show);
+  if (!show) return;
+
+  const list = game.qualified || [];
+  const liveAt = game.finalLiveAt;
+  if (els.finalistsTitle) els.finalistsTitle.textContent = "QUALIFIED FOR FINAL";
+  if (els.finalistsLive) {
+    els.finalistsLive.textContent = `Final live · ${formatLiveSlot(liveAt)}`;
+  }
+  if (els.finalistsCount) {
+    els.finalistsCount.textContent = `${list.length} finalist${list.length === 1 ? "" : "s"}`;
+  }
+
+  const key = `${liveAt}:${list.map((f) => f.code).join(",")}`;
+  if (key === lastFinalistsKey || !els.finalistsScroll) return;
+  lastFinalistsKey = key;
+
+  els.finalistsScroll.innerHTML = "";
+  const mkRow = () => {
+    const row = document.createElement("div");
+    row.className = "finalists-row";
+    for (const f of list) {
+      const cell = document.createElement("div");
+      cell.className = "finalists-cell";
+      cell.innerHTML = `<img src="${f.img}" alt="" /><span>${f.name}</span>`;
+      row.appendChild(cell);
+    }
+    return row;
+  };
+  if (!list.length) {
+    els.finalistsScroll.textContent = "No finalists";
+    return;
+  }
+  // Duplicate rows for seamless vertical + horizontal scroll coverage.
+  for (let i = 0; i < 4; i++) {
+    const row = mkRow();
+    els.finalistsScroll.appendChild(row);
+    els.finalistsScroll.appendChild(mkRow());
   }
 }
 
@@ -404,10 +522,12 @@ function renderStreamLinks() {
 
 function shouldShowStreamPoll() {
   if (!game.stream?.id) return false;
+  if (game.streamMode !== "final") return false;
   return (
     (game.phase === "intermission" && game.intermissionKind === "final") ||
     game.phase === "final" ||
-    game.phase === "finished"
+    (game.phase === "between_rounds" && Boolean(game.finalStage)) ||
+    (game.phase === "finished" && Boolean(game.winner))
   );
 }
 
