@@ -137,6 +137,7 @@ async function startInnertubeChatVoteLoop({
           text: item.text,
           authorName: item.authorName,
           channelId: item.channelId,
+          avatarUrl: item.avatarUrl || "",
           isOwner: item.isOwner,
           ownerChannelId,
           seen,
@@ -223,6 +224,7 @@ async function startApiChatVoteLoop({
           text,
           authorName: details.displayName || details.channelId || "Viewer",
           channelId: details.channelId || "",
+          avatarUrl: details.profileImageUrl || "",
           isOwner: Boolean(details.isChatOwner),
           ownerChannelId,
           seen,
@@ -249,6 +251,7 @@ async function handleChatMessage({
   text,
   authorName,
   channelId,
+  avatarUrl,
   isOwner,
   ownerChannelId,
   seen,
@@ -276,8 +279,9 @@ async function handleChatMessage({
   const author = authorName || channelId || "Viewer";
   const voterKey = channelId || author;
 
+  // Soft throttle only — viewers can vote many times; keep spam from flooding.
   const now = Date.now();
-  if ((replyAt.get(voterKey) || 0) > now - 2500) return;
+  if ((replyAt.get(voterKey) || 0) > now - 800) return;
   replyAt.set(voterKey, now);
 
   const reply = async (messageText) => {
@@ -321,7 +325,8 @@ async function handleChatMessage({
     streamId,
     country.code,
     `yt:${voterKey}`,
-    author
+    author,
+    avatarUrl
   );
   if (!vote.ok) {
     if (vote.error === "unknown_country" || vote.error === "not_an_option") {
@@ -336,7 +341,9 @@ async function handleChatMessage({
     return;
   }
 
-  await reply(`${author} voted ${country.name} successfully`);
+  const n = Number(vote.voteCount) || 0;
+  const tally = n > 1 ? ` (${n} votes)` : "";
+  await reply(`${author} voted ${country.name} successfully${tally}`);
 }
 
 /**
@@ -383,19 +390,29 @@ async function resolveBroadcastOwnerChannelId(youtube, broadcastId) {
   }
 }
 
-async function castVote(apiBase, streamId, code, voterId, voterName) {
+async function castVote(apiBase, streamId, code, voterId, voterName, avatarUrl) {
   const base = String(apiBase || "http://127.0.0.1:5173").replace(/\/$/, "");
   try {
     const res = await fetch(`${base}/api/poll/vote`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ streamId, code, voterId, voterName }),
+      body: JSON.stringify({
+        streamId,
+        code,
+        voterId,
+        voterName,
+        avatarUrl: avatarUrl || "",
+      }),
     });
     const data = await res.json().catch(() => ({}));
     if (!res.ok) {
       return { ok: false, error: data.error || `http_${res.status}` };
     }
-    return { ok: true, poll: data };
+    const voteCount =
+      data?.voterStats?.[voterId]?.count ||
+      data?.voteCount ||
+      null;
+    return { ok: true, poll: data, voteCount };
   } catch (err) {
     return { ok: false, error: String(err.message || err) };
   }

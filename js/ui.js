@@ -37,6 +37,8 @@ const els = {
   streamPollTotal: document.getElementById("stream-poll-total"),
   streamRecentVotes: document.getElementById("stream-recent-votes"),
   streamRecentVotesRows: document.getElementById("stream-recent-votes-rows"),
+  streamShoutout: document.getElementById("stream-shoutout"),
+  streamShoutoutCard: document.getElementById("stream-shoutout-card"),
   finalistsReveal: document.getElementById("finalists-reveal"),
   finalistsTitle: document.getElementById("finalists-title"),
   finalistsLive: document.getElementById("finalists-live"),
@@ -669,6 +671,10 @@ function renderStreamPoll(poll) {
 }
 
 let lastRecentKey = "";
+let shoutoutPool = [];
+let shoutoutShownId = "";
+let shoutoutUntil = 0;
+let shoutoutTickStarted = false;
 
 function renderRecentVotes(poll) {
   if (!els.streamRecentVotes || !els.streamRecentVotesRows) return;
@@ -677,28 +683,151 @@ function renderRecentVotes(poll) {
     return;
   }
   const recent = Array.isArray(poll?.recentVotes)
-    ? poll.recentVotes.slice(0, 5)
+    ? poll.recentVotes.slice(0, 4)
     : [];
   els.streamRecentVotes.hidden = false;
   const key = recent.length
     ? recent.map((r) => `${r.voter}:${r.code}:${r.at}`).join("|")
     : "__empty__";
-  if (key === lastRecentKey) return;
-  lastRecentKey = key;
-
-  // Rows only — the pinned hint lives outside #stream-recent-votes-rows.
-  els.streamRecentVotesRows.innerHTML = "";
-  for (const r of recent) {
-    const row = document.createElement("div");
-    row.className = "stream-recent-vote";
-    const who = String(r.voter || "Viewer").replace(/^@/, "");
-    row.innerHTML = `
+  if (key !== lastRecentKey) {
+    lastRecentKey = key;
+    els.streamRecentVotesRows.innerHTML = "";
+    for (const r of recent) {
+      const row = document.createElement("div");
+      row.className = "stream-recent-vote";
+      const who = String(r.voter || "Viewer").replace(/^@/, "");
+      row.innerHTML = `
       <img src="${r.img || `https://flagcdn.com/w40/${r.code}.png`}" alt="" />
       <div class="who">@${who}</div>
       <div class="pick">${r.name || String(r.code || "").toUpperCase()}</div>
     `;
-    els.streamRecentVotesRows.appendChild(row);
+      els.streamRecentVotesRows.appendChild(row);
+    }
   }
+
+  updateShoutoutPool(poll);
+  renderShoutoutCard(false);
+  ensureShoutoutTicker();
+}
+
+function updateShoutoutPool(poll) {
+  const stats = poll?.voterStats && typeof poll.voterStats === "object"
+    ? poll.voterStats
+    : null;
+  const list = [];
+  if (stats) {
+    for (const [id, s] of Object.entries(stats)) {
+      const count = Number(s?.count) || 0;
+      if (count < 1) continue;
+      list.push({
+        id,
+        name: String(s.name || id).replace(/^@/, "").slice(0, 40),
+        avatar: String(s.avatar || ""),
+        count,
+      });
+    }
+  }
+  // Fallback: derive from recent votes if stats missing (older polls).
+  if (!list.length && Array.isArray(poll?.recentVotes)) {
+    const map = new Map();
+    for (const r of poll.recentVotes) {
+      const id = r.voterId || r.voter;
+      if (!id) continue;
+      const prev = map.get(id) || {
+        id,
+        name: String(r.voter || "Viewer").replace(/^@/, ""),
+        avatar: r.avatar || "",
+        count: 0,
+      };
+      prev.count += 1;
+      if (r.avatar) prev.avatar = r.avatar;
+      map.set(id, prev);
+    }
+    list.push(...map.values());
+  }
+  shoutoutPool = list;
+}
+
+function pickWeightedShoutout(excludeId) {
+  const pool = shoutoutPool.filter((v) => v.id !== excludeId);
+  const use = pool.length ? pool : shoutoutPool;
+  if (!use.length) return null;
+  // Weight by vote count — more votes → more likely to appear.
+  let total = 0;
+  for (const v of use) total += Math.max(1, v.count);
+  let roll = Math.random() * total;
+  for (const v of use) {
+    roll -= Math.max(1, v.count);
+    if (roll <= 0) return v;
+  }
+  return use[use.length - 1];
+}
+
+function renderShoutoutCard(forceNew) {
+  if (!els.streamShoutoutCard) return;
+  const now = Date.now();
+  const needNew =
+    forceNew ||
+    !shoutoutShownId ||
+    now >= shoutoutUntil ||
+    !shoutoutPool.some((v) => v.id === shoutoutShownId);
+
+  if (needNew) {
+    const pick = pickWeightedShoutout(shoutoutShownId);
+    if (!pick) {
+      shoutoutShownId = "";
+      els.streamShoutoutCard.innerHTML = `<div class="stream-shoutout-empty">Vote to get featured</div>`;
+      return;
+    }
+    shoutoutShownId = pick.id;
+    shoutoutUntil = now + 7000;
+    const initial = (pick.name || "?").trim().charAt(0).toUpperCase() || "?";
+    const avatarHtml = pick.avatar
+      ? `<img class="stream-shoutout-avatar" src="${escapeAttr(pick.avatar)}" alt="" />`
+      : `<div class="stream-shoutout-avatar stream-shoutout-avatar-fallback" aria-hidden="true">${escapeHtml(initial)}</div>`;
+    els.streamShoutoutCard.innerHTML = `
+      ${avatarHtml}
+      <div class="stream-shoutout-meta">
+        <div class="stream-shoutout-name">@${escapeHtml(pick.name)}</div>
+        <div class="stream-shoutout-count">${pick.count} vote${pick.count === 1 ? "" : "s"} this stream</div>
+      </div>
+    `;
+    els.streamShoutoutCard.classList.remove("stream-shoutout-pulse");
+    // Retrigger CSS animation
+    void els.streamShoutoutCard.offsetWidth;
+    els.streamShoutoutCard.classList.add("stream-shoutout-pulse");
+    return;
+  }
+
+  // Refresh live count for the featured voter without rotating.
+  const cur = shoutoutPool.find((v) => v.id === shoutoutShownId);
+  if (cur) {
+    const countEl = els.streamShoutoutCard.querySelector(".stream-shoutout-count");
+    if (countEl) {
+      countEl.textContent = `${cur.count} vote${cur.count === 1 ? "" : "s"} this stream`;
+    }
+  }
+}
+
+function ensureShoutoutTicker() {
+  if (shoutoutTickStarted) return;
+  shoutoutTickStarted = true;
+  setInterval(() => {
+    if (!shouldShowStreamPoll()) return;
+    if (Date.now() >= shoutoutUntil) renderShoutoutCard(true);
+  }, 1000);
+}
+
+function escapeHtml(s) {
+  return String(s || "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
+}
+
+function escapeAttr(s) {
+  return escapeHtml(s).replace(/'/g, "&#39;");
 }
 
 async function refreshStreamPoll() {

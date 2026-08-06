@@ -430,7 +430,7 @@ function parseNightbotUserHeader(raw) {
   }
 }
 
-function applyPollVote({ streamId, code, voterId, voterName }) {
+function applyPollVote({ streamId, code, voterId, voterName, avatarUrl }) {
   if (!streamId || !code || !voterId) {
     return {
       ok: false,
@@ -450,6 +450,7 @@ function applyPollVote({ streamId, code, voterId, voterName }) {
     options: [],
     votes: {},
     voters: {},
+    voterStats: {},
     recentVotes: [],
   });
   if (!poll.options?.length) {
@@ -465,26 +466,36 @@ function applyPollVote({ streamId, code, voterId, voterName }) {
     return { ok: false, status: 400, error: "not_an_option" };
   }
   const country = COUNTRY_BY_CODE.get(code);
-  const prev = poll.voters[voterId];
-  if (prev && poll.votes[prev] > 0) poll.votes[prev] -= 1;
+  // Unlimited votes: every cast adds +1 (same voter can vote again).
   poll.voters[voterId] = code;
   poll.votes[code] = (poll.votes[code] || 0) + 1;
   const who = String(voterName || voterId || "Viewer")
     .replace(/^nb:/, "")
     .replace(/^yt:/, "")
     .slice(0, 40);
+  const avatar = String(avatarUrl || "").trim().slice(0, 500);
+  if (!poll.voterStats || typeof poll.voterStats !== "object") {
+    poll.voterStats = {};
+  }
+  const prevStat = poll.voterStats[voterId] || { count: 0 };
+  const voteCount = (Number(prevStat.count) || 0) + 1;
+  poll.voterStats[voterId] = {
+    name: who,
+    avatar: avatar || prevStat.avatar || "",
+    count: voteCount,
+    lastAt: Date.now(),
+  };
   const entry = {
     voter: who,
+    voterId,
     code,
     name: country?.name || code.toUpperCase(),
     img: `https://flagcdn.com/w40/${code}.png`,
+    avatar: avatar || prevStat.avatar || "",
     at: Date.now(),
   };
   const prevRecent = Array.isArray(poll.recentVotes) ? poll.recentVotes : [];
-  poll.recentVotes = [
-    entry,
-    ...prevRecent.filter((r) => r && r.voter !== who),
-  ].slice(0, 5);
+  poll.recentVotes = [entry, ...prevRecent].slice(0, 5);
   poll.updatedAt = Date.now();
   writeJson(pollPath(streamId), poll);
   schedulePublicSync({ pollId: streamId, github: true });
@@ -494,6 +505,7 @@ function applyPollVote({ streamId, code, voterId, voterName }) {
     error: null,
     poll,
     country,
+    voteCount,
   };
 }
 
@@ -502,7 +514,9 @@ function formatVoteText(result, voterLabel) {
   const who = String(voterLabel || "Viewer").slice(0, 40);
   if (result.ok) {
     const name = result.country?.name || "OK";
-    return `${who} voted ${name} successfully`.slice(0, 200);
+    const n = Number(result.voteCount) || 0;
+    const tally = n > 1 ? ` (${n} votes)` : "";
+    return `${who} voted ${name} successfully${tally}`.slice(0, 200);
   }
   switch (result.error) {
     case "usage":
@@ -740,6 +754,7 @@ async function handleApi(req, res, url) {
     let code;
     let voterId;
     let voterName;
+    let avatarUrl = "";
 
     if (req.method === "GET") {
       streamId = url.searchParams.get("streamId") || "";
@@ -753,6 +768,7 @@ async function handleApi(req, res, url) {
         url.searchParams.get("voterId") ||
         url.searchParams.get("userId") ||
         "";
+      avatarUrl = url.searchParams.get("avatar") || "";
       const nbUser = parseNightbotUserHeader(req.headers["nightbot-user"]);
       if (nbUser) {
         if (!voterName) voterName = nbUser.displayName || nbUser.name || "";
@@ -767,6 +783,7 @@ async function handleApi(req, res, url) {
       code = body.code || "";
       voterId = body.voterId || body.voter || "";
       voterName = body.voterName || body.voter || "";
+      avatarUrl = body.avatarUrl || body.avatar || "";
     }
 
     // Nightbot $(query) is everything after !vote — accept code or full name.
@@ -785,7 +802,13 @@ async function handleApi(req, res, url) {
     } else if (!resolved) {
       result = { ok: false, status: 400, error: "unknown_country" };
     } else {
-      result = applyPollVote({ streamId, code, voterId, voterName });
+      result = applyPollVote({
+        streamId,
+        code,
+        voterId,
+        voterName,
+        avatarUrl,
+      });
     }
     if (wantText) {
       // Nightbot only posts the body when HTTP status is 2xx.
@@ -800,7 +823,10 @@ async function handleApi(req, res, url) {
     if (!result.ok) {
       return send(res, result.status, { error: result.error });
     }
-    return send(res, 200, result.poll);
+    return send(res, 200, {
+      ...result.poll,
+      voteCount: result.voteCount,
+    });
   }
 
   if (url.pathname === "/api/predictions/config" && req.method === "GET") {

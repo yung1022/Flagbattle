@@ -206,9 +206,19 @@ function parseAction(action) {
     text,
     authorName: String(renderer.authorName?.simpleText || "").trim() || "Viewer",
     channelId: String(renderer.authorExternalChannelId || ""),
+    avatarUrl: pickAvatarUrl(renderer.authorPhoto?.thumbnails),
     isOwner,
     isModerator,
   };
+}
+
+function pickAvatarUrl(thumbnails) {
+  if (!Array.isArray(thumbnails) || !thumbnails.length) return "";
+  // Prefer the largest thumbnail YouTube provides.
+  const best = [...thumbnails].sort(
+    (a, b) => (Number(b.width) || 0) - (Number(a.width) || 0)
+  )[0];
+  return String(best?.url || "").trim();
 }
 
 function runsToText(runs) {

@@ -159,6 +159,7 @@ function emptyPoll(streamId) {
     options: [],
     votes: {},
     voters: {},
+    voterStats: {},
     recentVotes: [],
     closed: false,
     updatedAt: Date.now(),
@@ -212,6 +213,7 @@ export function transferPoll(fromId, toId) {
     options: Array.isArray(prev.options) ? prev.options.slice() : [],
     votes: { ...(prev.votes || {}) },
     voters: { ...(prev.voters || {}) },
+    voterStats: { ...(prev.voterStats || {}) },
     recentVotes: Array.isArray(prev.recentVotes) ? prev.recentVotes.slice() : [],
     closed: Boolean(prev.closed),
     updatedAt: Date.now(),
@@ -299,6 +301,7 @@ export function initLocalPoll(streamId, options) {
     options: mergedOptions,
     votes,
     voters: { ...(prev.voters || {}) },
+    voterStats: { ...(prev.voterStats || {}) },
     recentVotes: Array.isArray(prev.recentVotes) ? prev.recentVotes.slice() : [],
     closed: Boolean(prev.closed),
     updatedAt: hadVotes ? prev.updatedAt || Date.now() : Date.now(),
@@ -324,23 +327,29 @@ export function seedTeststreamPollDemo(streamId) {
 
   if (!Object.keys(poll.voters || {}).length) {
     const demoVoters = [
-      { voter: "Tyler-u5j7k", code: "br" },
-      { voter: "MayaLive", code: "jp" },
-      { voter: "FlagFan", code: "kr" },
-      { voter: "GeoKid", code: "us" },
-      { voter: "ArenaChat", code: "br" },
+      { voter: "Tyler-u5j7k", code: "br", count: 4 },
+      { voter: "MayaLive", code: "jp", count: 7 },
+      { voter: "FlagFan", code: "kr", count: 2 },
+      { voter: "GeoKid", code: "us", count: 3 },
+      { voter: "ArenaChat", code: "br", count: 5 },
     ];
     const byCode = new Map(
       poll.options.map((o) => [String(o.code).toLowerCase(), o])
     );
+    if (!poll.voterStats) poll.voterStats = {};
     for (const row of demoVoters) {
       const opt = byCode.get(row.code);
       if (!opt) continue;
       const vid = `demo:${row.voter}`;
-      const prev = poll.voters[vid];
-      if (prev && poll.votes[prev] > 0) poll.votes[prev] -= 1;
+      const n = row.count || 1;
       poll.voters[vid] = row.code;
-      poll.votes[row.code] = (poll.votes[row.code] || 0) + 1;
+      poll.votes[row.code] = (poll.votes[row.code] || 0) + n;
+      poll.voterStats[vid] = {
+        name: row.voter,
+        avatar: "",
+        count: n,
+        lastAt: Date.now(),
+      };
     }
   }
   if (!Array.isArray(poll.recentVotes)) poll.recentVotes = [];
@@ -389,17 +398,16 @@ export function startTeststreamChatVoteDemo(streamId, parseVoteMessage) {
   };
 }
 
-export function castLocalPollVote(streamId, code, voterId, voterName) {
-  return localPollVote(streamId, code, voterId, voterName);
+export function castLocalPollVote(streamId, code, voterId, voterName, avatarUrl) {
+  return localPollVote(streamId, code, voterId, voterName, avatarUrl);
 }
 
-function localPollVote(streamId, code, voterId, voterName) {
+function localPollVote(streamId, code, voterId, voterName, avatarUrl) {
   const poll = getLocalPoll(streamId);
   if (poll.closed || !poll.options?.length) {
     return poll;
   }
-  const prev = poll.voters[voterId];
-  if (prev && poll.votes[prev] > 0) poll.votes[prev] -= 1;
+  // Unlimited votes: every cast adds +1.
   poll.voters[voterId] = code;
   poll.votes[code] = (poll.votes[code] || 0) + 1;
   const opt = (poll.options || []).find(
@@ -410,18 +418,29 @@ function localPollVote(streamId, code, voterId, voterName) {
     .replace(/^yt:/, "")
     .replace(/^demo:/, "")
     .slice(0, 40);
+  const avatar = String(avatarUrl || "").trim().slice(0, 500);
+  if (!poll.voterStats || typeof poll.voterStats !== "object") {
+    poll.voterStats = {};
+  }
+  const prevStat = poll.voterStats[voterId] || { count: 0 };
+  poll.voterStats[voterId] = {
+    name: who,
+    avatar: avatar || prevStat.avatar || "",
+    count: (Number(prevStat.count) || 0) + 1,
+    lastAt: Date.now(),
+  };
   const entry = {
     voter: who,
+    voterId,
     code,
     name: opt?.name || String(code).toUpperCase(),
     img: opt?.img || `https://flagcdn.com/w40/${code}.png`,
+    avatar: avatar || prevStat.avatar || "",
     at: Date.now(),
   };
   poll.recentVotes = [
     entry,
-    ...(Array.isArray(poll.recentVotes) ? poll.recentVotes : []).filter(
-      (r) => r && r.voter !== who
-    ),
+    ...(Array.isArray(poll.recentVotes) ? poll.recentVotes : []),
   ].slice(0, 5);
   poll.updatedAt = Date.now();
   if (!persistEnabled) {
