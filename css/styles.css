@@ -573,6 +573,17 @@ body.final-mode .timer {
   padding: 4px 2px;
 }
 
+.stream-recent-votes-hint {
+  flex-shrink: 0;
+  margin-top: 4px;
+  padding-top: 6px;
+  border-top: 1px solid rgba(230, 184, 74, 0.25);
+  font-size: clamp(10px, 2.2vw, 12px);
+  font-weight: 700;
+  line-height: 1.3;
+  color: var(--muted);
+}
+
 .stream-poll {
   position: absolute;
   right: var(--safe-x);
@@ -1006,36 +1017,35 @@ body.stream-mode .hud {
   padding-bottom: 0;
 }
 
-/* Stream layout: brand below channel chrome; equal left/right side columns that touch the arena */
+/* Stream layout: top 50/50 lists, timer under them, large arena */
 body.stream-mode .stage {
-  --safe-top: 14.5%;
+  /* Lists sit in the top band (below thin YT chrome only) */
+  --safe-top: 2%;
   --safe-bottom: 11%;
-  --safe-x: 1.5%;
-  --side-col: 30%;
-  /* Country list + recent votes share this band (same size, flush to arena) */
-  --side-panel-top: calc(var(--safe-top) + 9.5%);
-  --side-panel-h: 28%;
+  --safe-x: 1%;
+  --top-panel-h: 22%;
 }
 
 body.stream-mode .board {
-  top: var(--side-panel-top);
-  left: var(--safe-x);
+  top: var(--safe-top);
+  left: 0;
   right: auto;
-  width: var(--side-col);
-  height: var(--side-panel-h);
+  width: 50%;
+  height: var(--top-panel-h);
   bottom: auto;
   padding: 0;
   display: flex;
   flex-direction: column;
   background: rgba(3, 7, 11, 0.86);
   border: 1px solid rgba(230, 184, 74, 0.4);
+  border-right: 1px solid rgba(230, 184, 74, 0.25);
   z-index: 6;
 }
 
 body.stream-mode .board-head {
   flex-shrink: 0;
   margin: 0;
-  padding: 7px 8px 4px;
+  padding: 6px 8px 3px;
   gap: 2px 8px;
   flex-wrap: nowrap;
 }
@@ -1111,30 +1121,28 @@ body.stream-mode .board-empty {
   padding: 4px;
 }
 
+/* Timer + round only — no FLAG BATTLE title, no phase pill */
 body.stream-mode .brand-bar {
-  top: calc(var(--safe-top) + 0.6%);
-  left: calc(var(--safe-x) + var(--side-col) + 0.5%);
-  right: calc(var(--safe-x) + var(--side-col) + 0.5%);
+  top: calc(var(--safe-top) + var(--top-panel-h) + 0.4%);
+  left: var(--safe-x);
+  right: var(--safe-x);
+  z-index: 5;
 }
 
-body.stream-mode .brand-bar-title {
-  display: block;
-  font-size: clamp(20px, 5vw, 34px);
-  margin-bottom: 2px;
-}
-
+body.stream-mode .brand-bar-title,
 body.stream-mode .phase-pill {
-  margin-top: 2px;
-  font-size: clamp(11px, 2.6vw, 15px);
+  display: none !important;
 }
 
 body.stream-mode .timer {
   margin-top: 0;
-  font-size: clamp(22px, 5.5vw, 38px);
+  font-size: clamp(26px, 6.5vw, 44px);
+  line-height: 1;
 }
 
 body.stream-mode .round-meta {
-  font-size: clamp(10px, 2.2vw, 12px);
+  margin-top: 1px;
+  font-size: clamp(11px, 2.4vw, 14px);
 }
 
 body.stream-mode .hud .feed {
@@ -1147,38 +1155,57 @@ body.stream-mode .hud .stats {
   font-size: clamp(10px, 2.1vw, 12px);
 }
 
+/* Large arena under the timer row */
 body.stream-mode .arena-wrap {
-  top: var(--side-panel-top);
-  bottom: calc(var(--safe-bottom) + 2%);
-  left: calc(var(--safe-x) + var(--side-col));
-  right: calc(var(--safe-x) + var(--side-col));
+  --rim: 47%;
+  top: calc(var(--safe-top) + var(--top-panel-h) + 7%);
+  bottom: calc(var(--safe-bottom) + 0.5%);
+  left: 1%;
+  right: 1%;
 }
 
 body.stream-mode.final-mode .arena-wrap {
-  top: var(--side-panel-top);
-  bottom: calc(var(--safe-bottom) + 2%);
+  --rim: 49%;
+  top: calc(var(--safe-top) + var(--top-panel-h) + 6.5%);
+  bottom: calc(var(--safe-bottom) + 0.5%);
 }
 
 body.stream-mode.final-mode .brand-bar {
-  top: calc(var(--safe-top) + 0.6%);
+  top: calc(var(--safe-top) + var(--top-panel-h) + 0.4%);
 }
 
-/* Left country list + right recent votes: identical box, touch arena edges */
+/* Recent votes: top-right 50%, same height as qualified list */
 body.stream-mode .stream-recent-votes {
-  top: var(--side-panel-top);
-  right: var(--safe-x);
-  width: var(--side-col);
-  height: var(--side-panel-h);
+  top: var(--safe-top);
+  left: 50%;
+  right: 0;
+  width: 50%;
+  height: var(--top-panel-h);
   border-left: none;
+  padding: 6px 8px;
 }
 
+/* Live poll: bottom strip under arena, clear of YouTube chat */
 body.stream-mode .stream-poll {
-  right: var(--safe-x);
-  width: var(--side-col);
-  top: calc(var(--side-panel-top) + var(--side-panel-h));
-  bottom: calc(var(--safe-bottom) + 2%);
-  border-left: none;
-  border-top: none;
+  left: var(--safe-x);
+  right: auto;
+  width: min(40%, 260px);
+  top: auto;
+  bottom: calc(var(--safe-bottom) + 0.5%);
+  max-height: 20%;
+  border-left: 1px solid rgba(46, 196, 182, 0.45);
+  border-top: 1px solid rgba(46, 196, 182, 0.45);
+}
+
+/* Intermission: drop duplicate title/timer — brand-bar timer already shows */
+body.stream-mode .intermission-kicker,
+body.stream-mode .intermission-timer {
+  display: none !important;
+}
+
+body.stream-mode .intermission {
+  top: calc(var(--safe-top) + var(--top-panel-h) + 8%);
+  padding-top: 2%;
 }
 
 /* Cut paint cost for capture/encode — keep motion, drop decorative blur/filters */
@@ -1220,16 +1247,16 @@ body.stream-mode:not(.mobile-mode) .mobile-fs-btn {
 /* Easy teststream badge — dry-run, nothing persisted */
 .test-stream-badge {
   position: absolute;
-  top: calc(var(--safe-top) + 0.8%);
+  top: calc(var(--safe-top) + var(--top-panel-h, 26%) + 0.4%);
   left: var(--safe-x);
   z-index: 20;
-  max-width: calc(var(--side-col) - 2%);
-  padding: 4px 7px;
+  max-width: 46%;
+  padding: 3px 6px;
   border: 1px solid rgba(230, 184, 74, 0.55);
   background: rgba(3, 7, 11, 0.82);
   color: var(--gold);
   font-weight: 800;
-  font-size: clamp(9px, 2vw, 11px);
+  font-size: clamp(8px, 1.8vw, 11px);
   letter-spacing: 0.06em;
   text-transform: uppercase;
   pointer-events: none;
