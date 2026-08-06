@@ -24,7 +24,7 @@ on:
         required: false
         default: "public"
       duration_minutes:
-        description: "Stop the runner after N minutes (empty = 150 for full battle)"
+        description: "Optional safety cap in minutes (empty = run until winner hold ends)"
         required: false
         default: ""
 
@@ -121,19 +121,20 @@ jobs:
         run: |
           set +e
           MODE="${STREAM_MODE:-qualifying}"
-          # Full battle (Qual → Final + winner hold) needs a long wall clock.
-          if [ -n "${DURATION_MIN}" ]; then
-            RUN_MIN="${DURATION_MIN}"
-          else
-            RUN_MIN="150"
-          fi
+          # Uncapped by default — stream ends after champion + 1-minute winner hold.
+          # Optional duration_minutes is only a safety wall-clock cap.
           EXTRA=(--mode "$MODE")
           if [ -n "${DEMO_SECONDS}" ]; then
             EXTRA+=(--demo "${DEMO_SECONDS}")
           fi
           EXTRA+=(--privacy "${PRIVACY:-public}")
-          echo "Go-live mode=$MODE duration_cap=${RUN_MIN}m"
-          timeout "${RUN_MIN}m" npm run go-live -- "${EXTRA[@]}"
+          if [ -n "${DURATION_MIN}" ]; then
+            echo "Go-live mode=$MODE duration_cap=${DURATION_MIN}m (safety)"
+            timeout "${DURATION_MIN}m" npm run go-live -- "${EXTRA[@]}"
+          else
+            echo "Go-live mode=$MODE duration=uncapped (ends after winner hold)"
+            npm run go-live -- "${EXTRA[@]}"
+          fi
           code=$?
           set -e
           # 124 = timeout hit planned end; treat as clean stop
@@ -159,18 +160,24 @@ jobs:
             api: null,
             updatedAt: Date.now(),
           };
-          // Close unfinished newest stream if the live snapshot already finished
-          // (protects against dropped stream POSTs near process kill).
+          // Close unfinished newest stream only after winner hold (not mid-hold).
           const newest = out.streams?.[0];
+          const holdActive =
+            out.live?.streamStatus === "winner_hold" ||
+            (Number(out.live?.winnerHoldRemainingMs) || 0) > 0;
+          const streamDone =
+            !holdActive &&
+            (out.live?.streamStatus === "finished" ||
+              Boolean(out.live?.endedAt));
           if (
             newest &&
             !newest.endedAt &&
-            out.live?.phase === "finished" &&
+            streamDone &&
             out.live?.streamId === newest.id
           ) {
-            newest.endedAt = new Date(
-              out.live.updatedAt || Date.now()
-            ).toISOString();
+            newest.endedAt =
+              out.live.endedAt ||
+              new Date(out.live.updatedAt || Date.now()).toISOString();
             if (Array.isArray(out.live.qualified) && out.live.qualified.length) {
               newest.qualified = out.live.qualified.map((q) => ({
                 code: q.code,
@@ -193,6 +200,9 @@ jobs:
               newest.mode = newest.final?.ranking?.length
                 ? "final"
                 : "qualifying";
+            }
+            if (newest.status === "winner_hold" || newest.status === "live") {
+              newest.status = "finished";
             }
             // Keep rankings.json in sync with closed stream.
             fs.writeFileSync(

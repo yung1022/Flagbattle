@@ -599,17 +599,25 @@ async function handleApi(req, res, url) {
       cur.live = body.live;
       // Do not auto-seed from live.qualified — game opens the full-country
       // poll at Qualifying start and carries it through Final (never shrinks).
-      const finished = body.live?.phase === "finished";
+      // Champion screen uses phase "finished" during the 1-minute winner hold
+      // (status winner_hold, endedAt still null). Only close after the hold.
+      const holdActive =
+        body.live?.streamStatus === "winner_hold" ||
+        (Number(body.live?.winnerHoldRemainingMs) || 0) > 0;
+      const streamDone =
+        !holdActive &&
+        (body.live?.streamStatus === "finished" ||
+          Boolean(body.live?.endedAt));
       // Safety net: if the finished live snapshot arrives without a matching
       // stream save (race / dropped POST), still close the stream so rankings
       // persist and go-live history is not lost.
-      if (finished && body.live?.streamId) {
+      if (streamDone && body.live?.streamId) {
         const idx = (cur.streams || []).findIndex(
           (s) => s.id === body.live.streamId
         );
         if (idx >= 0 && !cur.streams[idx].endedAt) {
           const s = { ...cur.streams[idx] };
-          s.endedAt = new Date().toISOString();
+          s.endedAt = body.live.endedAt || new Date().toISOString();
           if (Array.isArray(body.live.qualified) && body.live.qualified.length) {
             s.qualified = body.live.qualified.map((q) => ({
               code: q.code,
@@ -635,6 +643,9 @@ async function handleApi(req, res, url) {
           if (!s.mode) {
             s.mode = s.final?.ranking?.length ? "final" : "qualifying";
           }
+          if (s.status === "winner_hold" || s.status === "live") {
+            s.status = "finished";
+          }
           cur.streams[idx] = s;
           writeJson(RANK_FILE, cur.streams);
           schedulePublicSync({
@@ -651,9 +662,9 @@ async function handleApi(req, res, url) {
       }
       schedulePublicSync({
         forceLive: true,
-        github: finished,
+        github: streamDone,
       });
-      if (finished) {
+      if (streamDone) {
         // Don't wait the long coalesce window once a stream is done.
         if (githubTimer) clearTimeout(githubTimer);
         githubTimer = null;
