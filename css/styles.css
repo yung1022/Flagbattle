@@ -373,7 +373,9 @@ body.final-mode .timer {
   transition: opacity 0.2s ease;
   will-change: transform;
   z-index: 3;
-  contain: layout style paint;
+  /* layout/style only — paint contain clips the HP bar above the flag */
+  contain: layout style;
+  overflow: visible;
   /* Cheap shadow — per-flag drop-shadow filters tank stream FPS */
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
 }
@@ -402,12 +404,15 @@ body.final-mode .timer {
   position: absolute;
   left: 0;
   right: 0;
-  bottom: calc(100% + 3px);
-  height: 4px;
-  background: rgba(0, 0, 0, 0.55);
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  top: -7px;
+  bottom: auto;
+  height: 5px;
+  background: rgba(0, 0, 0, 0.65);
+  border: 1px solid rgba(255, 255, 255, 0.35);
   overflow: hidden;
   pointer-events: none;
+  z-index: 4;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.55);
 }
 
 .fighter .hp-bar[hidden] {
@@ -420,6 +425,11 @@ body.final-mode .timer {
   width: 100%;
   background: #3dd68c;
   transform-origin: left center;
+}
+
+.fighter.battling .hp-bar {
+  height: 6px;
+  top: -8px;
 }
 
 .fighter .hp-bar.mid i {

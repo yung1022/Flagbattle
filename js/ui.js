@@ -201,14 +201,17 @@ function syncArena() {
       el.classList.toggle("falling", f.falling);
     }
 
+    const battling =
+      (game.finalStage === "swiss" || game.finalStage === "battle") &&
+      f.alive &&
+      !f.falling;
+    el.classList.toggle("battling", battling);
+
     const bar = el.querySelector(".hp-bar");
     if (bar) {
-      const showHp =
-        (game.finalStage === "swiss" || game.finalStage === "battle") &&
-        f.alive &&
-        !f.falling;
-      bar.hidden = !showHp;
-      if (showHp) {
+      bar.hidden = !battling;
+      if (battling) {
+        bar.removeAttribute("hidden");
         const maxHp = f.maxHp || CONFIG.baseHp || 100;
         const pct = Math.max(0, Math.min(100, ((f.hp ?? maxHp) / maxHp) * 100));
         const fill = bar.querySelector("i");
@@ -247,9 +250,11 @@ function renderBoard() {
     if (game.phase === "finished" && game.winner) {
       els.boardLabel.textContent = "CHAMPION";
       els.boardMeta.textContent = game.winner.name;
-    } else if (game.finalStage === "swiss") {
-      els.boardLabel.textContent = "SWISS 1V1";
-      els.boardMeta.textContent = `Round ${game.swissRound + 1}/${CONFIG.swissRounds}`;
+    } else if (game._swissBoardActive?.() || game.finalStage === "swiss") {
+      els.boardLabel.textContent = "FINAL 4 CUT";
+      const plays = (game._swissPool || []).map((p) => Number(p.played) || 0);
+      const minPlayed = plays.length ? Math.min(...plays) : 0;
+      els.boardMeta.textContent = `Top 4 by score · ${minPlayed}/${CONFIG.swissRounds} matches`;
     } else if (game.finalStage === "battle") {
       els.boardLabel.textContent = "LAST FLAG STANDING";
       els.boardMeta.textContent = `${flags.length} left`;
@@ -268,7 +273,9 @@ function renderBoard() {
       : `${flags.length} standing`;
   }
 
-  const key = `${game.phase}:${game.finalStage}:${flags.map((f) => f.code).join(",")}`;
+  const key = `${game.phase}:${game.finalStage}:${game.swissRound}:${flags
+    .map((f) => `${f.code}:${f.points ?? ""}`)
+    .join(",")}`;
   if (key === lastBoardKey) return;
   lastBoardKey = key;
 
@@ -304,7 +311,11 @@ function renderBoard() {
     img.title = f.name;
     const name = document.createElement("span");
     name.className = "board-chip-name";
-    name.textContent = f.name;
+    const pts = Number(f.points);
+    name.textContent =
+      Number.isFinite(pts) && (game._swissBoardActive?.() || game.finalStage === "swiss")
+        ? `${f.name} · ${pts}`
+        : f.name;
     chip.appendChild(img);
     chip.appendChild(name);
     row.appendChild(chip);
@@ -392,9 +403,9 @@ function renderHud() {
     else if (game.phase === "qualifying_complete")
       els.roundMeta.textContent = "Finalists locked · see overlay";
     else if (inFinal && game.finalStage === "swiss")
-      els.roundMeta.textContent = `Swiss 1v1 · Round ${game.swissRound + 1}/${CONFIG.swissRounds}`;
+      els.roundMeta.textContent = `Swiss 1v1 · every country plays ${CONFIG.swissRounds} · +1 win`;
     else if (inFinal && game.finalStage === "battle")
-      els.roundMeta.textContent = `Final battle · 100 HP · −${CONFIG.hitDamage}/hit`;
+      els.roundMeta.textContent = `Final 4 · 100 HP · −${CONFIG.hitDamage}/hit`;
     else if (inFinal && (game.phase === "final" || game.phase === "finished"))
       els.roundMeta.textContent =
         game.finalStage === "hole" || !game.finalStage

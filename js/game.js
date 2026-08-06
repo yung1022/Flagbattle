@@ -70,6 +70,8 @@ export const CONFIG = {
   holeOpenSec: 28,
   flagRadius: 0.028,
   maxSpeed: 1.15,
+  /** Swiss 1v1 moves faster than hole / Final 4. */
+  swissSpeedMult: 1.7,
   betweenRoundMs: 1400,
   intermissionMs: 60 * 1000,
   pushStrength: 0.8,
@@ -101,7 +103,8 @@ function applyEasyTestConfig() {
   CONFIG.shrinkDurationSec = 14;
   CONFIG.holeClosedSec = 2;
   CONFIG.holeOpenSec = 8;
-  CONFIG.swissRounds = 2;
+  CONFIG.swissRounds = 5;
+  CONFIG.swissSpeedMult = 1.85;
   CONFIG.battleRate = 5;
 }
 
@@ -117,7 +120,8 @@ if (params.has("demo")) {
   CONFIG.shrinkDurationSec = 18;
   CONFIG.holeClosedSec = 2;
   CONFIG.holeOpenSec = 10;
-  CONFIG.swissRounds = 3;
+  CONFIG.swissRounds = 5;
+  CONFIG.swissSpeedMult = 1.85;
   CONFIG.battleRate = 5;
 }
 
@@ -280,6 +284,15 @@ export class FlagBattleGame {
     return this.streamMode === "final" || this.finalStage
       ? CONFIG.finalArenaRadius
       : CONFIG.arenaRadius;
+  }
+
+  /** Cap for current stage — Swiss 1v1 is intentionally faster. */
+  _battleMaxSpeed() {
+    const base = CONFIG.maxSpeed;
+    if (this.finalStage === "swiss") {
+      return base * (CONFIG.swissSpeedMult || 1.7);
+    }
+    return base;
   }
 
   async start() {
@@ -873,9 +886,10 @@ export class FlagBattleGame {
       }
 
       const speed = Math.hypot(f.vx, f.vy);
-      if (speed > CONFIG.maxSpeed) {
-        f.vx = (f.vx / speed) * CONFIG.maxSpeed;
-        f.vy = (f.vy / speed) * CONFIG.maxSpeed;
+      const maxSp = this._battleMaxSpeed();
+      if (speed > maxSp) {
+        f.vx = (f.vx / speed) * maxSp;
+        f.vy = (f.vy / speed) * maxSp;
       } else if (speed < 0.2) {
         const dir = rand(0, Math.PI * 2);
         f.vx += Math.cos(dir) * 0.15;
@@ -1186,17 +1200,25 @@ export class FlagBattleGame {
 
   _finishSwissRound() {
     this.swissRound += 1;
-    this._emit(
-      "phase",
-      `Swiss round ${this.swissRound}/${CONFIG.swissRounds} complete.`
+    const need = Math.max(1, CONFIG.swissRounds);
+    const short = (this._swissPool || []).filter(
+      (p) => (Number(p.played) || 0) < need
     );
-    if (this.swissRound >= CONFIG.swissRounds) {
+    if (!short.length) {
+      this._emit(
+        "phase",
+        `Swiss complete — every country played ${need} matches.`
+      );
       this.phase = "between_rounds";
       this._pendingSwissCut = true;
       this._betweenUntil =
         performance.now() + Math.max(1600, CONFIG.betweenRoundMs);
       return;
     }
+    this._emit(
+      "phase",
+      `Swiss round ${this.swissRound} done · ${short.length} still need ${need} matches — continuing.`
+    );
     this.phase = "between_rounds";
     this._pendingSwissNext = true;
     this._betweenUntil =
@@ -1211,11 +1233,12 @@ export class FlagBattleGame {
         name: f.name,
         img: f.img,
         points: Number(f.points) || 0,
+        played: 0,
       }))
       .slice(0, CONFIG.swissCutoff);
     this._emit(
       "phase",
-      `${list.length} remain — Swiss 1v1 begins (${CONFIG.swissRounds} rounds · +1 per win).`
+      `${list.length} remain — Swiss 1v1 begins (every country plays ${CONFIG.swissRounds} matches · +1 per win).`
     );
     this.swissRound = 0;
     this._swissPool = list;
@@ -1241,22 +1264,40 @@ export class FlagBattleGame {
     this.arenaScale = 1;
     this._swissMatchOver = false;
 
-    // Pair everyone 1v1; odd one out gets a bye (+1).
-    const shuffled = shuffle(pool.map((p) => ({ ...p })));
-    const pairs = [];
-    if (shuffled.length % 2 === 1) {
-      const bye = shuffled.pop();
-      const row = this._swissPool.find((p) => p.code === bye.code);
-      if (row) row.points = (Number(row.points) || 0) + 1;
-      this._emit("phase", `${bye.name} gets a bye (+1).`);
+    // Prefer pairing countries that still need matches; others can sit out.
+    const need = Math.max(1, CONFIG.swissRounds);
+    const needing = shuffle(
+      pool.filter((p) => (Number(p.played) || 0) < need).map((p) => ({ ...p }))
+    );
+    const rest = shuffle(
+      pool.filter((p) => (Number(p.played) || 0) >= need).map((p) => ({ ...p }))
+    );
+    // Fill to even count so as many needing players as possible get a match.
+    const shuffled = [...needing];
+    while (shuffled.length % 2 === 1 && rest.length) {
+      shuffled.push(rest.pop());
     }
-    for (let i = 0; i < shuffled.length; i += 2) {
-      pairs.push([shuffled[i], shuffled[i + 1]]);
+    if (shuffled.length < 2) {
+      // Everyone already at quota (or only one left needing) — cut.
+      this._cutSwissAndBeginBattle();
+      return;
+    }
+    if (shuffled.length % 2 === 1) {
+      // Still odd: give the highest-played needing country a sit-out (not a bye point).
+      shuffled.sort(
+        (a, b) => (Number(b.played) || 0) - (Number(a.played) || 0)
+      );
+      shuffled.pop();
+    }
+    const pairs = [];
+    const order = shuffle(shuffled);
+    for (let i = 0; i < order.length; i += 2) {
+      pairs.push([order[i], order[i + 1]]);
     }
     this._swissPairQueue = pairs;
     this._emit(
       "phase",
-      `SWISS ${this.swissRound + 1}/${CONFIG.swissRounds} — ${pairs.length}× 1v1`
+      `SWISS set ${this.swissRound + 1} — ${pairs.length}× 1v1 · need ${need} matches each`
     );
     this._startNextSwissPair();
   }
@@ -1272,7 +1313,12 @@ export class FlagBattleGame {
     this.phase = "final";
     this.arenaScale = 1;
     this.roundStartedAt = performance.now();
+    for (const c of [a, b]) {
+      const row = this._swissPool.find((p) => p.code === c.code);
+      if (row) row.played = (Number(row.played) || 0) + 1;
+    }
     const pair = [a, b];
+    const cap = this._battleMaxSpeed();
     this.fighters = pair.map((c, i) => {
       const f = this._makeFighter(c, i, 2);
       f.qualified = true;
@@ -1282,6 +1328,10 @@ export class FlagBattleGame {
       f.hp = CONFIG.baseHp;
       f.maxHp = CONFIG.baseHp;
       f.hitCd = 0;
+      const dir = i === 0 ? 0 : Math.PI;
+      const sp = rand(cap * 0.75, cap);
+      f.vx = Math.cos(dir) * sp;
+      f.vy = Math.sin(dir + rand(-0.4, 0.4)) * sp * 0.35;
       return f;
     });
     // Place them opposite each other for a clean 1v1.
@@ -1677,6 +1727,10 @@ export class FlagBattleGame {
   }
 
   boardFlags() {
+    // Swiss: top board shows the current Final-4 cut line (top 4 by score).
+    if (this._swissBoardActive()) {
+      return this._swissBoardLeaders(4);
+    }
     if (
       this.phase === "qualifying" ||
       this.phase === "qualifying_hold" ||
@@ -1691,6 +1745,42 @@ export class FlagBattleGame {
       return this.qualified;
     }
     return this.fighters.filter((f) => f.alive);
+  }
+
+  _swissBoardActive() {
+    if (!this._swissPool?.length) return false;
+    return (
+      this.finalStage === "swiss" ||
+      this._pendingSwissNext ||
+      this._pendingSwissPair ||
+      this._pendingSwissCut
+    );
+  }
+
+  /** Countries currently sitting inside the Final-4 cut by Swiss score. */
+  _swissBoardLeaders(n = 4) {
+    const keepN = Math.max(
+      1,
+      Math.min(
+        n,
+        CONFIG.swissCutoff - CONFIG.swissEliminate,
+        this._swissPool?.length || 0
+      )
+    );
+    return [...(this._swissPool || [])]
+      .sort(
+        (a, b) =>
+          (Number(b.points) || 0) - (Number(a.points) || 0) ||
+          String(a.name || "").localeCompare(String(b.name || ""))
+      )
+      .slice(0, keepN)
+      .map((c) => ({
+        code: c.code,
+        name: c.name,
+        img: c.img || flagUrl(c.code, 80),
+        points: Number(c.points) || 0,
+        played: Number(c.played) || 0,
+      }));
   }
 
   holeStyle() {
