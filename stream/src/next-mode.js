@@ -1,57 +1,21 @@
 /**
- * Decide the next livestream mode from ranking history.
- * After a finished qualifying run with qualifiers → final.
- * Otherwise → qualifying.
+ * Resolve the next livestream mode.
+ * Qualifying + Final run as one continuous "full battle" stream, so go-live
+ * always starts in qualifying (Final continues in the same broadcast).
  */
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
-export function resolveNextMode(streams) {
-  const list = Array.isArray(streams) ? [...streams] : [];
-  list.sort((a, b) => (b.startedAt || "").localeCompare(a.startedAt || ""));
-
-  // Prefer an unfinished scheduled Final created at end of Qualifying.
-  const scheduledFinal = list.find(
-    (s) =>
-      s?.mode === "final" &&
-      !s?.endedAt &&
-      (s?.status === "scheduled" || s?.status === "pending") &&
-      Array.isArray(s.qualified) &&
-      s.qualified.length
-  );
-  if (scheduledFinal) return "final";
-
-  const last = list.find((s) => s?.endedAt) || list[0] || null;
-  if (!last) return "qualifying";
-
-  const mode =
-    last.mode ||
-    (last.final?.ranking?.length
-      ? "final"
-      : last.endedAt && Array.isArray(last.qualified) && last.qualified.length
-        ? "qualifying"
-        : null);
-
-  if (
-    mode === "qualifying" &&
-    Array.isArray(last.qualified) &&
-    last.qualified.length
-  ) {
-    return "final";
-  }
+/** @deprecated Kept for callers; always returns qualifying (unified stream). */
+export function resolveNextMode(_streams) {
   return "qualifying";
 }
 
 function main() {
-  const file = process.argv[2] || "data/rankings.json";
-  let streams = [];
-  try {
-    streams = JSON.parse(fs.readFileSync(file, "utf8"));
-  } catch {
-    streams = [];
-  }
-  process.stdout.write(resolveNextMode(streams));
+  // Accept optional rankings path for backward compatibility with go-live.yml.
+  void (process.argv[2] || "data/rankings.json");
+  process.stdout.write("qualifying");
 }
 
 const isMain =

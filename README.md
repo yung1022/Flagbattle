@@ -64,11 +64,11 @@ Manual command (if no token), after each go-live:
 ```
 
 #### If chatters only type the country (no `!vote`)
-Nightbot alone cannot do this for all countries. Use the built-in YouTube chat listener (on by default):
+Nightbot alone **cannot** match every country name with one command. Go-live enables the YouTube chat listener (`CHAT_VOTE=1`):
 
-1. Leave **`CHAT_VOTE` unset** (or `CHAT_VOTE=1`) in `stream/.env` / Action secrets.  
-2. Go-live reads live chat; messages like `Japan`, `Brazil`, or `us` count as votes.  
-3. Set `CHAT_VOTE=0` only if you want Nightbot `!vote` and want to save YouTube API quota.
+1. Messages like `Japan`, `Brazil`, or `us` count as votes (same as `!vote Japan`).
+2. Nightbot `!vote` still works as a backup when `NIGHTBOT_TOKEN` is set.
+3. Set `CHAT_VOTE=0` only if you want to save YouTube API quota and rely on `!vote` / web poll only.
 
 Optional Nightbot workaround for a few popular countries: add a **command named exactly like the country** (no `!`, no spaces — Nightbot command names cannot contain spaces):
 
@@ -102,9 +102,8 @@ PUBLIC_SITE=https://yung1022.github.io/Flagbattle npm run go-live --prefix strea
 # Optional: force a mode locally with --mode qualifying|final
 ```
 
-The GitHub Action picks the mode automatically from `data/rankings.json`:
-- last finished stream was **qualifying** (with qualifiers) → next is **final**
-- otherwise → **qualifying**
+The GitHub Action always starts a **full battle** (Qualifying → Final in one livestream).
+Optional `--mode final` remains for local recovery of a Final-only run.
 
 ## Mobile / cloud stream
 
