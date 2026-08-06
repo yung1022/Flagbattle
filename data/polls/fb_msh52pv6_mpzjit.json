@@ -1,5 +1,5 @@
 {
-  "streamId": "fb_msh3yh5a_ty6u72",
+  "streamId": "fb_msh52pv6_mpzjit",
   "options": [
     {
       "code": "af",
@@ -996,7 +996,7 @@
     "bo": 0,
     "ba": 0,
     "bw": 0,
-    "br": 2,
+    "br": 0,
     "bn": 0,
     "bg": 0,
     "bf": 0,
@@ -1004,7 +1004,7 @@
     "cv": 0,
     "kh": 0,
     "cm": 0,
-    "ca": 1,
+    "ca": 0,
     "cf": 0,
     "td": 0,
     "cl": 0,
@@ -1168,12 +1168,8 @@
     "zm": 0,
     "zw": 0
   },
-  "voters": {
-    "nb:youtube:UCjrii0S-8k6sfc_ds3V-mRg": "br",
-    "nb:youtube:UCwJkbPm98UUDtEYuXr5zdhw": "br",
-    "nb:youtube:UCtA7siaY6guHrRZcnADNESQ": "ca"
-  },
+  "voters": {},
   "closed": false,
   "closedAt": null,
-  "updatedAt": 1785998431150
+  "updatedAt": 1785997965877
 }
