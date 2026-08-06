@@ -1,8 +1,15 @@
 /**
  * YouTube live chat votes → poll API + optional chat replies.
  * Accepts "!vote Japan", "!vote jp", or a bare country name/code message.
+ *
+ * Never counts the broadcaster / bot account — their reply messages (and the
+ * host's own chat) used to re-parse as votes and loop.
  */
 import { parseVoteMessage } from "../../js/vote-message.js";
+
+/** Bot / system replies we post — never treat these as votes. */
+const BOT_REPLY_RE =
+  /\bvoted\b.+\bsuccessfully\b|Usage:\s*!vote|country not found|poll is not open|vote failed/i;
 
 /**
  * @param {object} opts
@@ -24,8 +31,14 @@ export async function startChatVoteLoop({
     console.warn("[chat-vote] No liveChatId yet — vote loop not started");
     return;
   }
+
+  const ownerChannelId = await resolveBroadcastOwnerChannelId(
+    youtube,
+    broadcastId
+  );
   console.log(
-    "[chat-vote] Listening for !vote and bare country-name chat messages"
+    "[chat-vote] Listening for !vote and bare country-name chat messages" +
+      (ownerChannelId ? ` (skipping owner ${ownerChannelId})` : "")
   );
 
   let pageToken = undefined;
@@ -57,27 +70,32 @@ export async function startChatVoteLoop({
           continue;
         }
 
+        const details = item.authorDetails || {};
+        const channelId = details.channelId || "";
+        // Host + OAuth bot post as chat owner — counting them causes a reply loop.
+        if (details.isChatOwner) continue;
+        if (ownerChannelId && channelId && channelId === ownerChannelId) {
+          continue;
+        }
+
         const text = String(
           item.snippet?.textMessageDetails?.messageText || ""
         ).trim();
         if (!text) continue;
+        if (BOT_REPLY_RE.test(text)) continue;
 
         const parsed = parseVoteMessage(text);
         if (!parsed) continue;
 
-        const author =
-          item.authorDetails?.displayName ||
-          item.authorDetails?.channelId ||
-          "Viewer";
-        const channelId = item.authorDetails?.channelId || author;
+        const author = details.displayName || channelId || "Viewer";
+        const voterKey = channelId || author;
 
         // Mild per-author throttle for replies + duplicate casts.
         const now = Date.now();
-        if ((replyAt.get(channelId) || 0) > now - 2500) continue;
-        replyAt.set(channelId, now);
+        if ((replyAt.get(voterKey) || 0) > now - 2500) continue;
+        replyAt.set(voterKey, now);
 
         if (parsed.usage) {
-          // Only reply usage for explicit !vote with no argument.
           await safeReply(
             youtube,
             liveChatId,
@@ -114,11 +132,14 @@ export async function startChatVoteLoop({
           apiBase,
           streamId,
           country.code,
-          `yt:${channelId}`,
+          `yt:${voterKey}`,
           author
         );
         if (!vote.ok) {
-          if (vote.error === "unknown_country" || vote.error === "not_an_option") {
+          if (
+            vote.error === "unknown_country" ||
+            vote.error === "not_an_option"
+          ) {
             await safeReply(
               youtube,
               liveChatId,
@@ -173,6 +194,29 @@ async function resolveLiveChatId(youtube, broadcastId) {
     await sleep(4000);
   }
   return null;
+}
+
+/** Channel that owns the broadcast (same account that posts bot replies). */
+async function resolveBroadcastOwnerChannelId(youtube, broadcastId) {
+  try {
+    const res = await youtube.liveBroadcasts.list({
+      part: ["snippet"],
+      id: [broadcastId],
+    });
+    const id = res.data.items?.[0]?.snippet?.channelId;
+    if (id) return id;
+  } catch (err) {
+    console.warn("[chat-vote] owner lookup failed:", err.message || err);
+  }
+  try {
+    const mine = await youtube.channels.list({
+      part: ["id"],
+      mine: true,
+    });
+    return mine.data.items?.[0]?.id || null;
+  } catch {
+    return null;
+  }
 }
 
 async function castVote(apiBase, streamId, code, voterId, voterName) {

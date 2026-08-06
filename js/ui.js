@@ -278,7 +278,12 @@ function renderBoard() {
   if (key === lastBoardKey) return;
   lastBoardKey = key;
 
-  els.boardTrack.classList.toggle("marquee", flags.length > 8);
+  els.boardTrack.classList.toggle(
+    "marquee",
+    document.body.classList.contains("stream-mode")
+      ? flags.length > 4
+      : flags.length > 8
+  );
   els.boardTrack.innerHTML = "";
 
   if (!flags.length) {
@@ -320,10 +325,16 @@ function renderBoard() {
     row.appendChild(chip);
   }
   els.boardTrack.appendChild(row);
-  if (flags.length > 8) {
+  const needScroll = els.boardTrack.classList.contains("marquee");
+  if (needScroll) {
     const clone = row.cloneNode(true);
     clone.setAttribute("aria-hidden", "true");
     els.boardTrack.appendChild(clone);
+    // Pace scroll by list length so long boards stay readable.
+    const secs = Math.min(48, Math.max(14, flags.length * 1.6));
+    els.boardTrack.style.setProperty("--board-scroll-s", `${secs}s`);
+  } else {
+    els.boardTrack.style.removeProperty("--board-scroll-s");
   }
 }
 
