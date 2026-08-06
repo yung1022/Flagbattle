@@ -974,7 +974,7 @@
   ],
   "votes": {
     "af": 0,
-    "al": 0,
+    "al": 1,
     "dz": 0,
     "ad": 0,
     "ao": 0,
@@ -1168,8 +1168,19 @@
     "zm": 0,
     "zw": 0
   },
-  "voters": {},
+  "voters": {
+    "nb:youtube:UCjrii0S-8k6sfc_ds3V-mRg": "al"
+  },
   "closed": false,
   "closedAt": null,
-  "updatedAt": 1785997965877
+  "updatedAt": 1786004399367,
+  "recentVotes": [
+    {
+      "voter": "@CurtisPlaysYT",
+      "code": "al",
+      "name": "Albania",
+      "img": "https://flagcdn.com/w40/al.png",
+      "at": 1786004399367
+    }
+  ]
 }
