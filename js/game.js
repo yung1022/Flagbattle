@@ -103,6 +103,13 @@ export const CONFIG = {
   hitCooldownSec: 0.35,
   battleRate: 2.2,
   /**
+   * Swiss / Final 4: downward gravity (arena y increases downward).
+   * Strong enough to pull fights toward the bottom of the circle.
+   */
+  battleGravity: 0.85,
+  /** Swiss / Final 4: lighter center push so gravity reads clearly. */
+  battleOutwardForce: 0.1,
+  /**
    * Swiss / Final 4: if a bounce leaves a flag slower than this fraction of
    * max speed, nudge it back up so fights don't stall.
    */
@@ -956,7 +963,13 @@ export class FlagBattleGame {
   }
 
   _moveFighters(dt, { physicsRim, solidRim = false }) {
-    const outward = physicsRim ? CONFIG.outwardForce : 0.03;
+    const battling = this._isBattlingStage();
+    const outward = physicsRim
+      ? battling
+        ? CONFIG.battleOutwardForce ?? 0.1
+        : CONFIG.outwardForce
+      : 0.03;
+    const gravity = battling ? CONFIG.battleGravity ?? 0.85 : 0;
     const R = this.arenaRadiusNow() * this.arenaScale;
     for (const f of this.fighters) {
       if (!f.alive) continue;
@@ -977,6 +990,8 @@ export class FlagBattleGame {
       const len = Math.hypot(dx, dy) || 1;
       f.vx += (dx / len) * outward * dt;
       f.vy += (dy / len) * outward * dt;
+      // Swiss / Final 4: constant pull toward the bottom of the arena.
+      if (gravity) f.vy += gravity * dt;
 
       f.x += f.vx * dt;
       f.y += f.vy * dt;
