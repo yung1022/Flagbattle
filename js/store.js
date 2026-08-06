@@ -341,17 +341,9 @@ export function seedTeststreamPollDemo(streamId) {
     if (prev && poll.votes[prev] > 0) poll.votes[prev] -= 1;
     poll.voters[vid] = row.code;
     poll.votes[row.code] = (poll.votes[row.code] || 0) + 1;
-    poll.recentVotes = [
-      {
-        voter: row.voter,
-        code: row.code,
-        name: opt.name,
-        img: opt.img || `https://flagcdn.com/w40/${row.code}.png`,
-        at: Date.now(),
-      },
-      ...(poll.recentVotes || []),
-    ].slice(0, 5);
   }
+  // Leave recentVotes empty so the on-stream panel shows the “vote to appear here” hint.
+  poll.recentVotes = [];
   poll.updatedAt = Date.now();
   memoryPolls.set(streamId, poll);
   return poll;

@@ -644,7 +644,7 @@ export class FlagBattleGame {
       }
       this._emit(
         "phase",
-        `INTERMISSION — battle starts in ${Math.round(CONFIG.intermissionMs / 1000)}s · poll open (!vote name or code)`
+        `INTERMISSION — battle starts in ${Math.round(CONFIG.intermissionMs / 1000)}s · poll open (type a country or !vote)`
       );
     } else {
       const list = this.qualified.length

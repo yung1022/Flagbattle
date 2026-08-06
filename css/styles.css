@@ -1008,18 +1008,22 @@ body.stream-mode .hud {
 
 /* Stream layout: brand below channel chrome; equal left/right side columns that touch the arena */
 body.stream-mode .stage {
-  --safe-top: 9.5%;
-  --safe-bottom: 13%;
+  --safe-top: 14.5%;
+  --safe-bottom: 11%;
   --safe-x: 1.5%;
-  --side-col: 29%;
+  --side-col: 30%;
+  /* Country list + recent votes share this band (same size, flush to arena) */
+  --side-panel-top: calc(var(--safe-top) + 9.5%);
+  --side-panel-h: 28%;
 }
 
 body.stream-mode .board {
-  top: calc(var(--safe-top) + 14%);
+  top: var(--side-panel-top);
   left: var(--safe-x);
   right: auto;
   width: var(--side-col);
-  bottom: calc(var(--safe-bottom) + 2%);
+  height: var(--side-panel-h);
+  bottom: auto;
   padding: 0;
   display: flex;
   flex-direction: column;
@@ -1097,62 +1101,73 @@ body.stream-mode .board-empty {
 }
 
 body.stream-mode .brand-bar {
-  top: calc(var(--safe-top) + 0.4%);
-  left: calc(var(--safe-x) + var(--side-col));
-  right: calc(var(--safe-x) + var(--side-col));
+  top: calc(var(--safe-top) + 0.6%);
+  left: calc(var(--safe-x) + var(--side-col) + 0.5%);
+  right: calc(var(--safe-x) + var(--side-col) + 0.5%);
 }
 
 body.stream-mode .brand-bar-title {
   display: block;
-  font-size: clamp(22px, 5.5vw, 36px);
+  font-size: clamp(20px, 5vw, 34px);
   margin-bottom: 2px;
 }
 
 body.stream-mode .phase-pill {
   margin-top: 2px;
-  font-size: clamp(12px, 2.8vw, 16px);
+  font-size: clamp(11px, 2.6vw, 15px);
 }
 
 body.stream-mode .timer {
-  margin-top: 2px;
-  font-size: clamp(28px, 7vw, 48px);
+  margin-top: 0;
+  font-size: clamp(22px, 5.5vw, 38px);
 }
 
 body.stream-mode .round-meta {
-  font-size: clamp(11px, 2.5vw, 14px);
+  font-size: clamp(10px, 2.2vw, 12px);
+}
+
+body.stream-mode .hud .feed {
+  font-size: clamp(10px, 2.1vw, 12px);
+  max-width: 100%;
+  overflow: hidden;
+}
+
+body.stream-mode .hud .stats {
+  font-size: clamp(10px, 2.1vw, 12px);
 }
 
 body.stream-mode .arena-wrap {
-  top: calc(var(--safe-top) + 14%);
+  top: var(--side-panel-top);
   bottom: calc(var(--safe-bottom) + 2%);
   left: calc(var(--safe-x) + var(--side-col));
   right: calc(var(--safe-x) + var(--side-col));
 }
 
 body.stream-mode.final-mode .arena-wrap {
-  top: calc(var(--safe-top) + 12%);
+  top: var(--side-panel-top);
   bottom: calc(var(--safe-bottom) + 2%);
 }
 
 body.stream-mode.final-mode .brand-bar {
-  top: calc(var(--safe-top) + 0.4%);
+  top: calc(var(--safe-top) + 0.6%);
 }
 
-/* Left country list + right recent votes: same width, flush against arena */
+/* Left country list + right recent votes: identical box, touch arena edges */
 body.stream-mode .stream-recent-votes {
-  top: calc(var(--safe-top) + 14%);
+  top: var(--side-panel-top);
   right: var(--safe-x);
   width: var(--side-col);
-  height: 34%;
+  height: var(--side-panel-h);
   border-left: none;
 }
 
 body.stream-mode .stream-poll {
   right: var(--safe-x);
   width: var(--side-col);
-  top: calc(var(--safe-top) + 14% + 34%);
+  top: calc(var(--side-panel-top) + var(--side-panel-h));
   bottom: calc(var(--safe-bottom) + 2%);
   border-left: none;
+  border-top: none;
 }
 
 /* Cut paint cost for capture/encode — keep motion, drop decorative blur/filters */
@@ -1194,16 +1209,18 @@ body.stream-mode:not(.mobile-mode) .mobile-fs-btn {
 /* Easy teststream badge — dry-run, nothing persisted */
 .test-stream-badge {
   position: absolute;
-  top: calc(var(--safe-top) + 11.5%);
+  top: calc(var(--safe-top) + 0.8%);
   left: var(--safe-x);
   z-index: 20;
-  padding: 5px 9px;
+  max-width: calc(var(--side-col) - 2%);
+  padding: 4px 7px;
   border: 1px solid rgba(230, 184, 74, 0.55);
   background: rgba(3, 7, 11, 0.82);
   color: var(--gold);
   font-weight: 800;
-  font-size: clamp(10px, 2.3vw, 13px);
-  letter-spacing: 0.08em;
+  font-size: clamp(9px, 2vw, 11px);
+  letter-spacing: 0.06em;
   text-transform: uppercase;
   pointer-events: none;
+  line-height: 1.2;
 }
