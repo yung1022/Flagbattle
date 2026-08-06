@@ -11,32 +11,45 @@ import {
   fetchStreamsFromApi,
   setPersistEnabled,
   seedTeststreamPollDemo,
+  startTeststreamChatVoteDemo,
 } from "./store.js";
 import { resolveApiBase, pagesDataUrl } from "./public.js";
+import { parseVoteMessage } from "./vote-message.js";
 
 /**
  * @typedef {"idle" | "intermission" | "qualifying" | "qualifying_hold" | "between_rounds" | "final" | "qualifying_complete" | "finished"} Phase
  * @typedef {"qualifying" | "final"} StreamMode
  * @typedef {"hole" | "swiss" | "battle" | null} FinalStage
- * @typedef {"qualifying" | "hole" | "swiss" | "final4" | null} TestStreamKind
+ * @typedef {"full" | "hole" | "swiss" | "final4" | null} TestStreamKind
  */
 
 const params = new URLSearchParams(location.search);
 
-/** Easy/teststream: qualifying | hole | swiss | final4 (no save / no config). */
+/** Easy/teststream: full = Qual→Final (same as go-live). Stage shortcuts: hole|swiss|final4. */
 export function normalizeTestStream(raw) {
   const v = String(raw ?? "")
     .trim()
     .toLowerCase();
-  if (v === "" || v === "1" || v === "true" || v === "qual" || v === "qualifying") {
-    return "qualifying";
+  // Always treat bare/default teststream as the full unified battle.
+  if (
+    v === "" ||
+    v === "1" ||
+    v === "true" ||
+    v === "qual" ||
+    v === "qualifying" ||
+    v === "full" ||
+    v === "battle" ||
+    v === "all"
+  ) {
+    return "full";
   }
   if (v === "hole" || v === "final" || v === "final1" || v === "part1") return "hole";
   if (v === "swiss" || v === "part2") return "swiss";
-  if (v === "final4" || v === "battle" || v === "last" || v === "part3") {
+  if (v === "final4" || v === "last" || v === "part3") {
     return "final4";
   }
-  return "qualifying";
+  // Unknown values still run the full Qual → Final battle.
+  return "full";
 }
 
 export const TEST_STREAM = params.has("teststream")
@@ -225,12 +238,17 @@ export class FlagBattleGame {
     this._lastTs = 0;
     this._lastUi = 0;
     this._uiDirty = true;
+    this._stopTeststreamChatDemo = null;
     this.onFrame = () => {};
     this.onChange = () => {};
   }
 
   reset() {
     this.stopLoop();
+    if (typeof this._stopTeststreamChatDemo === "function") {
+      this._stopTeststreamChatDemo();
+      this._stopTeststreamChatDemo = null;
+    }
     this.phase = "idle";
     this.fighters = [];
     this.qualified = [];
@@ -402,10 +420,10 @@ export class FlagBattleGame {
     this._flushUi(true);
   }
 
-  /** Easy teststream — synthetic field, short timings, zero persistence. */
+  /** Easy teststream — synthetic field, short timings, zero persistence.
+   * Default (`full`) always runs Qualifying → Final on one page (same as go-live). */
   _startTestStream(kind) {
-    const mode =
-      kind === "qualifying" ? "qualifying" : "final";
+    const mode = kind === "full" || kind === "qualifying" ? "qualifying" : "final";
     this.streamMode = mode;
     this.stream = {
       id: `test_${kind}_${Date.now().toString(36)}`,
@@ -421,10 +439,12 @@ export class FlagBattleGame {
       sourceStreamId: null,
       testStream: kind,
     };
-    this._emit("phase", `TESTSTREAM · ${kind} (easy · no save)`);
+    const label = kind === "full" ? "full battle (Qual → Final)" : kind;
+    this._emit("phase", `TESTSTREAM · ${label} (easy · no save)`);
     this._initTeststreamPoll();
 
-    if (kind === "qualifying") {
+    // Default Easy teststream: always the same unified Qual → Final livestream.
+    if (kind === "full" || kind === "qualifying") {
       this._publishLive();
       this._beginIntermission("open");
       return;
@@ -481,6 +501,14 @@ export class FlagBattleGame {
       }))
     );
     seedTeststreamPollDemo(this.stream.id);
+    if (typeof this._stopTeststreamChatDemo === "function") {
+      this._stopTeststreamChatDemo();
+    }
+    // Every Easy teststream: simulate chatters typing bare country names / !vote.
+    this._stopTeststreamChatDemo = startTeststreamChatVoteDemo(
+      this.stream.id,
+      parseVoteMessage
+    );
   }
 
   _syntheticField(n) {
