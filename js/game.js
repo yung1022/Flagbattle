@@ -15,6 +15,7 @@ import {
 } from "./store.js";
 import { resolveApiBase, pagesDataUrl } from "./public.js";
 import { parseVoteMessage } from "./vote-message.js";
+import { averageQualifyingRating } from "./rankings-stats.js";
 
 /**
  * @typedef {"idle" | "intermission" | "qualifying" | "qualifying_hold" | "between_rounds" | "final" | "qualifying_complete" | "finished"} Phase
@@ -227,6 +228,10 @@ export class FlagBattleGame {
     this.swissRound = 0;
     this.finalLiveAt = null;
     this._fallOrder = [];
+    /** Swiss players cut before Final 4 (ranked by avg Qual place). */
+    this._swissCut = [];
+    /** Final 4 elimination order (first elim → earliest in array). */
+    this._battleElimOrder = [];
     this._betweenUntil = 0;
     this._pendingQualComplete = false;
     this._pendingSwissCut = false;
@@ -277,6 +282,8 @@ export class FlagBattleGame {
     this.swissRound = 0;
     this.finalLiveAt = null;
     this._fallOrder = [];
+    this._swissCut = [];
+    this._battleElimOrder = [];
     this._betweenUntil = 0;
     this._pendingQualComplete = false;
     this._pendingSwissCut = false;
@@ -1290,7 +1297,20 @@ export class FlagBattleGame {
     if (!loser.alive) return;
     loser.alive = false;
     loser.hp = 0;
-    this.eliminated.push(loser);
+    // Swiss match losses are not permanent ranking elims (players stay in pool).
+    // Final 4: record elimination sequence for Final ranking.
+    if (this.finalStage === "battle") {
+      this._battleElimOrder.push({
+        code: loser.code,
+        name: loser.name,
+        img: loser.img,
+      });
+      this.eliminated.push(loser);
+    } else if (this.finalStage === "swiss") {
+      /* match-only — no ranking push */
+    } else {
+      this.eliminated.push(loser);
+    }
     if (winner) winner.pulse = 1;
     this._emit(
       "elim",
@@ -1348,7 +1368,9 @@ export class FlagBattleGame {
       if (alive.length === 1) {
         this._onLastFlag(alive[0]);
       } else if (alive.length === 0) {
-        const last = this.eliminated[this.eliminated.length - 1];
+        const last =
+          this._battleElimOrder[this._battleElimOrder.length - 1] ||
+          this.eliminated[this.eliminated.length - 1];
         if (last) this._onLastFlag(last);
       }
     }
@@ -1399,6 +1421,8 @@ export class FlagBattleGame {
     this.swissRound = 0;
     this._swissPool = list;
     this._swissPairQueue = [];
+    this._swissCut = [];
+    this._battleElimOrder = [];
     this.phase = "between_rounds";
     this.finalStage = "swiss";
     this._pendingSwissNext = true;
@@ -1511,6 +1535,13 @@ export class FlagBattleGame {
     const keepN = Math.min(ranked.length, targetKeep);
     const kept = ranked.slice(0, keepN);
     const cut = ranked.slice(keepN);
+    // Cut players are ranked later by average Qualifying place (not Swiss points).
+    this._swissCut = cut.map((c) => ({
+      code: c.code,
+      name: c.name,
+      img: c.img,
+      points: Number(c.points) || 0,
+    }));
     for (const c of cut) {
       this._emit(
         "elim",
@@ -1521,6 +1552,7 @@ export class FlagBattleGame {
       "phase",
       `Swiss cut — top ${kept.length} advance to last-flag battling.`
     );
+    this._battleElimOrder = [];
     this._beginFinalBattle(kept);
   }
 
@@ -1533,6 +1565,7 @@ export class FlagBattleGame {
     this.phase = "final";
     this.round += 1;
     this.arenaScale = 1;
+    this._battleElimOrder = [];
     this.fighters = shuffle(field).map((c, i) => {
       const f = this._makeFighter(c, i, field.length);
       f.qualified = true;
@@ -1558,6 +1591,11 @@ export class FlagBattleGame {
     this.round += 1;
     this._finalElimLock = false;
     this._pendingFinalReset = false;
+    // Fresh Final tracking — do not carry Qualifying eliminations into ranks.
+    this.eliminated = [];
+    this._fallOrder = [];
+    this._swissCut = [];
+    this._battleElimOrder = [];
     this.fighters = list.map((c, i) => {
       const f = this._makeFighter(c, i, list.length);
       f.qualified = true;
@@ -1566,7 +1604,6 @@ export class FlagBattleGame {
     this.holeAngle = rand(0, Math.PI * 2);
     this.roundStartedAt = performance.now();
     this.arenaScale = 1;
-    this._fallOrder = [];
     this._uiDirty = true;
     this._emit(
       "phase",
@@ -1624,7 +1661,6 @@ export class FlagBattleGame {
     for (const row of reversed) {
       ranking.push({ rank: rank++, ...row });
     }
-    // Append Swiss/battle eliminations not in fall order
     for (const e of [...this.eliminated].reverse()) {
       if (ranking.some((r) => r.code === e.code)) continue;
       if (winner && e.code === winner.code) continue;
@@ -1635,6 +1671,58 @@ export class FlagBattleGame {
         img: e.img,
       });
     }
+    return ranking;
+  }
+
+  /**
+   * Final battle sheet ranking:
+   * 1) Final 4 — winner, then reverse elimination sequence
+   * 2) Swiss cuts — average place across Qualifying rounds (lower avg = better)
+   * 3) Hole (before Swiss) — same as Qualifying: reverse fall order
+   */
+  _buildFinalRanking(winner) {
+    const ranking = [];
+    const seen = new Set();
+    const push = (row) => {
+      if (!row?.code || seen.has(row.code)) return;
+      if (winner && row.code === winner.code && ranking.length) return;
+      seen.add(row.code);
+      ranking.push({
+        rank: ranking.length + 1,
+        code: row.code,
+        name: row.name,
+        img: row.img,
+      });
+    };
+
+    if (winner) {
+      push({
+        code: winner.code,
+        name: winner.name,
+        img: winner.img,
+      });
+    }
+
+    // Final 4: last eliminated → rank 2, first eliminated → worst Final-4 place.
+    for (const row of [...this._battleElimOrder].reverse()) {
+      push(row);
+    }
+
+    // Swiss cuts: better average Qualifying place → better Final place.
+    const stream = this.stream;
+    const swissCut = [...(this._swissCut || [])].sort((a, b) => {
+      const av = averageQualifyingRating(stream, a.code);
+      const bv = averageQualifyingRating(stream, b.code);
+      if (av !== bv) return av - bv;
+      return String(a.name || "").localeCompare(String(b.name || ""));
+    });
+    for (const row of swissCut) push(row);
+
+    // Hole stage (before Swiss): reverse fall order — unchanged logic.
+    for (const row of [...this._fallOrder].reverse()) {
+      push(row);
+    }
+
     return ranking;
   }
 
@@ -1676,10 +1764,15 @@ export class FlagBattleGame {
         this.stream.mode = "final";
         this.stream.status = "winner_hold";
         this.stream.final = {
-          ranking: this._rankingFromFallOrder(flag),
+          ranking: this._buildFinalRanking(flag),
           winner: { code: flag.code, name: flag.name, img: flag.img },
           at: new Date().toISOString(),
           rules: "hole_swiss_battle",
+          rankingRules: {
+            hole: "reverse_fall_order",
+            swiss: "average_qualifying_place",
+            final4: "elimination_sequence",
+          },
           pollPlaces: null,
         };
         this.stream.winner = this.stream.final.winner;
@@ -1796,6 +1889,11 @@ export class FlagBattleGame {
   _beginFinal() {
     this._pendingQualComplete = false;
     this.intermissionKind = null;
+    // Do not carry Qualifying eliminations into Final ranking.
+    this.eliminated = [];
+    this._fallOrder = [];
+    this._swissCut = [];
+    this._battleElimOrder = [];
     if (!this.qualified.length) {
       this._emit("phase", "No qualifiers — sudden-death field.");
       this.qualified = shuffle(COUNTRIES)
