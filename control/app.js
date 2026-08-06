@@ -879,7 +879,7 @@ async function uploadHighlight() {
     log("hl-log", `Upload failed: ${err.message || err}`);
     log(
       "hl-log",
-      "If scope errors: Setup → Start device login again (upload scope), then retry."
+      "If scope errors: Setup → Start device login again, then retry."
     );
   } finally {
     $("btn-hl-upload").disabled = false;
