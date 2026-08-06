@@ -26,6 +26,7 @@ import {
 } from "./youtube.js";
 import { startChatVoteLoop } from "./chat-vote.js";
 import { syncNightbotVoteCommand, nightbotVoteMessage } from "./nightbot.js";
+import { startYoutubePollOrchestrator } from "./yt-polls.js";
 
 loadEnv();
 
@@ -52,8 +53,8 @@ const TITLE =
 const DESCRIPTION =
   process.env.YT_DESCRIPTION ||
   (MODE === "final"
-    ? "FLAG BATTLE Final livestream. Hole (reset on fall) → Swiss 1v1 (5 rounds) → last flag standing.\n\nVote who wins: !vote XX (2-letter country code). Poll & rankings: https://yung1022.github.io/Flagbattle/"
-    : "FLAG BATTLE Qualifying livestream. Last flag in the circle qualifies. Final is a separate livestream on the next 2-hour UTC slot.\n\nVote who wins: !vote XX (2-letter country code). Poll & rankings: https://yung1022.github.io/Flagbattle/");
+    ? "FLAG BATTLE Final livestream. Hole (reset on fall) → Swiss 1v1 (5 rounds) → last flag standing.\n\nVote who wins: !vote XX (2-letter country code). Live Chat polls: who wins the community poll + who wins Final 4. Poll & rankings: https://yung1022.github.io/Flagbattle/"
+    : "FLAG BATTLE Qualifying livestream. Last flag in the circle qualifies. Final is a separate livestream on the next 2-hour UTC slot.\n\nVote who wins: !vote XX (2-letter country code). Live Chat poll: who wins the community poll (Final 4 poll on the Final stream). Poll & rankings: https://yung1022.github.io/Flagbattle/");
 
 const children = [];
 let display = null;
@@ -166,9 +167,23 @@ async function main() {
       signal: chatAbort.signal,
       getStreamId: () => readLiveStreamId(PORT),
     }).catch((err) => console.warn("[chat-vote] stopped:", err.message || err));
-    console.log("[chat-vote] YouTube poll loop enabled (CHAT_VOTE=1)");
+    console.log("[chat-vote] YouTube vote-reply loop enabled (CHAT_VOTE=1)");
   } else {
-    console.log("[chat-vote] YouTube poll loop off — use Nightbot !vote");
+    console.log("[chat-vote] YouTube vote-reply loop off — use Nightbot !vote");
+  }
+
+  // Pinned Live Chat polls: community poll winner → Final 4 (one active at a time).
+  if (String(process.env.YT_LIVE_POLLS || "1").trim() !== "0") {
+    if (!chatAbort) chatAbort = new AbortController();
+    startYoutubePollOrchestrator({
+      youtube: youtubeClient,
+      broadcastId,
+      port: PORT,
+      mode: MODE,
+      signal: chatAbort.signal,
+    }).catch((err) => console.warn("[yt-polls] stopped:", err.message || err));
+  } else {
+    console.log("[yt-polls] Disabled (YT_LIVE_POLLS=0)");
   }
 
   console.log(`\n🔴 LIVE (${MODE}) — press Ctrl+C to end the stream\n`);
