@@ -146,7 +146,43 @@ export async function submitPollVote(streamId, code, voterId) {
   return localPollVote(streamId, code, voterId);
 }
 
+function pollKey(streamId) {
+  return `flagbattle.poll.${streamId}`;
+}
+
+/** In-memory polls when persist is off (Easy teststream). */
+const memoryPolls = new Map();
+
+function emptyPoll(streamId) {
+  return {
+    streamId,
+    options: [],
+    votes: {},
+    voters: {},
+    recentVotes: [],
+    closed: false,
+    updatedAt: Date.now(),
+  };
+}
+
+export function getLocalPoll(streamId) {
+  if (!persistEnabled) {
+    return memoryPolls.get(streamId) || emptyPoll(streamId);
+  }
+  try {
+    return (
+      JSON.parse(localStorage.getItem(pollKey(streamId)) || "null") ||
+      emptyPoll(streamId)
+    );
+  } catch {
+    return emptyPoll(streamId);
+  }
+}
+
 export async function fetchPoll(streamId) {
+  // Teststream / no-persist: never hit live API or Pages.
+  if (!persistEnabled) return getLocalPoll(streamId);
+
   const fromApi = await apiFetch(
     `/api/poll?streamId=${encodeURIComponent(streamId)}`
   );
@@ -164,25 +200,6 @@ export async function fetchPoll(streamId) {
   return getLocalPoll(streamId);
 }
 
-function pollKey(streamId) {
-  return `flagbattle.poll.${streamId}`;
-}
-
-export function getLocalPoll(streamId) {
-  try {
-    return (
-      JSON.parse(localStorage.getItem(pollKey(streamId)) || "null") || {
-        streamId,
-        options: [],
-        votes: {},
-        voters: {},
-      }
-    );
-  } catch {
-    return { streamId, options: [], votes: {}, voters: {} };
-  }
-}
-
 /** Copy poll tallies to another stream id — keeps every country option. */
 export function transferPoll(fromId, toId) {
   if (!fromId || !toId || fromId === toId) return null;
@@ -195,10 +212,14 @@ export function transferPoll(fromId, toId) {
     options: Array.isArray(prev.options) ? prev.options.slice() : [],
     votes: { ...(prev.votes || {}) },
     voters: { ...(prev.voters || {}) },
+    recentVotes: Array.isArray(prev.recentVotes) ? prev.recentVotes.slice() : [],
     closed: Boolean(prev.closed),
     updatedAt: Date.now(),
   };
-  if (!persistEnabled) return next;
+  if (!persistEnabled) {
+    memoryPolls.set(toId, next);
+    return next;
+  }
   localStorage.setItem(pollKey(toId), JSON.stringify(next));
   syncLive({ type: "poll_init", poll: next }).catch(() => {});
   return next;
@@ -214,7 +235,10 @@ export function closeLocalPoll(streamId) {
     closedAt: new Date().toISOString(),
     updatedAt: Date.now(),
   };
-  if (!persistEnabled) return next;
+  if (!persistEnabled) {
+    memoryPolls.set(streamId, next);
+    return next;
+  }
   localStorage.setItem(pollKey(streamId), JSON.stringify(next));
   syncLive({ type: "poll_init", poll: next }).catch(() => {});
   return next;
@@ -251,16 +275,6 @@ export function rankPollPlaces(poll, placePoints = [10, 5, 3, 2, 1]) {
 }
 
 export function initLocalPoll(streamId, options) {
-  if (!persistEnabled) {
-    return {
-      streamId,
-      options,
-      votes: Object.fromEntries(options.map((o) => [o.code, 0])),
-      voters: {},
-      closed: false,
-      updatedAt: Date.now(),
-    };
-  }
   const prev = getLocalPoll(streamId);
   // Never shrink the option list — union so eliminated countries stay.
   const byCode = new Map();
@@ -285,15 +299,65 @@ export function initLocalPoll(streamId, options) {
     options: mergedOptions,
     votes,
     voters: { ...(prev.voters || {}) },
+    recentVotes: Array.isArray(prev.recentVotes) ? prev.recentVotes.slice() : [],
     closed: Boolean(prev.closed),
     updatedAt: hadVotes ? prev.updatedAt || Date.now() : Date.now(),
   };
+
+  if (!persistEnabled) {
+    memoryPolls.set(streamId, merged);
+    return merged;
+  }
   localStorage.setItem(pollKey(streamId), JSON.stringify(merged));
   syncLive({ type: "poll_init", poll: merged }).catch(() => {});
   return merged;
 }
 
-function localPollVote(streamId, code, voterId) {
+/**
+ * Seed a few demo votes for Easy teststream HUD preview (no save).
+ * @param {string} streamId
+ */
+export function seedTeststreamPollDemo(streamId) {
+  if (persistEnabled) return getLocalPoll(streamId);
+  const poll = getLocalPoll(streamId);
+  if (!poll.options?.length) return poll;
+  if (poll.recentVotes?.length) return poll;
+
+  const demoVoters = [
+    { voter: "Tyler-u5j7k", code: "br" },
+    { voter: "MayaLive", code: "jp" },
+    { voter: "FlagFan", code: "kr" },
+    { voter: "GeoKid", code: "us" },
+    { voter: "ArenaChat", code: "br" },
+  ];
+  const byCode = new Map(
+    poll.options.map((o) => [String(o.code).toLowerCase(), o])
+  );
+  for (const row of demoVoters) {
+    const opt = byCode.get(row.code);
+    if (!opt) continue;
+    const vid = `demo:${row.voter}`;
+    const prev = poll.voters[vid];
+    if (prev && poll.votes[prev] > 0) poll.votes[prev] -= 1;
+    poll.voters[vid] = row.code;
+    poll.votes[row.code] = (poll.votes[row.code] || 0) + 1;
+    poll.recentVotes = [
+      {
+        voter: row.voter,
+        code: row.code,
+        name: opt.name,
+        img: opt.img || `https://flagcdn.com/w40/${row.code}.png`,
+        at: Date.now(),
+      },
+      ...(poll.recentVotes || []),
+    ].slice(0, 5);
+  }
+  poll.updatedAt = Date.now();
+  memoryPolls.set(streamId, poll);
+  return poll;
+}
+
+function localPollVote(streamId, code, voterId, voterName) {
   const poll = getLocalPoll(streamId);
   if (poll.closed || !poll.options?.length) {
     return poll;
@@ -302,7 +366,32 @@ function localPollVote(streamId, code, voterId) {
   if (prev && poll.votes[prev] > 0) poll.votes[prev] -= 1;
   poll.voters[voterId] = code;
   poll.votes[code] = (poll.votes[code] || 0) + 1;
+  const opt = (poll.options || []).find(
+    (o) => String(o.code).toLowerCase() === String(code).toLowerCase()
+  );
+  const who = String(voterName || voterId || "Viewer")
+    .replace(/^nb:/, "")
+    .replace(/^yt:/, "")
+    .replace(/^demo:/, "")
+    .slice(0, 40);
+  const entry = {
+    voter: who,
+    code,
+    name: opt?.name || String(code).toUpperCase(),
+    img: opt?.img || `https://flagcdn.com/w40/${code}.png`,
+    at: Date.now(),
+  };
+  poll.recentVotes = [
+    entry,
+    ...(Array.isArray(poll.recentVotes) ? poll.recentVotes : []).filter(
+      (r) => r && r.voter !== who
+    ),
+  ].slice(0, 5);
   poll.updatedAt = Date.now();
+  if (!persistEnabled) {
+    memoryPolls.set(streamId, poll);
+    return poll;
+  }
   localStorage.setItem(pollKey(streamId), JSON.stringify(poll));
   return poll;
 }
