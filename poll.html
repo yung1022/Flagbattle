@@ -23,7 +23,7 @@
       <h1>FINAL POLL</h1>
       <p class="lede" id="lede">
         Vote for who wins Last Flag Standing. On YouTube you can also type
-        <code>!vote XX</code> (country code) in live chat.
+        <code>!vote Japan</code> or <code>!vote jp</code> in live chat.
       </p>
       <div class="meta" id="status">Loading…</div>
       <div id="options"></div>
@@ -89,7 +89,7 @@
           ? `Poll closed after the Final. Top places earn season bonus points.`
           : myVote
             ? `You voted. You can change your pick anytime until the Final ends.`
-            : `Vote who you think will win the Final (!vote XX in chat).`;
+            : `Vote who you think will win the Final (!vote Japan or !vote jp in chat).`;
 
         const options = poll.options?.length
           ? poll.options

@@ -13,7 +13,11 @@ export function nightbotVoteMessage(apiBase) {
     return "Poll is offline — try the link in chat.";
   }
   // Nightbot $(urlfetch) is GET-only; response must be plain text < 400 chars.
-  return `$(urlfetch ${base}/api/poll/vote?code=$(query)&voter=$(user)&format=text)`;
+  // urlencode is required so "!vote United States" does not break the URL.
+  return (
+    `$(urlfetch ${base}/api/poll/vote?code=$(urlencode $(query))` +
+    `&voter=$(urlencode $(user))&format=text)`
+  );
 }
 
 /**

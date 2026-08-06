@@ -53,8 +53,8 @@ const TITLE =
 const DESCRIPTION =
   process.env.YT_DESCRIPTION ||
   (MODE === "final"
-    ? "FLAG BATTLE Final livestream. Hole (reset on fall) → Swiss 1v1 (5 rounds) → last flag standing.\n\nVote who wins: !vote XX (2-letter country code). Live Chat polls: who wins the community poll + who wins Final 4. Poll & rankings: https://yung1022.github.io/Flagbattle/"
-    : "FLAG BATTLE Qualifying livestream. Last flag in the circle qualifies. Final is a separate livestream on the next 2-hour UTC slot.\n\nVote who wins: !vote XX (2-letter country code). Live Chat poll: who wins the community poll (Final 4 poll on the Final stream). Poll & rankings: https://yung1022.github.io/Flagbattle/");
+    ? "FLAG BATTLE Final livestream. Hole (reset on fall) → Swiss 1v1 (5 rounds) → last flag standing.\n\nVote who wins: !vote Japan or !vote jp. Live Chat polls: who wins the community poll + who wins Final 4. Poll & rankings: https://yung1022.github.io/Flagbattle/"
+    : "FLAG BATTLE Qualifying livestream. Last flag in the circle qualifies. Final is a separate livestream on the next 2-hour UTC slot.\n\nVote who wins: !vote Japan or !vote jp. Live Chat poll: who wins the community poll (Final 4 poll on the Final stream). Poll & rankings: https://yung1022.github.io/Flagbattle/");
 
 const children = [];
 let display = null;
@@ -214,7 +214,7 @@ async function postChatLinks(youtube, id, apiUrl, mode = "qualifying") {
 
   // One combined instructions message (YouTube live chat ~200 char limit).
   const line =
-    `Vote who wins: !vote XX (2-letter country code). ` +
+    `Vote who wins: !vote Japan or !vote jp. ` +
     `Poll: ${poll} · Rankings: ${rank}` +
     (mode === "qualifying" ? " · Final is a separate stream" : "");
 

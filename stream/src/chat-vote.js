@@ -1,16 +1,13 @@
 /**
- * YouTube live chat !vote {country code} → poll API + chat replies.
+ * YouTube live chat !vote {code|country name} → poll API + chat replies.
  */
-import { COUNTRIES } from "../../js/countries.js";
+import { resolveCountryQuery } from "../../js/countries.js";
 
-const CODE_RE = /^!vote\s+([a-z]{2})\b/i;
-const byCode = new Map(
-  COUNTRIES.map((c) => [String(c.code).toLowerCase(), c])
-);
+const VOTE_RE = /^!vote(?:\s+(.+))?$/i;
 
 /**
  * @param {object} opts
- * @param {import("googleapis").youtube_v3.Youtube} opts.youtube
+ * @param {any} opts.youtube
  * @param {string} opts.broadcastId
  * @param {string} opts.apiBase local/tunnel origin for /api/poll/vote
  * @param {() => string|null} opts.getStreamId
@@ -51,12 +48,11 @@ export async function startChatVoteLoop({
         if (!id || seen.has(id)) continue;
         seen.add(id);
         if (seen.size > 2000) {
-          // Bound memory: drop oldest-ish by clearing when huge.
           seen.clear();
         }
 
         const text = item.snippet?.textMessageDetails?.messageText || "";
-        const match = String(text).trim().match(CODE_RE);
+        const match = String(text).trim().match(VOTE_RE);
         if (!match) continue;
 
         const author =
@@ -64,19 +60,28 @@ export async function startChatVoteLoop({
           item.authorDetails?.channelId ||
           "Viewer";
         const channelId = item.authorDetails?.channelId || author;
-        const code = match[1].toLowerCase();
-        const country = byCode.get(code);
+        const query = String(match[1] || "").trim();
+        const country = resolveCountryQuery(query);
 
         // Mild per-author throttle for replies.
         const now = Date.now();
         if ((replyAt.get(channelId) || 0) > now - 2500) continue;
         replyAt.set(channelId, now);
 
+        if (!query) {
+          await safeReply(
+            youtube,
+            liveChatId,
+            `${author} Usage: !vote Japan  or  !vote jp`
+          );
+          continue;
+        }
+
         if (!country) {
           await safeReply(
             youtube,
             liveChatId,
-            `${author} country does not exist.`
+            `${author} country not found — try a name or 2-letter code.`
           );
           continue;
         }
@@ -91,13 +96,18 @@ export async function startChatVoteLoop({
           continue;
         }
 
-        const vote = await castVote(apiBase, streamId, code, `yt:${channelId}`);
+        const vote = await castVote(
+          apiBase,
+          streamId,
+          country.code,
+          `yt:${channelId}`
+        );
         if (!vote.ok) {
           if (vote.error === "unknown_country" || vote.error === "not_an_option") {
             await safeReply(
               youtube,
               liveChatId,
-              `${author} country does not exist.`
+              `${author} country not found — try a name or 2-letter code.`
             );
           } else if (vote.error === "poll_closed") {
             await safeReply(
