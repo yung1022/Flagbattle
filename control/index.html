@@ -226,6 +226,12 @@
           <li>Open <a href="https://www.google.com/device" target="_blank" rel="noopener">google.com/device</a>, enter the code, allow access.</li>
           <li>Push secrets to GitHub (or copy them manually).</li>
         </ol>
+        <p class="note">
+          Device login only requests the
+          <code>youtube</code> scope (Google’s TV/device allowlist). That is enough
+          for Cloud go-live. Custom thumbnails / some chat API features may still
+          warn if Google requires a Desktop OAuth client.
+        </p>
 
         <label class="field">
           <span>Google Client ID</span>
@@ -265,6 +271,6 @@
       </section>
     </main>
 
-    <script type="module" src="app.js?v=full-spotlight-1"></script>
+    <script type="module" src="app.js?v=device-scope-1"></script>
   </body>
 </html>
