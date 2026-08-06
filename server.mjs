@@ -383,23 +383,33 @@ function flushPublicSync({ github = false } = {}) {
   else flushLocalPublicData();
 }
 
-/** Merge poll_init into existing tallies — never wipe votes. */
+/** Merge poll_init into existing tallies — never wipe votes or drop countries. */
 function mergePoll(existing, incoming) {
-  if (!existing?.options?.length) return incoming;
-  const options = incoming?.options?.length ? incoming.options : existing.options;
+  if (!existing?.options?.length && !incoming?.options?.length) {
+    return incoming || existing;
+  }
+  const byCode = new Map();
+  for (const o of existing?.options || []) {
+    if (o?.code) byCode.set(String(o.code).toLowerCase(), o);
+  }
+  for (const o of incoming?.options || []) {
+    if (o?.code) byCode.set(String(o.code).toLowerCase(), o);
+  }
+  const options = [...byCode.values()];
   const votes = Object.fromEntries(options.map((o) => [o.code, 0]));
-  for (const [code, n] of Object.entries(existing.votes || {})) {
+  for (const [code, n] of Object.entries(existing?.votes || {})) {
     votes[code] = Number(n) || 0;
   }
-  // Prefer higher tallies if incoming somehow carried votes.
   for (const [code, n] of Object.entries(incoming?.votes || {})) {
     votes[code] = Math.max(votes[code] || 0, Number(n) || 0);
   }
   return {
-    streamId: incoming?.streamId || existing.streamId,
+    streamId: incoming?.streamId || existing?.streamId,
     options,
     votes,
-    voters: { ...(existing.voters || {}), ...(incoming?.voters || {}) },
+    voters: { ...(existing?.voters || {}), ...(incoming?.voters || {}) },
+    closed: Boolean(incoming?.closed ?? existing?.closed),
+    closedAt: incoming?.closedAt || existing?.closedAt || null,
     updatedAt: Date.now(),
   };
 }
@@ -440,6 +450,9 @@ function applyPollVote({ streamId, code, voterId }) {
   if (!poll.options?.length) {
     return { ok: false, status: 409, error: "poll_closed" };
   }
+  if (poll.closed) {
+    return { ok: false, status: 409, error: "poll_closed" };
+  }
   const allowed = new Set(
     poll.options.map((o) => String(o.code || "").toLowerCase())
   );
@@ -476,7 +489,7 @@ function formatVoteText(result, voterLabel) {
     case "not_an_option":
       return `${who} country does not exist.`;
     case "poll_closed":
-      return `${who} poll is not open yet.`;
+      return `${who} poll is closed (opens at Qualifying, ends after Final).`;
     default:
       return `${who} vote failed — try again.`;
   }
@@ -560,27 +573,8 @@ async function handleApi(req, res, url) {
     const cur = readJson(LIVE_FILE, { live: null, streams: [] });
     if (body.type === "live") {
       cur.live = body.live;
-      // Seed Final poll only — never during Qualifying (avoids 1-country poll).
-      if (
-        body.live?.mode === "final" &&
-        body.live?.streamId &&
-        body.live?.qualified?.length
-      ) {
-        const existing = readJson(pollPath(body.live.streamId), null);
-        if (!existing?.options?.length) {
-          const poll = {
-            streamId: body.live.streamId,
-            options: body.live.qualified,
-            votes: Object.fromEntries(
-              body.live.qualified.map((q) => [q.code, 0])
-            ),
-            voters: {},
-            updatedAt: Date.now(),
-          };
-          writeJson(pollPath(body.live.streamId), poll);
-          schedulePublicSync({ pollId: body.live.streamId });
-        }
-      }
+      // Do not auto-seed from live.qualified — game opens the full-country
+      // poll at Qualifying start and carries it through Final (never shrinks).
       const finished = body.live?.phase === "finished";
       // Safety net: if the finished live snapshot arrives without a matching
       // stream save (race / dropped POST), still close the stream so rankings

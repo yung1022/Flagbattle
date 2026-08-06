@@ -52,8 +52,8 @@ const TITLE =
 const DESCRIPTION =
   process.env.YT_DESCRIPTION ||
   (MODE === "final"
-    ? "FLAG BATTLE Final livestream. Hole (reset on fall) → Swiss 1v1 (5 rounds) → last flag standing. Vote in chat: !vote XX (country code).\n\nPoll & rankings: https://yung1022.github.io/Flagbattle/"
-    : "FLAG BATTLE Qualifying livestream. Last flag in the circle qualifies. Results save when the stream ends — Final is a separate livestream on the next 2-hour UTC slot.\n\nRankings: https://yung1022.github.io/Flagbattle/");
+    ? "FLAG BATTLE Final livestream. Hole (reset on fall) → Swiss 1v1 (5 rounds) → last flag standing.\n\nVote who wins: !vote XX (2-letter country code). Poll & rankings: https://yung1022.github.io/Flagbattle/"
+    : "FLAG BATTLE Qualifying livestream. Last flag in the circle qualifies. Final is a separate livestream on the next 2-hour UTC slot.\n\nVote who wins: !vote XX (2-letter country code). Poll & rankings: https://yung1022.github.io/Flagbattle/");
 
 const children = [];
 let display = null;
@@ -194,33 +194,22 @@ async function postChatLinks(youtube, id, apiUrl, mode = "qualifying") {
     process.env.SITE_URL ||
     PUBLIC_SITE_DEFAULT
   ).replace(/\/$/, "");
-  const api = (apiUrl || process.env.PUBLIC_API || "").replace(/\/$/, "");
-  const poll = api
-    ? `${site}/poll.html?api=${encodeURIComponent(api)}`
-    : `${site}/poll.html`;
-  const rank = api
-    ? `${site}/rankings.html?api=${encodeURIComponent(api)}`
-    : `${site}/rankings.html`;
+  const poll = `${site}/poll.html`;
+  const rank = `${site}/rankings.html`;
 
-  const lines =
-    mode === "final"
-      ? [
-          `Vote: !vote XX (Nightbot) or ${poll}`,
-          `Rankings: ${rank}`,
-        ]
-      : [
-          `Qualifying live — Final is a separate stream`,
-          `Rankings: ${rank}`,
-        ];
-  for (const line of lines) {
-    for (let attempt = 0; attempt < 5; attempt++) {
-      try {
-        await postLiveChatMessage(youtube, id, line);
-        break;
-      } catch (err) {
-        console.warn(`Chat post retry ${attempt + 1}:`, err.message || err);
-        await sleep(4000);
-      }
+  // One combined instructions message (YouTube live chat ~200 char limit).
+  const line =
+    `Vote who wins: !vote XX (2-letter country code). ` +
+    `Poll: ${poll} · Rankings: ${rank}` +
+    (mode === "qualifying" ? " · Final is a separate stream" : "");
+
+  for (let attempt = 0; attempt < 5; attempt++) {
+    try {
+      await postLiveChatMessage(youtube, id, line.slice(0, 200));
+      break;
+    } catch (err) {
+      console.warn(`Chat post retry ${attempt + 1}:`, err.message || err);
+      await sleep(4000);
     }
   }
 }

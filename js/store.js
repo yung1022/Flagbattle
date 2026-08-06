@@ -183,6 +183,73 @@ export function getLocalPoll(streamId) {
   }
 }
 
+/** Copy poll tallies to another stream id — keeps every country option. */
+export function transferPoll(fromId, toId) {
+  if (!fromId || !toId || fromId === toId) return null;
+  const prev = getLocalPoll(fromId);
+  if (!prev?.options?.length && !Object.keys(prev?.votes || {}).length) {
+    return null;
+  }
+  const next = {
+    streamId: toId,
+    options: Array.isArray(prev.options) ? prev.options.slice() : [],
+    votes: { ...(prev.votes || {}) },
+    voters: { ...(prev.voters || {}) },
+    closed: Boolean(prev.closed),
+    updatedAt: Date.now(),
+  };
+  if (!persistEnabled) return next;
+  localStorage.setItem(pollKey(toId), JSON.stringify(next));
+  syncLive({ type: "poll_init", poll: next }).catch(() => {});
+  return next;
+}
+
+/** Freeze poll after Final — votes stop; options kept for history. */
+export function closeLocalPoll(streamId) {
+  const prev = getLocalPoll(streamId);
+  const next = {
+    ...prev,
+    streamId,
+    closed: true,
+    closedAt: new Date().toISOString(),
+    updatedAt: Date.now(),
+  };
+  if (!persistEnabled) return next;
+  localStorage.setItem(pollKey(streamId), JSON.stringify(next));
+  syncLive({ type: "poll_init", poll: next }).catch(() => {});
+  return next;
+}
+
+/** Top poll places with bonus points (10/5/3/2/1). */
+export function rankPollPlaces(poll, placePoints = [10, 5, 3, 2, 1]) {
+  const options = Array.isArray(poll?.options) ? poll.options : [];
+  const votes = poll?.votes || {};
+  const ranked = [...options]
+    .map((o) => ({
+      code: o.code,
+      name: o.name,
+      img: o.img,
+      votes: Number(votes[o.code]) || 0,
+    }))
+    .sort(
+      (a, b) =>
+        b.votes - a.votes ||
+        String(a.name || "").localeCompare(String(b.name || ""))
+    );
+  return placePoints.map((pts, i) => {
+    const row = ranked[i];
+    if (!row) return null;
+    return {
+      rank: i + 1,
+      code: row.code,
+      name: row.name,
+      img: row.img,
+      votes: row.votes,
+      points: pts,
+    };
+  }).filter(Boolean);
+}
+
 export function initLocalPoll(streamId, options) {
   if (!persistEnabled) {
     return {
@@ -190,49 +257,47 @@ export function initLocalPoll(streamId, options) {
       options,
       votes: Object.fromEntries(options.map((o) => [o.code, 0])),
       voters: {},
+      closed: false,
       updatedAt: Date.now(),
     };
   }
   const prev = getLocalPoll(streamId);
-  const sameOptions =
-    Array.isArray(prev?.options) &&
-    prev.options.length === options.length &&
-    options.every((o, i) => prev.options[i]?.code === o.code);
-
-  // Preserve votes if poll already open for this stream (idempotent).
-  const hadVotes =
-    prev?.streamId === streamId &&
-    ((prev.voters && Object.keys(prev.voters).length > 0) ||
-      Object.values(prev.votes || {}).some((n) => Number(n) > 0));
-
-  if (hadVotes || (sameOptions && prev?.options?.length)) {
-    const merged = {
-      streamId,
-      options,
-      votes: { ...Object.fromEntries(options.map((o) => [o.code, 0])), ...(prev.votes || {}) },
-      voters: { ...(prev.voters || {}) },
-      updatedAt: prev.updatedAt || Date.now(),
-    };
-    localStorage.setItem(pollKey(streamId), JSON.stringify(merged));
-    // Soft sync options only — server merges and keeps tallies.
-    syncLive({ type: "poll_init", poll: merged }).catch(() => {});
-    return merged;
+  // Never shrink the option list — union so eliminated countries stay.
+  const byCode = new Map();
+  for (const o of prev.options || []) {
+    if (o?.code) byCode.set(String(o.code).toLowerCase(), o);
+  }
+  for (const o of options || []) {
+    if (o?.code) byCode.set(String(o.code).toLowerCase(), o);
+  }
+  const mergedOptions = [...byCode.values()];
+  const votes = Object.fromEntries(mergedOptions.map((o) => [o.code, 0]));
+  for (const [code, n] of Object.entries(prev.votes || {})) {
+    votes[code] = Number(n) || 0;
   }
 
-  const poll = {
+  const hadVotes =
+    (prev.voters && Object.keys(prev.voters).length > 0) ||
+    Object.values(prev.votes || {}).some((n) => Number(n) > 0);
+
+  const merged = {
     streamId,
-    options,
-    votes: Object.fromEntries(options.map((o) => [o.code, 0])),
-    voters: {},
-    updatedAt: Date.now(),
+    options: mergedOptions,
+    votes,
+    voters: { ...(prev.voters || {}) },
+    closed: Boolean(prev.closed),
+    updatedAt: hadVotes ? prev.updatedAt || Date.now() : Date.now(),
   };
-  localStorage.setItem(pollKey(streamId), JSON.stringify(poll));
-  syncLive({ type: "poll_init", poll }).catch(() => {});
-  return poll;
+  localStorage.setItem(pollKey(streamId), JSON.stringify(merged));
+  syncLive({ type: "poll_init", poll: merged }).catch(() => {});
+  return merged;
 }
 
 function localPollVote(streamId, code, voterId) {
   const poll = getLocalPoll(streamId);
+  if (poll.closed || !poll.options?.length) {
+    return poll;
+  }
   const prev = poll.voters[voterId];
   if (prev && poll.votes[prev] > 0) poll.votes[prev] -= 1;
   poll.voters[voterId] = code;
