@@ -92,11 +92,13 @@ export const CONFIG = {
   battleRate: 2.2,
   /**
    * Swiss / Final 4: if a bounce leaves a flag slower than this fraction of
-   * max speed, nudge it back up a bit so fights don't stall.
+   * max speed, nudge it back up so fights don't stall.
    */
-  battleMinBounceSpeed: 0.55,
+  battleMinBounceSpeed: 0.78,
   /** Extra multiply applied on slow battle bounces (rim or flag). */
-  battleBounceBoost: 1.18,
+  battleBounceBoost: 1.55,
+  /** After Final champion, keep the winner on screen before ending the stream. */
+  winnerHoldMs: 60 * 1000,
   /** Skip full UI notifications; physics still every frame. */
   uiThrottleMs: 250,
 };
@@ -213,6 +215,8 @@ export class FlagBattleGame {
     this._swissPairQueue = [];
     this._swissMatchOver = false;
     this._battleAccum = 0;
+    this._winnerHoldUntil = 0;
+    this._winnerHoldDone = false;
     this._raf = 0;
     this._lastTs = 0;
     this._lastUi = 0;
@@ -255,6 +259,8 @@ export class FlagBattleGame {
     this._swissPairQueue = [];
     this._swissMatchOver = false;
     this._battleAccum = 0;
+    this._winnerHoldUntil = 0;
+    this._winnerHoldDone = false;
     this._uiDirty = true;
     this._emit(
       "reset",
@@ -314,8 +320,8 @@ export class FlagBattleGame {
   _boostSlowBattleBounce(f) {
     if (!this._isBattlingStage() || !f?.alive || f.falling) return;
     const maxSp = this._battleMaxSpeed();
-    const minSp = maxSp * (CONFIG.battleMinBounceSpeed ?? 0.55);
-    const boost = CONFIG.battleBounceBoost ?? 1.18;
+    const minSp = maxSp * (CONFIG.battleMinBounceSpeed ?? 0.78);
+    const boost = CONFIG.battleBounceBoost ?? 1.55;
     let speed = Math.hypot(f.vx, f.vy);
     if (speed < 0.04) {
       const dir = rand(0, Math.PI * 2);
@@ -716,6 +722,26 @@ export class FlagBattleGame {
   }
 
   update(dt, now) {
+    // Final champion on screen — hold before marking the stream ended.
+    if (
+      this.phase === "finished" &&
+      this.winner &&
+      this._winnerHoldUntil &&
+      !this._winnerHoldDone
+    ) {
+      if (now >= this._winnerHoldUntil) {
+        this._completeWinnerHold();
+      } else {
+        if (!this._lastHoldPub || now - this._lastHoldPub > 2000) {
+          this._lastHoldPub = now;
+          this._publishLive();
+        }
+        this.onFrame();
+        this._flushUi(true);
+      }
+      return;
+    }
+
     if (this.phase === "intermission") {
       this._moveFighters(dt * 0.45, { physicsRim: false });
       if (now >= this._betweenUntil) {
@@ -1600,19 +1626,19 @@ export class FlagBattleGame {
       this.winner = flag;
       this.phase = "finished";
       this.finalStage = null;
-      this.stopLoop();
+      // Keep the loop running so the winner banner stays live for the hold.
+      this._winnerHoldDone = false;
+      this._winnerHoldUntil =
+        performance.now() + Math.max(5000, CONFIG.winnerHoldMs || 60_000);
       if (this.stream) {
-        const poll = getLocalPoll(this.stream.id);
-        const pollPlaces = rankPollPlaces(poll);
-        closeLocalPoll(this.stream.id);
         this.stream.mode = "final";
-        this.stream.status = "finished";
+        this.stream.status = "winner_hold";
         this.stream.final = {
           ranking: this._rankingFromFallOrder(flag),
           winner: { code: flag.code, name: flag.name, img: flag.img },
           at: new Date().toISOString(),
           rules: "hole_swiss_battle",
-          pollPlaces,
+          pollPlaces: null,
         };
         this.stream.winner = this.stream.final.winner;
         this.stream.qualified = this.qualified.map((q) => ({
@@ -1620,19 +1646,50 @@ export class FlagBattleGame {
           name: q.name,
           img: q.img,
         }));
-        this.stream.endedAt = new Date().toISOString();
+        // Do NOT set endedAt yet — stream stays live through the hold.
+        this.stream.endedAt = null;
         saveStream(this.stream);
-        this._publishLive();
-        if (pollPlaces.length) {
-          const top = pollPlaces
-            .map((p) => `${p.rank}.${p.name}(+${p.points})`)
-            .join(" · ");
-          this._emit("phase", `Poll bonus locked — ${top}`);
-        }
+        this._publishLive({
+          winnerHoldRemainingMs: Math.max(0, this._winnerHoldUntil - performance.now()),
+        });
       }
       this._emit("winner", `${flag.name} is the LAST FLAG STANDING!`);
+      this._emit(
+        "phase",
+        `Champion hold · ${Math.round((CONFIG.winnerHoldMs || 60_000) / 1000)}s before stream ends`
+      );
       this._uiDirty = true;
+      this._flushUi(true);
     }
+  }
+
+  /** After the champion hold: freeze poll, mark stream ended, stop the loop. */
+  _completeWinnerHold() {
+    this._winnerHoldDone = true;
+    this._winnerHoldUntil = 0;
+    if (this.stream && this.winner) {
+      const poll = getLocalPoll(this.stream.id);
+      const pollPlaces = rankPollPlaces(poll);
+      closeLocalPoll(this.stream.id);
+      this.stream.status = "finished";
+      this.stream.endedAt = new Date().toISOString();
+      if (this.stream.final) {
+        this.stream.final.pollPlaces = pollPlaces;
+        this.stream.final.heldAt = this.stream.endedAt;
+      }
+      saveStream(this.stream);
+      this._publishLive();
+      if (pollPlaces.length) {
+        const top = pollPlaces
+          .map((p) => `${p.rank}.${p.name}(+${p.points})`)
+          .join(" · ");
+        this._emit("phase", `Poll bonus locked — ${top}`);
+      }
+    }
+    this._emit("phase", "Stream ending — thanks for watching!");
+    this._uiDirty = true;
+    this._flushUi(true);
+    this.stopLoop();
   }
 
   _qualify(flag) {
@@ -1746,12 +1803,20 @@ export class FlagBattleGame {
       winner: this.winner
         ? { code: this.winner.code, name: this.winner.name, img: this.winner.img }
         : null,
+      streamStatus: this.stream?.status || null,
+      endedAt: this.stream?.endedAt || null,
+      winnerHoldRemainingMs: this.winnerHoldRemainingMs(),
       qualifyingRemainingMs: this.qualifyingRemainingMs(),
       intermissionRemainingMs: this.intermissionRemainingMs(),
       finalLiveAt: this.finalLiveAt || extra.finalLiveAt || null,
       updatedAt: Date.now(),
       ...extra,
     });
+  }
+
+  winnerHoldRemainingMs(now = performance.now()) {
+    if (!this._winnerHoldUntil || this._winnerHoldDone || !this.winner) return 0;
+    return Math.max(0, this._winnerHoldUntil - now);
   }
 
   _emit(type, text) {

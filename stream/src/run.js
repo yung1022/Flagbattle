@@ -193,18 +193,74 @@ async function main() {
   console.log(`\n🔴 LIVE (${MODE}) — press Ctrl+C to end the stream\n`);
   console.log(live.watchUrl);
 
-  const done = new Promise((resolve) => {
+  const ffmpegDone = new Promise((resolve) => {
     ffmpeg.on("exit", (code) => {
       console.log(`ffmpeg exited (${code})`);
-      resolve();
+      resolve("ffmpeg");
     });
   });
 
   process.on("SIGINT", () => shutdown(0));
   process.on("SIGTERM", () => shutdown(0));
 
-  await done;
+  // Final: stay live until the champion hold finishes (winner + 1 min).
+  // Qualifying: keep going until ffmpeg dies / timeout / Ctrl+C (finalists overlay).
+  const reason =
+    MODE === "final"
+      ? await Promise.race([
+          waitForFinalStreamComplete(PORT),
+          ffmpegDone,
+        ])
+      : await ffmpegDone;
+  console.log(`Stream stop reason: ${reason}`);
   await shutdown(0);
+}
+
+/**
+ * Poll local live API until Final has a winner and the champion hold ended
+ * (stream.endedAt / status finished).
+ */
+async function waitForFinalStreamComplete(port) {
+  console.log(
+    "[stream] Waiting for Final champion + winner hold before ending…"
+  );
+  let sawWinner = false;
+  for (;;) {
+    if (shuttingDown) return "shutdown";
+    try {
+      const res = await fetch(`http://127.0.0.1:${port}/api/live`);
+      const data = res.ok ? await res.json() : null;
+      const live = data?.live;
+      if (live?.winner || live?.phase === "finished") {
+        if (!sawWinner) {
+          sawWinner = true;
+          console.log(
+            `[stream] Champion ${live.winner?.name || "?"} — holding before end`
+          );
+        }
+      }
+      // Game sets endedAt only after the 1-minute winner hold.
+      if (
+        live?.phase === "finished" &&
+        live?.winner &&
+        (live?.endedAt || live?.streamStatus === "finished")
+      ) {
+        console.log("[stream] Winner hold complete — ending Final livestream");
+        return "winner_hold_done";
+      }
+      // Also watch rankings streams list for this live id.
+      const streams = data?.streams || [];
+      const sid = live?.streamId;
+      const row = sid && streams.find((s) => s.id === sid);
+      if (row?.endedAt && row?.winner) {
+        console.log("[stream] Final stream marked ended — shutting down");
+        return "stream_ended";
+      }
+    } catch {
+      /* server blip */
+    }
+    await sleep(3000);
+  }
 }
 
 async function postChatLinks(youtube, id, apiUrl, mode = "qualifying") {
