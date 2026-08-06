@@ -3,7 +3,9 @@
  * Qualifying + Final livestreams are paired into one battle column.
  * Points: 1st→50, 2nd→49, … 50th→1 (Final places only; ranks beyond 50 score 0).
  * Poll bonus when Final ends: 1st→10, 2nd→5, 3rd→3, 4th→2, 5th→1.
- * Finished battles: Final place, or non-qualifier place from average qualifying-round rank.
+ * Finished battles: Final place from recorded Final ranking
+ *   (Final 4 by elim order, Swiss cuts by avg Qual place, hole by fall order),
+ *   or non-qualifier place from average qualifying-round rank.
  * "Q" only while waiting for that battle’s Final.
  */
 
