@@ -848,64 +848,6 @@ body.final-mode .timer {
   transform: none;
 }
 
-.intermission {
-  position: absolute;
-  top: var(--safe-top);
-  bottom: var(--safe-bottom);
-  left: var(--safe-x);
-  right: calc(var(--safe-x) + 4%);
-  z-index: 7;
-  display: none;
-  place-items: center;
-  align-content: center;
-  text-align: center;
-  padding: 6%;
-  background: radial-gradient(
-    circle at 50% 42%,
-    rgba(14, 40, 48, 0.4),
-    rgba(3, 7, 11, 0.82) 70%
-  );
-  pointer-events: none;
-}
-
-.intermission.show {
-  display: grid;
-  animation: winIn 0.45s ease;
-}
-
-.intermission-kicker {
-  font-family: var(--font-display);
-  letter-spacing: 0.18em;
-  color: var(--teal);
-  font-size: clamp(16px, 4vw, 28px);
-}
-
-.intermission h2 {
-  font-family: var(--font-display);
-  font-size: clamp(42px, 12vw, 84px);
-  letter-spacing: 0.05em;
-  line-height: 0.92;
-  margin: 6px 0;
-  text-shadow: 0 0 40px rgba(46, 196, 182, 0.35);
-}
-
-.intermission #intermission-sub {
-  color: var(--muted);
-  font-weight: 700;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  font-size: clamp(12px, 2.8vw, 16px);
-}
-
-.intermission-timer {
-  margin-top: 14px;
-  font-family: var(--font-display);
-  font-size: clamp(40px, 11vw, 72px);
-  color: var(--gold);
-  letter-spacing: 0.08em;
-  animation: brandPulse 1.4s ease-in-out infinite;
-}
-
 /* Full-screen finalists reveal after Qualifying (covers arena + HUD) */
 .finalists-reveal {
   position: absolute;
@@ -1290,17 +1232,6 @@ body.stream-mode .stream-poll {
   max-height: 20%;
   border-left: 1px solid rgba(46, 196, 182, 0.45);
   border-top: 1px solid rgba(46, 196, 182, 0.45);
-}
-
-/* Intermission: drop duplicate title/timer — brand-bar timer already shows */
-body.stream-mode .intermission-kicker,
-body.stream-mode .intermission-timer {
-  display: none !important;
-}
-
-body.stream-mode .intermission {
-  top: calc(var(--safe-top) + var(--top-panel-h) + 8%);
-  padding-top: 2%;
 }
 
 /* Cut paint cost for capture/encode — keep motion, drop decorative blur/filters */

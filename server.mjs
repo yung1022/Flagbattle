@@ -197,7 +197,6 @@ function buildPredictionsMeta(liveDoc = null) {
           mode: snap.mode || null,
           phase: snap.phase || null,
           startedAt: snap.startedAt || null,
-          intermissionRemainingMs: snap.intermissionRemainingMs ?? null,
           qualifyingRemainingMs: snap.qualifyingRemainingMs ?? null,
           qualified: Array.isArray(snap.qualified)
             ? snap.qualified.map(slimCountry).filter(Boolean)
@@ -908,21 +907,15 @@ async function handleApi(req, res, url) {
       : readJson(RANK_FILE, []);
 
     const phase = liveSnap?.phase || "";
-    const mode = liveSnap?.mode || "";
-    const preQualIntermission =
-      liveSnap?.streamId &&
-      phase === "intermission" &&
-      mode !== "final";
     const battleLocked =
       liveSnap?.streamId &&
       phase &&
       phase !== "finished" &&
-      phase !== "idle" &&
-      !preQualIntermission;
+      phase !== "idle";
 
     if (battleLocked) {
       return send(res, 403, {
-        error: "Predictions locked — wait until after the Final (or before qualifying)",
+        error: "Predictions locked — wait until after the Final (or before the next battle)",
       });
     }
 
@@ -938,8 +931,7 @@ async function handleApi(req, res, url) {
         qual &&
         !qual.endedAt &&
         Array.isArray(qual.rounds) &&
-        qual.rounds.length > 0 &&
-        !preQualIntermission
+        qual.rounds.length > 0
       ) {
         return send(res, 403, {
           error: "Predictions locked — qualifying already started",
