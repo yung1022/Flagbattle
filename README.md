@@ -48,21 +48,25 @@ YouTube Data API chat polling is **off** by default (quota). Use **Nightbot**:
 1. Join Nightbot to your YouTube channel: https://nightbot.tv  
 2. Add a repo / `stream/.env` secret **`NIGHTBOT_TOKEN`** (Nightbot OAuth token with `commands` scope).  
    Go-live will create/update `!vote` to hit the live tunnel automatically.  
-3. Viewers type:
+3. Viewers type a country **name or 2-letter code**:
 
 ```
-!vote us
+!vote Japan
+!vote jp
+!vote go United States
 ```
 
 Replies (from Nightbot):
-- `{name} voted United States successfully`
-- `{name} country does not exist.`
-- `{name} poll is not open yet.`
+- `{name} voted Japan successfully`
+- `{name} country not found — try a name or 2-letter code.`
+- `{name} poll is offline — wait for the live stream.`
+
+Nightbot only shows the reply when the API returns HTTP 200 (errors are returned as chat text, not status codes). Country names in `$(query)` must be URL-encoded.
 
 Without a token, add the command yourself after each go-live (tunnel URL is printed in the Action log):
 
 ```
-!commands add !vote $(urlfetch https://YOUR-TUNNEL.trycloudflare.com/api/poll/vote?code=$(query)&voter=$(user)&format=text)
+!commands add !vote $(urlfetch https://YOUR-TUNNEL.trycloudflare.com/api/poll/vote?code=$(urlencode $(query))&voter=$(urlencode $(user))&format=text)
 ```
 
 Web poll still works. To re-enable the old YouTube API vote loop: `CHAT_VOTE=1`.

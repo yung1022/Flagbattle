@@ -14,7 +14,7 @@ import {
   mirrorAndSync,
   enqueueGithubFile,
 } from "./github-sync.mjs";
-import { COUNTRIES } from "./js/countries.js";
+import { COUNTRIES, resolveCountryQuery } from "./js/countries.js";
 
 const COUNTRY_BY_CODE = new Map(
   COUNTRIES.map((c) => [String(c.code).toLowerCase(), c])
@@ -435,7 +435,11 @@ function applyPollVote({ streamId, code, voterId }) {
     return {
       ok: false,
       status: 400,
-      error: !code ? "usage" : "streamId, code, voterId required",
+      error: !code
+        ? "usage"
+        : !streamId
+          ? "no_stream"
+          : "streamId, code, voterId required",
     };
   }
   if (code.length !== 2 || !COUNTRY_BY_CODE.has(code)) {
@@ -484,12 +488,14 @@ function formatVoteText(result, voterLabel) {
   }
   switch (result.error) {
     case "usage":
-      return "Usage: !vote XX (country code, e.g. !vote us)";
+      return "Usage: !vote Japan  or  !vote jp";
     case "unknown_country":
     case "not_an_option":
-      return `${who} country does not exist.`;
+      return `${who} country not found — try a name or 2-letter code.`;
     case "poll_closed":
       return `${who} poll is closed (opens at Qualifying, ends after Final).`;
+    case "no_stream":
+      return `${who} poll is offline — wait for the live stream.`;
     default:
       return `${who} vote failed — try again.`;
   }
@@ -734,23 +740,30 @@ async function handleApi(req, res, url) {
       voterName = body.voterName || body.voter || "";
     }
 
-    // First token only — Nightbot $(query) is everything after !vote.
-    code = String(code || "")
-      .trim()
-      .split(/\s+/)[0]
-      .toLowerCase()
-      .replace(/[^a-z]/g, "");
+    // Nightbot $(query) is everything after !vote — accept code or full name.
+    const queryRaw = String(code || "").trim();
+    const resolved = resolveCountryQuery(queryRaw);
+    code = resolved?.code || "";
 
     if (!streamId) {
       const live = readJson(LIVE_FILE, { live: null });
       streamId = live?.live?.streamId || "";
     }
 
-    const result = applyPollVote({ streamId, code, voterId });
+    let result;
+    if (!queryRaw) {
+      result = { ok: false, status: 400, error: "usage" };
+    } else if (!resolved) {
+      result = { ok: false, status: 400, error: "unknown_country" };
+    } else {
+      result = applyPollVote({ streamId, code, voterId });
+    }
     if (wantText) {
+      // Nightbot only posts the body when HTTP status is 2xx.
+      // Non-200 shows as "Nightbot returned code XXX" in chat.
       return send(
         res,
-        result.status,
+        200,
         formatVoteText(result, voterName || voterId),
         "text/plain; charset=utf-8"
       );

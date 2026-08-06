@@ -203,3 +203,126 @@ export function flagUrl(code, width = 80) {
 export function flagUrlSvg(code) {
   return `https://flagcdn.com/${code}.svg`;
 }
+
+/** Common chat nicknames / alternate spellings → ISO code. */
+const COUNTRY_ALIASES = {
+  usa: "us",
+  america: "us",
+  "united states of america": "us",
+  uk: "gb",
+  britain: "gb",
+  "great britain": "gb",
+  england: "gb",
+  uae: "ae",
+  turkey: "tr",
+  turkiye: "tr",
+  "czech republic": "cz",
+  czech: "cz",
+  holland: "nl",
+  "ivory coast": "ci",
+  "cote divoire": "ci",
+  "cote d ivoire": "ci",
+  russia: "ru",
+  "south korea": "kr",
+  "north korea": "kp",
+  korea: "kr",
+  "republic of korea": "kr",
+  "dr congo": "cd",
+  "democratic republic of the congo": "cd",
+  "democratic republic of congo": "cd",
+  "congo kinshasa": "cd",
+  "congo brazzaville": "cg",
+  swaziland: "sz",
+  "east timor": "tl",
+  myanmar: "mm",
+  burma: "mm",
+  "vatican": "va",
+  "holy see": "va",
+};
+
+const COUNTRY_BY_CODE = new Map(
+  COUNTRIES.map((c) => [String(c.code).toLowerCase(), c])
+);
+
+function normalizeCountryText(value) {
+  return String(value || "")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .replace(/[^a-z0-9\s]/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+const COUNTRY_BY_NAME = new Map(
+  COUNTRIES.map((c) => [normalizeCountryText(c.name), c])
+);
+
+/** Longest official names first — prefer "Papua New Guinea" over "Guinea". */
+const COUNTRIES_BY_NAME_LEN = [...COUNTRIES].sort(
+  (a, b) =>
+    normalizeCountryText(b.name).length - normalizeCountryText(a.name).length ||
+    a.name.localeCompare(b.name)
+);
+
+function escapeRegExp(s) {
+  return String(s).replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+/** True when `phrase` appears as a whole word/phrase inside `haystack`. */
+function includesPhrase(haystack, phrase) {
+  if (!haystack || !phrase) return false;
+  const re = new RegExp(`(?:^|\\s)${escapeRegExp(phrase)}(?:\\s|$)`);
+  return re.test(haystack);
+}
+
+/**
+ * Resolve a chat/web vote query to a country.
+ * Accepts ISO code, exact name, aliases, or any text that includes a full country name.
+ * @param {string} raw
+ * @returns {{ code: string, name: string } | null}
+ */
+export function resolveCountryQuery(raw) {
+  const original = String(raw || "").trim();
+  if (!original) return null;
+
+  const norm = normalizeCountryText(original);
+  if (!norm) return null;
+
+  // Bare 2-letter code (also first token, e.g. "us please")
+  const firstToken = norm.split(/\s+/)[0] || "";
+  if (firstToken.length === 2 && COUNTRY_BY_CODE.has(firstToken)) {
+    return COUNTRY_BY_CODE.get(firstToken);
+  }
+  const compact = norm.replace(/\s+/g, "");
+  if (compact.length === 2 && COUNTRY_BY_CODE.has(compact)) {
+    return COUNTRY_BY_CODE.get(compact);
+  }
+
+  const aliasCode =
+    COUNTRY_ALIASES[norm] ||
+    COUNTRY_ALIASES[compact] ||
+    COUNTRY_ALIASES[firstToken];
+  if (aliasCode && COUNTRY_BY_CODE.has(aliasCode)) {
+    return COUNTRY_BY_CODE.get(aliasCode);
+  }
+
+  const exactName = COUNTRY_BY_NAME.get(norm);
+  if (exactName) return exactName;
+
+  // "!vote go Japan!" / "I pick South Korea" — longest full name wins.
+  for (const c of COUNTRIES_BY_NAME_LEN) {
+    const nameNorm = normalizeCountryText(c.name);
+    if (nameNorm.length < 4) continue;
+    if (includesPhrase(norm, nameNorm)) return c;
+  }
+
+  // Short official names (Chad, Togo, Mali, …) — exact token only.
+  for (const c of COUNTRIES_BY_NAME_LEN) {
+    const nameNorm = normalizeCountryText(c.name);
+    if (nameNorm.length >= 4) continue;
+    if (includesPhrase(norm, nameNorm)) return c;
+  }
+
+  return null;
+}
