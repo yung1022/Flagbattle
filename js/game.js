@@ -10,6 +10,7 @@ import {
   rankPollPlaces,
   fetchStreamsFromApi,
   setPersistEnabled,
+  seedTeststreamPollDemo,
 } from "./store.js";
 import { resolveApiBase, pagesDataUrl } from "./public.js";
 import { nextLiveSlotUtc } from "./live-schedule.js";
@@ -362,6 +363,7 @@ export class FlagBattleGame {
       testStream: kind,
     };
     this._emit("phase", `TESTSTREAM · ${kind} (easy · no save)`);
+    this._initTeststreamPoll();
 
     if (kind === "qualifying") {
       this._publishLive();
@@ -406,6 +408,20 @@ export class FlagBattleGame {
     this._swissPool = this.qualified.map((q) => ({ ...q, points: 3 }));
     this._publishLive();
     this._beginFinalBattle(this.qualified.map((q) => ({ ...q, points: 3 })));
+  }
+
+  /** Same on-stream poll chrome as a real go-live (memory only). */
+  _initTeststreamPoll() {
+    if (!this.stream?.id) return;
+    initLocalPoll(
+      this.stream.id,
+      COUNTRIES.map((c) => ({
+        code: c.code,
+        name: c.name,
+        img: flagUrl(c.code, 80),
+      }))
+    );
+    seedTeststreamPollDemo(this.stream.id);
   }
 
   _syntheticField(n) {

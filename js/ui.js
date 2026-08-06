@@ -563,9 +563,9 @@ function renderStreamLinks() {
 }
 
 function shouldShowStreamPoll() {
-  if (IS_TEST_STREAM) return false;
   if (!game.stream?.id) return false;
   // Available from Qualifying through Final (closes after champion).
+  // Easy teststream uses the same HUD chrome (in-memory poll only).
   if (game.phase === "idle") return false;
   if (game.phase === "finished" && !game.winner && game.streamMode !== "final") {
     // Qualifying complete overlay — still show poll
