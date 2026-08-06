@@ -26,10 +26,6 @@ const els = {
   winnerFlag: document.getElementById("winner-flag"),
   winnerName: document.getElementById("winner-name"),
   roundMeta: document.getElementById("round-meta"),
-  intermission: document.getElementById("intermission"),
-  intermissionTitle: document.getElementById("intermission-title"),
-  intermissionSub: document.getElementById("intermission-sub"),
-  intermissionTimer: document.getElementById("intermission-timer"),
   streamLink: document.getElementById("stream-link"),
   streamLinks: document.getElementById("stream-links"),
   streamPoll: document.getElementById("stream-poll"),
@@ -173,8 +169,7 @@ function syncArena() {
   const sizeChanged = sizeBase !== lastSize;
   if (sizeChanged) lastSize = sizeBase;
 
-  const showAllAlive =
-    game.phase === "intermission" || game.phase === "qualifying_hold";
+  const showAllAlive = game.phase === "qualifying_hold";
   const visibleIds = new Set();
 
   for (const f of game.fighters) {
@@ -244,7 +239,6 @@ function renderBoard() {
       game.phase === "qualifying_complete" ||
       game.phase === "idle" ||
       game.phase === "between_rounds" ||
-      (game.phase === "intermission" && game.intermissionKind === "open") ||
       (game.phase === "finished" && !game.winner));
 
   if (game.streamMode === "final") {
@@ -292,15 +286,13 @@ function renderBoard() {
     const empty = document.createElement("div");
     empty.className = "board-empty";
     empty.textContent =
-      game.phase === "intermission" && game.intermissionKind === "open"
-        ? "Qualifying starts after intermission…"
-        : game.phase === "qualifying" ||
-            game.phase === "between_rounds" ||
-            game.phase === "qualifying_hold"
-          ? "Waiting for first qualifier…"
-          : game.phase === "idle"
-            ? "Press Start — last flag in the circle qualifies"
-            : "—";
+      game.phase === "qualifying" ||
+      game.phase === "between_rounds" ||
+      game.phase === "qualifying_hold"
+        ? "Waiting for first qualifier…"
+        : game.phase === "idle"
+          ? "Press Start — last flag in the circle qualifies"
+          : "—";
     els.boardTrack.appendChild(empty);
     return;
   }
@@ -376,11 +368,7 @@ function renderHud() {
     (game.phase === "between_rounds" && game.finalStage);
 
   els.statCountries.textContent = String(COUNTRIES.length);
-  els.statFighting.textContent = String(
-    game.phase === "intermission"
-      ? game.fighters.filter((f) => f.alive).length
-      : fighting
-  );
+  els.statFighting.textContent = String(fighting);
   els.statBoard.textContent = String(game.boardFlags().length);
 
   document.body.classList.toggle("final-mode", game.streamMode === "final");
@@ -408,11 +396,6 @@ function renderHud() {
 
   if (els.roundMeta) {
     if (game.phase === "idle") els.roundMeta.textContent = "Hole circle · no damage";
-    else if (game.phase === "intermission")
-      els.roundMeta.textContent =
-        game.intermissionKind === "final"
-          ? "Intermission · Final next"
-          : "Intermission · Qualifying next";
     else if (game.phase === "qualifying_hold")
       els.roundMeta.textContent = "All qualified · waiting on clock";
     else if (game.phase === "qualifying_complete")
@@ -431,11 +414,7 @@ function renderHud() {
     else els.roundMeta.textContent = `Qualifying · Round ${game.round}`;
   }
 
-  if (game.phase === "intermission") {
-    els.phaseText.textContent = "Intermission";
-    els.timer.textContent = formatMs(game.intermissionRemainingMs());
-    els.timer.hidden = false;
-  } else if (game.phase === "qualifying_complete") {
+  if (game.phase === "qualifying_complete") {
     els.phaseText.textContent = "Finalists";
     els.timer.hidden = true;
   } else if (inFinal && (game.phase === "final" || game.phase === "between_rounds")) {
@@ -487,19 +466,6 @@ function renderHud() {
     els.timer.hidden = false;
   }
 
-  if (els.intermission) {
-    const show = game.phase === "intermission";
-    els.intermission.classList.toggle("show", show);
-    if (show) {
-      const opening = game.intermissionKind === "open";
-      els.intermissionTitle.textContent = opening ? "GET READY" : "FINAL INCOMING";
-      els.intermissionSub.textContent = opening
-        ? `${COUNTRIES.length} countries · hole circle qualifying`
-        : `${game.qualified.length} qualified · hole → Swiss 1v1 → last standing`;
-      els.intermissionTimer.textContent = formatMs(game.intermissionRemainingMs());
-    }
-  }
-
   renderFinalistsReveal();
 
   if (els.streamLink && game.stream?.id) {
@@ -515,7 +481,6 @@ function renderHud() {
     game.phase === "qualifying_hold" ||
     game.phase === "qualifying_complete" ||
     game.phase === "between_rounds" ||
-    game.phase === "intermission" ||
     game.phase === "final";
   els.btnStart.disabled = busy;
   els.btnStart.textContent =
@@ -608,7 +573,6 @@ function shouldShowStreamPoll() {
     return true;
   }
   return (
-    game.phase === "intermission" ||
     game.phase === "qualifying" ||
     game.phase === "between_rounds" ||
     game.phase === "qualifying_hold" ||

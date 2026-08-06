@@ -2,9 +2,8 @@
  * Prediction slots + scoring rules + selecting-session windows.
  *
  * Selecting is OPEN only:
- *   - after a Final has ended, until the next Qualifying starts, or
- *   - before Qualifying starts (including pre-qual intermission).
- * Closed during Qualifying / Final.
+ *   - after a Final has ended, until the next Qualifying starts.
+ * Closed during Qualifying / Final (battle starts immediately — no intermission).
  *
  * Slot 1→100 … Slot 5→10 if that country wins; +5 per pick that qualifies.
  */
@@ -119,12 +118,9 @@ function qualStartedAtMs(battle) {
   return parseTime(battle?.qualifying?.startedAt) || parseTime(battle?.startedAt);
 }
 
-/** Live pre-qual intermission = still before qualifying clock. */
-export function isPreQualIntermission(liveSnap) {
-  if (!liveSnap?.streamId) return false;
-  if (liveSnap.phase !== "intermission") return false;
-  if (liveSnap.mode === "final") return false;
-  return true;
+/** @deprecated Intermission removed — always false. Kept for callers. */
+export function isPreQualIntermission(_liveSnap) {
+  return false;
 }
 
 /** Battle in progress for prediction lock (qual clock or Final). */
@@ -132,7 +128,6 @@ export function isBattleLockedPhase(liveSnap) {
   if (!liveSnap?.streamId) return false;
   const phase = liveSnap.phase;
   if (!phase || phase === "finished" || phase === "idle") return false;
-  if (isPreQualIntermission(liveSnap)) return false;
   return true;
 }
 
@@ -210,53 +205,6 @@ export function resolvePredictionSession(battles, liveSnap = null, now = Date.no
   const list = Array.isArray(battles) ? battles : [];
   const finished = newestFinishedBattle(list);
   const lastFinalEnd = finished ? finalEndedAtMs(finished) : null;
-
-  // ——— Live pre-qual intermission: selecting still open (before qualifying) ———
-  if (isPreQualIntermission(liveSnap)) {
-    const endsAt =
-      liveSnap.intermissionRemainingMs != null
-        ? now + Number(liveSnap.intermissionRemainingMs)
-        : null;
-    const existing = list.find(
-      (b) =>
-        b.qualifying?.id === liveSnap.streamId ||
-        b.id === liveSnap.streamId ||
-        String(b.id || "").startsWith(liveSnap.streamId)
-    );
-    const target = existing
-      ? summarizeBattle(existing, "pre-qual", {
-          locked: false,
-          battleId: liveSnap.streamId,
-        })
-      : {
-          battleId: liveSnap.streamId,
-          status: "pre-qual",
-          label: "Next battle · pre-qual intermission",
-          startedAt: liveSnap.startedAt || null,
-          qualifyingEnded: false,
-          finalEnded: false,
-          locked: false,
-          qualified: [],
-          winner: null,
-          battle: null,
-        };
-
-    return {
-      canSelect: true,
-      target,
-      current: {
-        open: true,
-        startsAt: iso(lastFinalEnd) || iso(now),
-        endsAt: iso(endsAt),
-        label: "Before qualifying (intermission)",
-      },
-      next: {
-        startsAt: iso(endsAt), // after this battle’s Final — unknown; show placeholder after lock
-        endsAt: null,
-        label: "After this Final ends → until the following qualifying",
-      },
-    };
-  }
 
   // ——— Live battle locked (qualifying / Final) ———
   if (isBattleLockedPhase(liveSnap)) {

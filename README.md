@@ -6,18 +6,13 @@ Vertical **9:16** all-country flag battle for YouTube Shorts livestreams.
 
 ## Rules
 
-Qualifying and Final are **separate livestreams**.
+Qualifying and Final run in **one livestream** (no intermission).
 
-### Qualifying livestream
-1. **1:00 intermission** at stream start.
-2. **Qualifying clock (full 30:00)** — every non-qualified country each round; last flag qualifies.
-3. Stream ends when the clock finishes — results save (`qualified` list). No Final in this stream.
-
-### Final livestream
-1. Loads qualifiers from the latest finished qualifying stream.
-2. **1:00 intermission** (poll open) — vote on the web poll or in chat: `!vote XX`.
-3. **Final — Last Flag Standing** among qualifiers.
-4. **New rule:** when a country falls through the hole, it is **eliminated** and the round **resets** with the remaining countries, until one remains.
+### Unified livestream
+1. **Qualifying clock (full 30:00)** starts immediately — every non-qualified country each round; last flag qualifies. Poll is open from the start.
+2. Brief **finalists reveal**, then **Final — Last Flag Standing** among qualifiers (hole → Swiss 1v1 → Final 4).
+3. Vote anytime: type a country or `!vote XX` in chat / web poll.
+4. **Hole rule:** when a country falls through the hole, it is **eliminated** and the round **resets** with the remaining countries, until Swiss / Final 4.
 
 ## Viewer pages (GitHub Pages)
 
@@ -31,7 +26,7 @@ Qualifying and Final are **separate livestreams**.
 
 ### Predictions (Google)
 
-Viewers sign in with Google on [`predictions.html`](predictions.html), pick **5 countries** into win slots (**100 / 50 / 25 / 15 / 10**), and earn **+5** per pick that qualifies. Selecting is open **before qualifying starts** and again **after the Final ends** (until the next qualifying). The page shows **current** and **next** selecting session times.
+Viewers sign in with Google on [`predictions.html`](predictions.html), pick **5 countries** into win slots (**100 / 50 / 25 / 15 / 10**), and earn **+5** per pick that qualifies. Selecting is open **after the Final ends** until the next Qualifying starts. The page shows **current** and **next** selecting session times.
 
 Set a **Google Web Client ID** (OAuth → Web application) with authorized JavaScript origin `https://yung1022.github.io` in [`data/predictions-config.json`](data/predictions-config.json) (`googleClientId`), or env `GOOGLE_PREDICTIONS_CLIENT_ID`. Only the site owner configures this — viewers cannot change it on the page.
 

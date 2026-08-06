@@ -18,7 +18,7 @@ import { parseVoteMessage } from "./vote-message.js";
 import { averageQualifyingRating } from "./rankings-stats.js";
 
 /**
- * @typedef {"idle" | "intermission" | "qualifying" | "qualifying_hold" | "between_rounds" | "final" | "qualifying_complete" | "finished"} Phase
+ * @typedef {"idle" | "qualifying" | "qualifying_hold" | "between_rounds" | "final" | "qualifying_complete" | "finished"} Phase
  * @typedef {"qualifying" | "final"} StreamMode
  * @typedef {"hole" | "swiss" | "battle" | null} FinalStage
  * @typedef {"full" | "hole" | "swiss" | "final4" | null} TestStreamKind
@@ -86,7 +86,6 @@ export const CONFIG = {
   /** Swiss 1v1 moves faster than hole / Final 4. */
   swissSpeedMult: 1.7,
   betweenRoundMs: 1400,
-  intermissionMs: 60 * 1000,
   pushStrength: 0.8,
   outwardForce: 0.35,
   shrinkMinScale: 0.68,
@@ -127,7 +126,6 @@ export const CONFIG = {
 
 function applyEasyTestConfig() {
   CONFIG.qualifyingMs = 90 * 1000;
-  CONFIG.intermissionMs = 4 * 1000;
   CONFIG.betweenRoundMs = 500;
   CONFIG.holeSpeed = 2.4;
   CONFIG.holeWidth = 1.0;
@@ -147,7 +145,6 @@ if (params.has("demo")) {
   const sec = Number(params.get("demo")) || 45;
   CONFIG.qualifyingMs = sec * 1000;
   CONFIG.betweenRoundMs = 600;
-  // Keep full 1:00 intermission even in demo — viewers need the beat.
   CONFIG.holeSpeed = 2.4;
   CONFIG.holeWidth = 1.0;
   CONFIG.maxSpeed = 1.45;
@@ -217,7 +214,6 @@ export class FlagBattleGame {
     this.holeAngle = 0;
     this.roundStartedAt = 0;
     this.arenaScale = 1;
-    this.intermissionKind = null;
     this.stream = null;
     /** @type {StreamMode} */
     this.streamMode = STREAM_MODE;
@@ -274,7 +270,6 @@ export class FlagBattleGame {
     this.holeAngle = rand(0, Math.PI * 2);
     this.roundStartedAt = 0;
     this.arenaScale = 1;
-    this.intermissionKind = null;
     this.stream = null;
     this.streamMode = STREAM_MODE;
     this.finalStage = null;
@@ -412,7 +407,8 @@ export class FlagBattleGame {
       if (!this.stream.startedAt) this.stream.startedAt = new Date().toISOString();
       this.stream.mode = "final";
       this._publishLive();
-      this._beginIntermission("final");
+      this._ensureBattlePoll();
+      this._beginFinal();
     } else {
       this.stream = {
         id: newStreamId(),
@@ -428,7 +424,7 @@ export class FlagBattleGame {
         sourceStreamId: null,
       };
       this._publishLive();
-      this._beginIntermission("open");
+      this._startOpenBattle();
     }
     this._startLoop();
     this._flushUi(true);
@@ -460,7 +456,7 @@ export class FlagBattleGame {
     // Default Easy teststream: always the same unified Qual → Final livestream.
     if (kind === "full" || kind === "qualifying") {
       this._publishLive();
-      this._beginIntermission("open");
+      this._startOpenBattle();
       return;
     }
 
@@ -662,19 +658,14 @@ export class FlagBattleGame {
     );
   }
 
-  _beginIntermission(kind) {
-    this.intermissionKind = kind;
-    this.phase = "intermission";
-    this._betweenUntil = performance.now() + CONFIG.intermissionMs;
-    this.arenaScale = 1;
-    this._uiDirty = true;
-    if (kind === "open") {
-      this.round = 0;
-      this.fighters = shuffle(COUNTRIES).map((c, i) =>
-        this._makeFighter(c, i, COUNTRIES.length)
-      );
-      // Open the winner poll for the whole battle (Qual + Final).
-      if (this.stream) {
+  /**
+   * Open the winner poll and start Qualifying immediately (no intermission).
+   */
+  _startOpenBattle() {
+    this.round = 0;
+    if (this.stream) {
+      const existing = getLocalPoll(this.stream.id);
+      if (!existing?.options?.length) {
         initLocalPoll(
           this.stream.id,
           COUNTRIES.map((c) => ({
@@ -684,50 +675,38 @@ export class FlagBattleGame {
           }))
         );
       }
-      this._emit(
-        "phase",
-        `INTERMISSION — battle starts in ${Math.round(CONFIG.intermissionMs / 1000)}s · poll open (type a country or !vote)`
-      );
-    } else {
-      const list = this.qualified.length
-        ? this.qualified
-        : shuffle(COUNTRIES).slice(0, 16);
-      this.fighters = shuffle(list).map((c, i) => {
-        const f = this._makeFighter(c, i, list.length);
-        f.qualified = true;
-        return f;
-      });
-      if (this.stream) {
-        // Same-stream Final: keep the open Qualifying poll (votes carry over).
-        const existing = getLocalPoll(this.stream.id);
-        if (!existing?.options?.length) {
-          const fromSource = this.stream.sourceStreamId
-            ? transferPoll(this.stream.sourceStreamId, this.stream.id)
-            : null;
-          if (!fromSource?.options?.length) {
-            initLocalPoll(
-              this.stream.id,
-              COUNTRIES.map((c) => ({
-                code: c.code,
-                name: c.name,
-                img: flagUrl(c.code, 80),
-              }))
-            );
-          }
-        }
-      }
-      this._emit(
-        "phase",
-        `INTERMISSION — Final in ${Math.round(CONFIG.intermissionMs / 1000)}s · ${this.qualified.length} qualified · poll still open`
-      );
     }
-    for (const f of this.fighters) {
-      f.vx *= 0.25;
-      f.vy *= 0.25;
-      f.falling = false;
-      f.alive = true;
-    }
+    this.qualifyingEndsAt = performance.now() + CONFIG.qualifyingMs;
+    const qSec = Math.max(1, Math.round(CONFIG.qualifyingMs / 1000));
+    const qLabel =
+      qSec >= 60
+        ? `${String(Math.floor(qSec / 60)).padStart(2, "0")}:${String(qSec % 60).padStart(2, "0")}`
+        : `0:${String(qSec).padStart(2, "0")}`;
+    this._emit(
+      "phase",
+      `QUALIFYING — ${qLabel} on the clock. All non-qualified countries each round. Poll open (type a country or !vote).`
+    );
+    this._startNextQualifyingRound();
     this._publishLive();
+  }
+
+  /** Ensure a Final poll exists (carry Qual votes, or open a fresh one). */
+  _ensureBattlePoll() {
+    if (!this.stream) return;
+    const existing = getLocalPoll(this.stream.id);
+    if (existing?.options?.length) return;
+    const fromSource = this.stream.sourceStreamId
+      ? transferPoll(this.stream.sourceStreamId, this.stream.id)
+      : null;
+    if (fromSource?.options?.length) return;
+    initLocalPoll(
+      this.stream.id,
+      COUNTRIES.map((c) => ({
+        code: c.code,
+        name: c.name,
+        img: flagUrl(c.code, 80),
+      }))
+    );
   }
 
   _remainingCountries() {
@@ -792,25 +771,6 @@ export class FlagBattleGame {
       return;
     }
 
-    if (this.phase === "intermission") {
-      this._moveFighters(dt * 0.45, { physicsRim: false });
-      if (now >= this._betweenUntil) {
-        if (this.intermissionKind === "open") {
-          this.qualifyingEndsAt = now + CONFIG.qualifyingMs;
-          this._emit(
-            "phase",
-            "QUALIFYING — 30:00 on the clock. All non-qualified countries each round."
-          );
-          this._startNextQualifyingRound();
-        } else {
-          this._beginFinal();
-        }
-      }
-      this.onFrame();
-      this._flushUi();
-      return;
-    }
-
     if (this.phase === "qualifying_hold") {
       if (
         !this.qualifyingExpired &&
@@ -869,7 +829,8 @@ export class FlagBattleGame {
           saveStream(this.stream);
         }
         document.body.classList.add("final-mode");
-        this._beginIntermission("final");
+        this._ensureBattlePoll();
+        this._beginFinal();
         this._flushUi(true);
         return;
       }
@@ -1898,7 +1859,6 @@ export class FlagBattleGame {
 
   _beginFinal() {
     this._pendingQualComplete = false;
-    this.intermissionKind = null;
     // Do not carry Qualifying eliminations into Final ranking.
     this.eliminated = [];
     this._fallOrder = [];
@@ -1923,8 +1883,8 @@ export class FlagBattleGame {
       }
     }
 
-    // Do NOT re-init the poll here — votes cast during final intermission
-    // must survive until the stream ends. Poll opens once in intermission.
+    // Poll opens at battle start; do not re-init here (votes must survive).
+    this._ensureBattlePoll();
     if (this.qualified.length <= CONFIG.swissCutoff) {
       this._beginSwissFromHole(
         this.qualified.map((c, i) => this._makeFighter(c, i, this.qualified.length))
@@ -1957,7 +1917,6 @@ export class FlagBattleGame {
       endedAt: this.stream?.endedAt || null,
       winnerHoldRemainingMs: this.winnerHoldRemainingMs(),
       qualifyingRemainingMs: this.qualifyingRemainingMs(),
-      intermissionRemainingMs: this.intermissionRemainingMs(),
       finalLiveAt: this.finalLiveAt || extra.finalLiveAt || null,
       updatedAt: Date.now(),
       ...extra,
@@ -1977,9 +1936,6 @@ export class FlagBattleGame {
 
   qualifyingRemainingMs(now = performance.now()) {
     if (this.phase === "idle") return CONFIG.qualifyingMs;
-    if (this.phase === "intermission" && this.intermissionKind === "open") {
-      return CONFIG.qualifyingMs;
-    }
     if (
       this.phase !== "qualifying" &&
       this.phase !== "between_rounds" &&
@@ -1991,11 +1947,6 @@ export class FlagBattleGame {
     if (this.streamMode === "final") return 0;
     if (!this.qualifyingEndsAt) return CONFIG.qualifyingMs;
     return Math.max(0, this.qualifyingEndsAt - now);
-  }
-
-  intermissionRemainingMs(now = performance.now()) {
-    if (this.phase !== "intermission") return 0;
-    return Math.max(0, this._betweenUntil - now);
   }
 
   standing() {
@@ -2012,8 +1963,7 @@ export class FlagBattleGame {
       this.phase === "qualifying_hold" ||
       this.phase === "qualifying_complete" ||
       this.phase === "idle" ||
-      (this.phase === "between_rounds" && this.streamMode !== "final") ||
-      (this.phase === "intermission" && this.intermissionKind === "open")
+      (this.phase === "between_rounds" && this.streamMode !== "final")
     ) {
       return this.qualified;
     }
