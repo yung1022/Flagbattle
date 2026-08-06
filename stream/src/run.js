@@ -210,42 +210,70 @@ async function main() {
 
 /**
  * Poll local live API until Final has a winner and the champion hold ended
- * (stream.endedAt / status finished).
+ * (stream.endedAt / status finished). Never end during winner_hold.
  */
 async function waitForFinalStreamComplete(port) {
   console.log(
-    "[stream] Waiting for champion + winner hold before ending full battle…"
+    "[stream] Waiting for champion + 1-minute winner hold before ending…"
   );
   let sawWinner = false;
+  let winnerSeenAt = 0;
+  const holdFloorMs = Number(process.env.WINNER_HOLD_MS || 60_000);
   for (;;) {
     if (shuttingDown) return "shutdown";
     try {
       const res = await fetch(`http://127.0.0.1:${port}/api/live`);
       const data = res.ok ? await res.json() : null;
       const live = data?.live;
+      const holding =
+        live?.streamStatus === "winner_hold" ||
+        (Number(live?.winnerHoldRemainingMs) || 0) > 0;
+
       if (live?.winner || live?.phase === "finished") {
         if (!sawWinner) {
           sawWinner = true;
+          winnerSeenAt = Date.now();
           console.log(
-            `[stream] Champion ${live.winner?.name || "?"} — holding before end`
+            `[stream] Champion ${live.winner?.name || "?"} — holding ${Math.round(holdFloorMs / 1000)}s before end`
           );
         }
       }
+
+      // Still on the winner screen — keep streaming.
+      if (holding) {
+        await sleep(3000);
+        continue;
+      }
+
       // Game sets endedAt only after the 1-minute winner hold.
+      const holdElapsed = sawWinner ? Date.now() - winnerSeenAt : 0;
       if (
+        sawWinner &&
         live?.phase === "finished" &&
         live?.winner &&
-        (live?.endedAt || live?.streamStatus === "finished")
+        live?.endedAt &&
+        live?.streamStatus === "finished" &&
+        holdElapsed >= Math.max(5_000, holdFloorMs - 2_000)
       ) {
-        console.log("[stream] Winner hold complete — ending Final livestream");
+        console.log("[stream] Winner hold complete — ending livestream");
+        // Brief encode buffer so the last champion frames land in the VOD.
+        await sleep(3000);
         return "winner_hold_done";
       }
-      // Also watch rankings streams list for this live id.
+
+      // Also watch rankings streams list for this live id (post-hold only).
       const streams = data?.streams || [];
       const sid = live?.streamId;
       const row = sid && streams.find((s) => s.id === sid);
-      if (row?.endedAt && row?.winner) {
+      if (
+        sawWinner &&
+        !holding &&
+        row?.endedAt &&
+        row?.winner &&
+        holdElapsed >= Math.max(5_000, holdFloorMs - 2_000)
+      ) {
         console.log("[stream] Final stream marked ended — shutting down");
+        await sleep(3000);
         return "stream_ended";
       }
     } catch {
