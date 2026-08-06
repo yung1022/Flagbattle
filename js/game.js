@@ -90,6 +90,13 @@ export const CONFIG = {
   hitSpeedMin: 0.22,
   hitCooldownSec: 0.35,
   battleRate: 2.2,
+  /**
+   * Swiss / Final 4: if a bounce leaves a flag slower than this fraction of
+   * max speed, nudge it back up a bit so fights don't stall.
+   */
+  battleMinBounceSpeed: 0.55,
+  /** Extra multiply applied on slow battle bounces (rim or flag). */
+  battleBounceBoost: 1.18,
   /** Skip full UI notifications; physics still every frame. */
   uiThrottleMs: 250,
 };
@@ -295,6 +302,32 @@ export class FlagBattleGame {
       return base * (CONFIG.swissSpeedMult || 1.7);
     }
     return base;
+  }
+
+  _isBattlingStage() {
+    return this.finalStage === "swiss" || this.finalStage === "battle";
+  }
+
+  /**
+   * Swiss / Final 4: if a bounce left the flag slow, give it a small speed kick.
+   */
+  _boostSlowBattleBounce(f) {
+    if (!this._isBattlingStage() || !f?.alive || f.falling) return;
+    const maxSp = this._battleMaxSpeed();
+    const minSp = maxSp * (CONFIG.battleMinBounceSpeed ?? 0.55);
+    const boost = CONFIG.battleBounceBoost ?? 1.18;
+    let speed = Math.hypot(f.vx, f.vy);
+    if (speed < 0.04) {
+      const dir = rand(0, Math.PI * 2);
+      f.vx = Math.cos(dir) * minSp;
+      f.vy = Math.sin(dir) * minSp;
+      return;
+    }
+    if (speed >= minSp) return;
+    const target = Math.min(maxSp, Math.max(minSp, speed * boost));
+    const s = target / speed;
+    f.vx *= s;
+    f.vy *= s;
   }
 
   async start() {
@@ -883,6 +916,7 @@ export class FlagBattleGame {
           if (vn > 0) {
             f.vx -= 2.0 * vn * nx;
             f.vy -= 2.0 * vn * ny;
+            this._boostSlowBattleBounce(f);
           }
         }
       }
@@ -986,6 +1020,10 @@ export class FlagBattleGame {
             A.vy -= exchange * ny;
             B.vx += exchange * nx;
             B.vy += exchange * ny;
+            if (dealHits) {
+              this._boostSlowBattleBounce(A);
+              this._boostSlowBattleBounce(B);
+            }
           }
         }
       }
