@@ -3,7 +3,6 @@ import { COUNTRIES } from "./countries.js";
 import { fetchPoll } from "./store.js";
 import { siteBase as resolveSiteBase } from "./public.js";
 import { announceRoundWinner, unlockAudio } from "./sfx.js";
-import { formatLiveSlot } from "./live-schedule.js";
 
 const game = new FlagBattleGame();
 const params = new URLSearchParams(location.search);
@@ -533,7 +532,7 @@ function renderFinalistsReveal() {
   const liveAt = game.finalLiveAt;
   if (els.finalistsTitle) els.finalistsTitle.textContent = "QUALIFIED FOR FINAL";
   if (els.finalistsLive) {
-    els.finalistsLive.textContent = `Final live · ${formatLiveSlot(liveAt)}`;
+    els.finalistsLive.textContent = "Final starts next";
   }
   if (els.finalistsCount) {
     els.finalistsCount.textContent = `${list.length} finalist${list.length === 1 ? "" : "s"}`;
@@ -621,7 +620,7 @@ function renderStreamPoll(poll) {
 
   if (!options.length) {
     els.streamPoll.hidden = true;
-    renderRecentVotes(null);
+    renderRecentVotes(poll || { recentVotes: [] });
     return;
   }
 
@@ -664,16 +663,22 @@ function renderRecentVotes(poll) {
     return;
   }
   const recent = Array.isArray(poll?.recentVotes) ? poll.recentVotes.slice(0, 5) : [];
-  if (!recent.length) {
-    els.streamRecentVotes.hidden = true;
-    return;
-  }
   els.streamRecentVotes.hidden = false;
-  const key = recent.map((r) => `${r.voter}:${r.code}:${r.at}`).join("|");
+  const key = recent.length
+    ? recent.map((r) => `${r.voter}:${r.code}:${r.at}`).join("|")
+    : "__empty__";
   if (key === lastRecentKey) return;
   lastRecentKey = key;
 
   els.streamRecentVotesRows.innerHTML = "";
+  if (!recent.length) {
+    const empty = document.createElement("div");
+    empty.className = "stream-recent-vote-empty";
+    empty.textContent =
+      "Type a country or !vote Japan — you’ll show up here";
+    els.streamRecentVotesRows.appendChild(empty);
+    return;
+  }
   for (const r of recent) {
     const row = document.createElement("div");
     row.className = "stream-recent-vote";

@@ -27,7 +27,7 @@
   <body>
     <div class="app-shell">
       <div class="stage" id="stage">
-        <!-- Top LED-style board -->
+        <!-- Top board: brand + country list (stream: list becomes left column) -->
         <header class="board" aria-live="polite">
           <div class="board-head">
             <div class="brand-inline">FLAG BATTLE</div>
@@ -38,6 +38,7 @@
         </header>
 
         <div class="brand-bar">
+          <div class="brand-inline brand-bar-title">FLAG BATTLE</div>
           <div class="phase-pill">
             <span class="dot" aria-hidden="true"></span>
             <span id="phase-text">Ready</span>
@@ -72,10 +73,14 @@
         <!-- QR overlay removed — links are posted to YouTube live chat. -->
         <aside class="stream-links" id="stream-links" hidden></aside>
 
-        <!-- Recent chatter votes (last 5) -->
+        <!-- Recent chatter votes (last 5) — always visible during poll -->
         <aside class="stream-recent-votes" id="stream-recent-votes" hidden>
           <div class="stream-recent-votes-head">RECENT VOTES</div>
-          <div class="stream-recent-votes-rows" id="stream-recent-votes-rows"></div>
+          <div class="stream-recent-votes-rows" id="stream-recent-votes-rows">
+            <div class="stream-recent-vote-empty">
+              Type a country or !vote Japan — you’ll show up here
+            </div>
+          </div>
         </aside>
 
         <!-- Live poll results on stream -->
@@ -116,7 +121,7 @@
         <div class="finalists-reveal" id="finalists-reveal" hidden aria-live="polite">
           <p class="finalists-kicker">FLAG BATTLE</p>
           <h2 id="finalists-title">QUALIFIED FOR FINAL</h2>
-          <p class="finalists-live" id="finalists-live">Final live · TBD</p>
+          <p class="finalists-live" id="finalists-live">Final starts next</p>
           <div class="finalists-scroll" id="finalists-scroll"></div>
           <p class="finalists-count" id="finalists-count">0 finalists</p>
         </div>

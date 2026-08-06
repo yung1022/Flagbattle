@@ -47,14 +47,10 @@ const MODE = normalizeMode(args.mode || process.env.STREAM_MODE || "qualifying")
 const TITLE =
   args.title ||
   process.env.YT_TITLE ||
-  (MODE === "final"
-    ? "FLAG BATTLE — Final · Last Flag Standing (Live)"
-    : "FLAG BATTLE — Qualifying (Live)");
+  "FLAG BATTLE — Qualifying → Final · Last Flag Standing (Live)";
 const DESCRIPTION =
   process.env.YT_DESCRIPTION ||
-  (MODE === "final"
-    ? "FLAG BATTLE Final livestream. Hole (reset on fall) → Swiss 1v1 (5 rounds) → last flag standing.\n\nVote who wins: !vote Japan or !vote jp. Live Chat polls: who wins the community poll + who wins Final 4. Poll & rankings: https://yung1022.github.io/Flagbattle/"
-    : "FLAG BATTLE Qualifying livestream. Last flag in the circle qualifies. Final is a separate livestream on the next 2-hour UTC slot.\n\nVote who wins: !vote Japan or !vote jp. Live Chat poll: who wins the community poll (Final 4 poll on the Final stream). Poll & rankings: https://yung1022.github.io/Flagbattle/");
+  "FLAG BATTLE livestream. Qualifying (last flag in the circle qualifies) → Final: hole (reset on fall) → Swiss 1v1 → last flag standing — all in one stream.\n\nVote who wins: type a country name, or !vote Japan / !vote jp. Live Chat polls + web poll & rankings: https://yung1022.github.io/Flagbattle/";
 
 const children = [];
 let display = null;
@@ -203,15 +199,11 @@ async function main() {
   process.on("SIGINT", () => shutdown(0));
   process.on("SIGTERM", () => shutdown(0));
 
-  // Final: stay live until the champion hold finishes (winner + 1 min).
-  // Qualifying: keep going until ffmpeg dies / timeout / Ctrl+C (finalists overlay).
-  const reason =
-    MODE === "final"
-      ? await Promise.race([
-          waitForFinalStreamComplete(PORT),
-          ffmpegDone,
-        ])
-      : await ffmpegDone;
+  // Full battle (Qual → Final in one broadcast): stay live until champion hold ends.
+  const reason = await Promise.race([
+    waitForFinalStreamComplete(PORT),
+    ffmpegDone,
+  ]);
   console.log(`Stream stop reason: ${reason}`);
   await shutdown(0);
 }
@@ -222,7 +214,7 @@ async function main() {
  */
 async function waitForFinalStreamComplete(port) {
   console.log(
-    "[stream] Waiting for Final champion + winner hold before ending…"
+    "[stream] Waiting for champion + winner hold before ending full battle…"
   );
   let sawWinner = false;
   for (;;) {
@@ -274,9 +266,9 @@ async function postChatLinks(youtube, id, apiUrl, mode = "qualifying") {
 
   // One combined instructions message (YouTube live chat ~200 char limit).
   const line =
-    `Vote who wins: !vote Japan or !vote jp. ` +
-    `Poll: ${poll} · Rankings: ${rank}` +
-    (mode === "qualifying" ? " · Final is a separate stream" : "");
+    `Vote: type Japan or !vote jp. ` +
+    `Poll: ${poll} · Rankings: ${rank}`;
+  void mode;
 
   for (let attempt = 0; attempt < 5; attempt++) {
     try {

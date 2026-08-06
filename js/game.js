@@ -13,7 +13,6 @@ import {
   seedTeststreamPollDemo,
 } from "./store.js";
 import { resolveApiBase, pagesDataUrl } from "./public.js";
-import { nextLiveSlotUtc } from "./live-schedule.js";
 
 /**
  * @typedef {"idle" | "intermission" | "qualifying" | "qualifying_hold" | "between_rounds" | "final" | "qualifying_complete" | "finished"} Phase
@@ -99,6 +98,8 @@ export const CONFIG = {
   battleBounceBoost: 1.55,
   /** After Final champion, keep the winner on screen before ending the stream. */
   winnerHoldMs: 60 * 1000,
+  /** Brief finalists reveal before Final starts in the same livestream. */
+  finalistsRevealMs: 12 * 1000,
   /** Skip full UI notifications; physics still every frame. */
   uiThrottleMs: 250,
 };
@@ -117,6 +118,8 @@ function applyEasyTestConfig() {
   CONFIG.swissRounds = 5;
   CONFIG.swissSpeedMult = 1.85;
   CONFIG.battleRate = 5;
+  CONFIG.finalistsRevealMs = 4 * 1000;
+  CONFIG.winnerHoldMs = 8 * 1000;
 }
 
 if (params.has("demo")) {
@@ -217,6 +220,7 @@ export class FlagBattleGame {
     this._battleAccum = 0;
     this._winnerHoldUntil = 0;
     this._winnerHoldDone = false;
+    this._pendingUnifiedFinal = false;
     this._raf = 0;
     this._lastTs = 0;
     this._lastUi = 0;
@@ -261,6 +265,7 @@ export class FlagBattleGame {
     this._battleAccum = 0;
     this._winnerHoldUntil = 0;
     this._winnerHoldDone = false;
+    this._pendingUnifiedFinal = false;
     this._uiDirty = true;
     this._emit(
       "reset",
@@ -651,19 +656,22 @@ export class FlagBattleGame {
         return f;
       });
       if (this.stream) {
-        // Keep every country — never shrink to finalists / eliminated.
-        const fromSource = this.stream.sourceStreamId
-          ? transferPoll(this.stream.sourceStreamId, this.stream.id)
-          : null;
-        if (!fromSource?.options?.length) {
-          initLocalPoll(
-            this.stream.id,
-            COUNTRIES.map((c) => ({
-              code: c.code,
-              name: c.name,
-              img: flagUrl(c.code, 80),
-            }))
-          );
+        // Same-stream Final: keep the open Qualifying poll (votes carry over).
+        const existing = getLocalPoll(this.stream.id);
+        if (!existing?.options?.length) {
+          const fromSource = this.stream.sourceStreamId
+            ? transferPoll(this.stream.sourceStreamId, this.stream.id)
+            : null;
+          if (!fromSource?.options?.length) {
+            initLocalPoll(
+              this.stream.id,
+              COUNTRIES.map((c) => ({
+                code: c.code,
+                name: c.name,
+                img: flagUrl(c.code, 80),
+              }))
+            );
+          }
         }
       }
       this._emit(
@@ -805,6 +813,24 @@ export class FlagBattleGame {
     }
 
     if (this.phase === "qualifying_complete") {
+      if (
+        this._pendingUnifiedFinal &&
+        this._betweenUntil &&
+        now >= this._betweenUntil
+      ) {
+        this._pendingUnifiedFinal = false;
+        this._betweenUntil = 0;
+        this.streamMode = "final";
+        if (this.stream) {
+          this.stream.mode = "final";
+          this.stream.status = "live";
+          saveStream(this.stream);
+        }
+        document.body.classList.add("final-mode");
+        this._beginIntermission("final");
+        this._flushUi(true);
+        return;
+      }
       this.onFrame();
       this._flushUi();
       return;
@@ -1510,58 +1536,31 @@ export class FlagBattleGame {
     this._pendingQualComplete = false;
     this.phase = "qualifying_complete";
     this.finalStage = null;
-    this.finalLiveAt = nextLiveSlotUtc();
-    // Keep the loop for the finalists reveal overlay (no more physics).
+    this.finalLiveAt = null;
     this.fighters = [];
 
-    // Create the Final stream first so it is included when Qualifying publishes.
-    const finalStream = {
-      id: newStreamId(),
-      mode: "final",
-      status: "scheduled",
-      startedAt: null,
-      endedAt: null,
-      scheduledAt: this.finalLiveAt,
-      rounds: [],
-      final: null,
-      qualified: this.qualified.map((q) => ({
-        code: q.code,
-        name: q.name,
-        img: q.img,
-      })),
-      winner: null,
-      sourceStreamId: this.stream?.id || null,
-    };
-    saveStream(finalStream);
-
-    // Carry the open Qualifying poll onto the scheduled Final stream.
-    if (this.stream?.id) {
-      transferPoll(this.stream.id, finalStream.id);
-    }
-
+    // Same livestream continues into Final — do not schedule a second stream.
     if (this.stream) {
       this.stream.mode = "qualifying";
-      this.stream.status = "finished";
+      this.stream.status = "live";
       this.stream.qualified = this.qualified.map((q) => ({
         code: q.code,
         name: q.name,
         img: q.img,
       }));
-      this.stream.final = null;
-      this.stream.winner = null;
-      this.stream.endedAt = new Date().toISOString();
-      this.stream.nextFinalId = finalStream.id;
-      this.stream.nextFinalAt = this.finalLiveAt;
+      this.stream.endedAt = null;
+      this.stream.nextFinalId = null;
+      this.stream.nextFinalAt = null;
       saveStream(this.stream);
     }
 
-    this._publishLive({
-      finalLiveAt: this.finalLiveAt,
-      scheduledFinalId: finalStream.id,
-    });
+    this._pendingUnifiedFinal = true;
+    this._betweenUntil =
+      performance.now() + Math.max(4000, CONFIG.finalistsRevealMs || 12_000);
+    this._publishLive();
     this._emit(
       "phase",
-      `Qualifying complete — ${this.qualified.length} finalists. Final live ${this.finalLiveAt}.`
+      `Qualifying complete — ${this.qualified.length} finalists. Final starts next.`
     );
     this._uiDirty = true;
   }
