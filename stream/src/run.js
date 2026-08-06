@@ -158,7 +158,9 @@ async function main() {
     console.log(`  ${nightbotVoteMessage(apiBase)}`);
   }
 
-  if (String(process.env.CHAT_VOTE || "").trim() === "1") {
+  // Bare country-name votes need the YouTube chat listener (Nightbot cannot
+  // match arbitrary country names with one command). Default ON; set CHAT_VOTE=0 to disable.
+  if (String(process.env.CHAT_VOTE || "1").trim() !== "0") {
     chatAbort = new AbortController();
     startChatVoteLoop({
       youtube: youtubeClient,
@@ -167,9 +169,11 @@ async function main() {
       signal: chatAbort.signal,
       getStreamId: () => readLiveStreamId(PORT),
     }).catch((err) => console.warn("[chat-vote] stopped:", err.message || err));
-    console.log("[chat-vote] YouTube vote-reply loop enabled (CHAT_VOTE=1)");
+    console.log(
+      "[chat-vote] Listening for !vote and bare country names (CHAT_VOTE=0 to disable)"
+    );
   } else {
-    console.log("[chat-vote] YouTube vote-reply loop off — use Nightbot !vote");
+    console.log("[chat-vote] Off (CHAT_VOTE=0) — Nightbot !vote only");
   }
 
   // Pinned Live Chat polls: community poll winner → Final 4 (one active at a time).

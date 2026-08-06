@@ -43,10 +43,10 @@ body {
 }
 
 .stage {
-  /* YouTube Shorts safe zone: clear of top/bottom/right overlays */
-  --safe-top: 11%;
+  /* YouTube Shorts: keep a thin top inset so title sits just under channel chrome */
+  --safe-top: 2.5%;
   --safe-bottom: 14%;
-  --safe-x: 7%;
+  --safe-x: 3%;
   width: 100%;
   height: 100%;
   position: relative;
@@ -82,9 +82,9 @@ body {
   position: absolute;
   top: var(--safe-top);
   left: var(--safe-x);
-  right: calc(var(--safe-x) + 4%);
+  right: var(--safe-x);
   z-index: 5;
-  padding: 0 0 1.2%;
+  padding: 0 0 0.6%;
   background: none;
 }
 
@@ -93,14 +93,14 @@ body {
   align-items: baseline;
   justify-content: flex-start;
   flex-wrap: wrap;
-  gap: 10px 14px;
-  margin-bottom: 10px;
+  gap: 6px 12px;
+  margin-bottom: 6px;
 }
 
 .brand-inline {
   font-family: var(--font-display);
   letter-spacing: 0.06em;
-  font-size: clamp(28px, 7vw, 48px);
+  font-size: clamp(26px, 6.4vw, 44px);
   line-height: 0.9;
   color: var(--ink);
   text-shadow: 0 2px 0 rgba(0, 0, 0, 0.55), 0 0 24px rgba(46, 196, 182, 0.3);
@@ -110,13 +110,13 @@ body {
 .board-label {
   font-family: var(--font-display);
   letter-spacing: 0.08em;
-  font-size: clamp(22px, 5.5vw, 40px);
+  font-size: clamp(20px, 5vw, 36px);
   color: var(--gold-hot);
   text-shadow: 0 2px 0 rgba(0, 0, 0, 0.55), 0 0 24px rgba(230, 184, 74, 0.35);
 }
 
 .board-meta {
-  font-size: clamp(14px, 3.2vw, 20px);
+  font-size: clamp(13px, 3vw, 18px);
   color: var(--ink);
   font-weight: 800;
   letter-spacing: 0.04em;
@@ -128,22 +128,23 @@ body {
   display: flex;
   gap: 8px;
   overflow: hidden;
-  min-height: clamp(44px, 9vw, 64px);
-  padding: 10px 12px;
+  min-height: clamp(40px, 8vw, 58px);
+  padding: 8px 10px;
   border: 1px solid var(--line);
   background: var(--board);
   backdrop-filter: blur(8px);
-  mask-image: linear-gradient(90deg, transparent, #000 4%, #000 96%, transparent);
+  mask-image: linear-gradient(90deg, transparent, #000 2%, #000 98%, transparent);
 }
 
 .board-track.marquee .board-row {
-  animation: marquee 28s linear infinite;
+  animation: marquee 36s linear infinite;
 }
 
 .board-row {
   display: flex;
-  gap: 7px;
+  gap: 8px;
   flex-shrink: 0;
+  align-items: center;
 }
 
 @keyframes marquee {
@@ -151,14 +152,35 @@ body {
   to { transform: translateX(-50%); }
 }
 
+.board-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+  padding: 3px 8px 3px 3px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: rgba(3, 7, 11, 0.55);
+  animation: flagIn 0.45s ease both;
+}
+
 .board-flag {
-  width: clamp(36px, 7.5vw, 52px);
-  height: clamp(24px, 5.2vw, 36px);
+  width: clamp(30px, 6.2vw, 44px);
+  height: clamp(20px, 4.2vw, 30px);
   object-fit: cover;
   border: 1px solid rgba(255, 255, 255, 0.18);
   flex-shrink: 0;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.45);
-  animation: flagIn 0.45s ease both;
+}
+
+.board-chip-name {
+  font-size: clamp(11px, 2.4vw, 14px);
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+  max-width: 14ch;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: var(--ink);
 }
 
 @keyframes flagIn {
@@ -184,10 +206,10 @@ body {
 /* —— Brand / phase header —— */
 .brand-bar {
   position: absolute;
-  /* Sit below board track + subs pill — tighter so Final circle can grow */
-  top: calc(var(--safe-top) + 14%);
+  /* Sit below board track (no subs pill) */
+  top: calc(var(--safe-top) + 12.5%);
   left: var(--safe-x);
-  right: calc(var(--safe-x) + 4%);
+  right: calc(var(--safe-x) + 36%);
   z-index: 4;
   text-align: center;
   padding: 0;
@@ -207,48 +229,6 @@ body {
 @keyframes brandPulse {
   0%, 100% { filter: brightness(1); }
   50% { filter: brightness(1.08); }
-}
-
-.subs-pill {
-  display: inline-flex;
-  align-items: baseline;
-  justify-content: flex-start;
-  gap: 8px;
-  margin-top: 8px;
-  padding: 6px 12px;
-  border: 1px solid rgba(255, 77, 109, 0.45);
-  background: rgba(3, 7, 11, 0.72);
-  font-weight: 800;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  width: fit-content;
-  max-width: 100%;
-}
-
-.subs-pill[hidden] {
-  display: none !important;
-}
-
-.subs-pill .subs-label {
-  color: var(--danger);
-  font-size: clamp(12px, 2.6vw, 15px);
-}
-
-.subs-pill strong {
-  font-family: var(--font-display);
-  font-size: clamp(28px, 6.5vw, 44px);
-  color: var(--ink);
-  letter-spacing: 0.04em;
-  line-height: 1;
-}
-
-.subs-pill .subs-channel {
-  color: var(--muted);
-  font-size: clamp(11px, 2.4vw, 14px);
-  max-width: 12ch;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
 }
 
 .phase-pill {
@@ -463,7 +443,8 @@ body.final-mode .timer {
 }
 
 .stream-links[hidden],
-.stream-poll[hidden] {
+.stream-poll[hidden],
+.stream-recent-votes[hidden] {
   display: none !important;
 }
 
@@ -503,16 +484,74 @@ body.final-mode .timer {
   text-shadow: 0 1px 4px rgba(0, 0, 0, 0.7);
 }
 
+/* Right column: recent votes above live poll — keep clear of arena center */
+.stream-recent-votes {
+  position: absolute;
+  right: var(--safe-x);
+  top: calc(var(--safe-top) + 14%);
+  z-index: 6;
+  width: min(34%, 220px);
+  padding: 8px 10px;
+  background: rgba(3, 7, 11, 0.86);
+  border: 1px solid rgba(230, 184, 74, 0.4);
+  pointer-events: none;
+}
+
+.stream-recent-votes-head {
+  font-family: var(--font-display);
+  letter-spacing: 0.08em;
+  font-size: clamp(16px, 3.6vw, 22px);
+  color: var(--gold-hot);
+  margin-bottom: 6px;
+}
+
+.stream-recent-vote {
+  display: grid;
+  grid-template-columns: 24px 1fr;
+  gap: 6px 8px;
+  align-items: center;
+  margin-bottom: 6px;
+}
+
+.stream-recent-vote img {
+  width: 24px;
+  height: 16px;
+  object-fit: cover;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+}
+
+.stream-recent-vote .who {
+  font-size: clamp(11px, 2.3vw, 13px);
+  font-weight: 700;
+  color: var(--muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.stream-recent-vote .pick {
+  grid-column: 2;
+  font-size: clamp(12px, 2.5vw, 14px);
+  font-weight: 800;
+  color: var(--ink);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-top: -4px;
+}
+
 .stream-poll {
   position: absolute;
-  right: calc(var(--safe-x) + 2%);
-  top: calc(var(--safe-top) + 52%);
+  right: var(--safe-x);
+  top: calc(var(--safe-top) + 42%);
+  bottom: calc(var(--safe-bottom) + 3%);
   z-index: 6;
-  width: min(42%, 260px);
-  padding: 10px 12px;
+  width: min(34%, 220px);
+  padding: 8px 10px;
   background: rgba(3, 7, 11, 0.86);
   border: 1px solid rgba(46, 196, 182, 0.45);
   pointer-events: none;
+  overflow: hidden;
 }
 
 .stream-poll-head {
@@ -987,6 +1026,7 @@ body.stream-mode:not(.mobile-mode) .mobile-fs-btn {
   pointer-events: none;
 }
 
-body.test-stream .stream-poll {
+body.test-stream .stream-poll,
+body.test-stream .stream-recent-votes {
   display: none !important;
 }
