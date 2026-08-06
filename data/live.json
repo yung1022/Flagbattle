@@ -74132,7 +74132,49 @@
         },
         "at": "2026-08-06T11:08:50.810Z",
         "rules": "hole_swiss_battle",
-        "pollPlaces": null
+        "pollPlaces": [
+          {
+            "rank": 1,
+            "code": "af",
+            "name": "Afghanistan",
+            "img": "https://flagcdn.com/w80/af.png",
+            "votes": 0,
+            "points": 10
+          },
+          {
+            "rank": 2,
+            "code": "al",
+            "name": "Albania",
+            "img": "https://flagcdn.com/w80/al.png",
+            "votes": 0,
+            "points": 5
+          },
+          {
+            "rank": 3,
+            "code": "dz",
+            "name": "Algeria",
+            "img": "https://flagcdn.com/w80/dz.png",
+            "votes": 0,
+            "points": 3
+          },
+          {
+            "rank": 4,
+            "code": "ad",
+            "name": "Andorra",
+            "img": "https://flagcdn.com/w80/ad.png",
+            "votes": 0,
+            "points": 2
+          },
+          {
+            "rank": 5,
+            "code": "ao",
+            "name": "Angola",
+            "img": "https://flagcdn.com/w80/ao.png",
+            "votes": 0,
+            "points": 1
+          }
+        ],
+        "heldAt": "2026-08-06T11:09:50.817Z"
       },
       "qualified": [
         {
@@ -671046,6 +671088,6 @@
       }
     }
   ],
-  "api": "https://christmas-directory-book-option.trycloudflare.com",
-  "updatedAt": 1786014591667
+  "api": null,
+  "updatedAt": 1786014597152
 }
