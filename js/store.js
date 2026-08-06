@@ -314,39 +314,83 @@ export function initLocalPoll(streamId, options) {
 }
 
 /**
- * Seed a few demo votes for Easy teststream HUD preview (no save).
- * @param {string} streamId
+ * Seed demo tallies for Easy teststream HUD (no save).
+ * Recent votes starts empty (on-stream hint), then chat-sim fills it.
  */
 export function seedTeststreamPollDemo(streamId) {
   if (persistEnabled) return getLocalPoll(streamId);
   const poll = getLocalPoll(streamId);
   if (!poll.options?.length) return poll;
-  if (poll.recentVotes?.length) return poll;
 
-  const demoVoters = [
-    { voter: "Tyler-u5j7k", code: "br" },
-    { voter: "MayaLive", code: "jp" },
-    { voter: "FlagFan", code: "kr" },
-    { voter: "GeoKid", code: "us" },
-    { voter: "ArenaChat", code: "br" },
-  ];
-  const byCode = new Map(
-    poll.options.map((o) => [String(o.code).toLowerCase(), o])
-  );
-  for (const row of demoVoters) {
-    const opt = byCode.get(row.code);
-    if (!opt) continue;
-    const vid = `demo:${row.voter}`;
-    const prev = poll.voters[vid];
-    if (prev && poll.votes[prev] > 0) poll.votes[prev] -= 1;
-    poll.voters[vid] = row.code;
-    poll.votes[row.code] = (poll.votes[row.code] || 0) + 1;
+  if (!Object.keys(poll.voters || {}).length) {
+    const demoVoters = [
+      { voter: "Tyler-u5j7k", code: "br" },
+      { voter: "MayaLive", code: "jp" },
+      { voter: "FlagFan", code: "kr" },
+      { voter: "GeoKid", code: "us" },
+      { voter: "ArenaChat", code: "br" },
+    ];
+    const byCode = new Map(
+      poll.options.map((o) => [String(o.code).toLowerCase(), o])
+    );
+    for (const row of demoVoters) {
+      const opt = byCode.get(row.code);
+      if (!opt) continue;
+      const vid = `demo:${row.voter}`;
+      const prev = poll.voters[vid];
+      if (prev && poll.votes[prev] > 0) poll.votes[prev] -= 1;
+      poll.voters[vid] = row.code;
+      poll.votes[row.code] = (poll.votes[row.code] || 0) + 1;
+    }
   }
-  // Leave recentVotes empty so the on-stream panel shows the “vote to appear here” hint.
-  poll.recentVotes = [];
+  if (!Array.isArray(poll.recentVotes)) poll.recentVotes = [];
   poll.updatedAt = Date.now();
   memoryPolls.set(streamId, poll);
   return poll;
+}
+
+/** Simulated chat lines — bare names + !vote (same rules as CHAT_VOTE). */
+const TESTSTREAM_CHAT_LINES = [
+  { voter: "ArenaChat", text: "Brazil" },
+  { voter: "MayaLive", text: "Japan" },
+  { voter: "GeoKid", text: "us" },
+  { voter: "FlagFan", text: "!vote South Korea" },
+  { voter: "Tyler-u5j7k", text: "United States" },
+  { voter: "MapNerd", text: "France" },
+  { voter: "ShortsFan", text: "!vote jp" },
+];
+
+/**
+ * Drive recent-votes with parseVoteMessage (YouTube CHAT_VOTE parity).
+ * Call once per Easy teststream; returns a cancel fn.
+ */
+export function startTeststreamChatVoteDemo(streamId, parseVoteMessage) {
+  if (persistEnabled || !streamId || typeof parseVoteMessage !== "function") {
+    return () => {};
+  }
+  let i = 0;
+  const tick = () => {
+    const row = TESTSTREAM_CHAT_LINES[i % TESTSTREAM_CHAT_LINES.length];
+    i += 1;
+    const parsed = parseVoteMessage(row.text);
+    if (!parsed?.country?.code) return;
+    castLocalPollVote(
+      streamId,
+      parsed.country.code,
+      `demo:${row.voter}`,
+      row.voter
+    );
+  };
+  const first = setTimeout(tick, 2500);
+  const timer = setInterval(tick, 3500);
+  return () => {
+    clearTimeout(first);
+    clearInterval(timer);
+  };
+}
+
+export function castLocalPollVote(streamId, code, voterId, voterName) {
+  return localPollVote(streamId, code, voterId, voterName);
 }
 
 function localPollVote(streamId, code, voterId, voterName) {

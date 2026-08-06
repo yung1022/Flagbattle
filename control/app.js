@@ -85,7 +85,7 @@ function init() {
   const arena = $("btn-open-arena");
   arena.href = new URL("../?stream=1&autostart=1&mobile=1", location.href).href;
   const tests = [
-    ["btn-test-qual", "qualifying"],
+    ["btn-test-full", "1"],
     ["btn-test-hole", "hole"],
     ["btn-test-swiss", "swiss"],
     ["btn-test-final4", "final4"],
@@ -133,7 +133,7 @@ function fillForm() {
   $("gh-token").value = state.ghToken || "";
   $("yt-privacy").value = state.privacy || "unlisted";
   $("demo-seconds").value = state.demoSeconds ?? "120";
-  $("duration-min").value = state.durationMin ?? "40";
+  $("duration-min").value = state.durationMin ?? "150";
   $("g-client-id").value = state.clientId || "";
   $("g-client-secret").value = state.clientSecret || "";
   $("g-refresh").value = state.refreshToken || "";
@@ -357,7 +357,7 @@ async function goLive() {
           inputs: {
             demo_seconds: state.demoSeconds || "",
             privacy: state.privacy || "unlisted",
-            duration_minutes: state.durationMin || "40",
+            duration_minutes: state.durationMin || "150",
           },
         }),
       }
