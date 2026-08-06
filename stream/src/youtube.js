@@ -396,14 +396,11 @@ export async function getLiveChatId(youtube, broadcastId) {
 
 /**
  * Post poll/rankings links to live chat.
- * Note: YouTube Data API cannot pin chat messages — pin manually in Studio if needed.
+ * Note: YouTube Data API cannot pin text chat messages — use createLiveChatPoll
+ * for an API-pinned Live Chat poll (only one active poll per chat).
  */
 export async function postLiveChatMessage(youtube, broadcastId, messageText) {
-  const res = await youtube.liveBroadcasts.list({
-    part: ["snippet"],
-    id: [broadcastId],
-  });
-  const liveChatId = res.data.items?.[0]?.snippet?.liveChatId;
+  const liveChatId = await getLiveChatId(youtube, broadcastId);
   if (!liveChatId) {
     throw new Error("liveChatId not available yet (broadcast may not be live)");
   }
@@ -419,10 +416,70 @@ export async function postLiveChatMessage(youtube, broadcastId, messageText) {
     },
   });
   console.log("Posted live chat message:", text);
-  console.warn(
-    "Pinning is not available via YouTube API — pin this message manually in YouTube Studio / mobile Live chat."
+  return inserted.data;
+}
+
+/**
+ * Create a YouTube Live Chat poll (2–4 options). Auto-pins in chat UI.
+ * Only one poll can be active per live chat at a time.
+ */
+export async function createLiveChatPoll(
+  youtube,
+  broadcastId,
+  questionText,
+  optionTexts
+) {
+  const liveChatId = await getLiveChatId(youtube, broadcastId);
+  if (!liveChatId) {
+    throw new Error("liveChatId not available yet (broadcast may not be live)");
+  }
+  const options = (optionTexts || [])
+    .map((t) => String(t || "").trim())
+    .filter(Boolean)
+    .slice(0, 4)
+    .map((optionText) => ({ optionText: optionText.slice(0, 60) }));
+  if (options.length < 2) {
+    throw new Error("YouTube Live Chat polls need 2–4 options");
+  }
+  const question = String(questionText || "Vote").trim().slice(0, 100);
+  const inserted = await youtube.liveChatMessages.insert({
+    part: ["snippet"],
+    requestBody: {
+      snippet: {
+        liveChatId,
+        type: "pollEvent",
+        pollDetails: {
+          metadata: {
+            questionText: question,
+            options,
+          },
+        },
+      },
+    },
+  });
+  console.log(
+    `Posted Live Chat poll: "${question}" · ${options
+      .map((o) => o.optionText)
+      .join(" | ")}`
   );
   return inserted.data;
+}
+
+/** Close an active Live Chat poll by message id. */
+export async function closeLiveChatPoll(youtube, messageId) {
+  if (!messageId) return null;
+  try {
+    const res = await youtube.liveChatMessages.transition({
+      id: messageId,
+      status: "closed",
+      part: ["snippet"],
+    });
+    console.log("Closed Live Chat poll:", messageId);
+    return res.data;
+  } catch (err) {
+    console.warn("Close Live Chat poll failed:", err.message || err);
+    return null;
+  }
 }
 
 export async function completeBroadcast(youtube, broadcastId) {
