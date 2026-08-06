@@ -4,6 +4,10 @@ import {
   saveStream,
   setLiveSnapshot,
   initLocalPoll,
+  transferPoll,
+  closeLocalPoll,
+  getLocalPoll,
+  rankPollPlaces,
   fetchStreamsFromApi,
   setPersistEnabled,
 } from "./store.js";
@@ -552,9 +556,20 @@ export class FlagBattleGame {
       this.fighters = shuffle(COUNTRIES).map((c, i) =>
         this._makeFighter(c, i, COUNTRIES.length)
       );
+      // Open the winner poll for the whole battle (Qual + Final).
+      if (this.stream) {
+        initLocalPoll(
+          this.stream.id,
+          COUNTRIES.map((c) => ({
+            code: c.code,
+            name: c.name,
+            img: flagUrl(c.code, 80),
+          }))
+        );
+      }
       this._emit(
         "phase",
-        `INTERMISSION — battle starts in ${Math.round(CONFIG.intermissionMs / 1000)}s`
+        `INTERMISSION — battle starts in ${Math.round(CONFIG.intermissionMs / 1000)}s · poll open (!vote XX)`
       );
     } else {
       const list = this.qualified.length
@@ -566,18 +581,24 @@ export class FlagBattleGame {
         return f;
       });
       if (this.stream) {
-        initLocalPoll(
-          this.stream.id,
-          this.qualified.map((q) => ({
-            code: q.code,
-            name: q.name,
-            img: q.img,
-          }))
-        );
+        // Keep every country — never shrink to finalists / eliminated.
+        const fromSource = this.stream.sourceStreamId
+          ? transferPoll(this.stream.sourceStreamId, this.stream.id)
+          : null;
+        if (!fromSource?.options?.length) {
+          initLocalPoll(
+            this.stream.id,
+            COUNTRIES.map((c) => ({
+              code: c.code,
+              name: c.name,
+              img: flagUrl(c.code, 80),
+            }))
+          );
+        }
       }
       this._emit(
         "phase",
-        `INTERMISSION — Final in ${Math.round(CONFIG.intermissionMs / 1000)}s · ${this.qualified.length} qualified`
+        `INTERMISSION — Final in ${Math.round(CONFIG.intermissionMs / 1000)}s · ${this.qualified.length} qualified · poll still open`
       );
     }
     for (const f of this.fighters) {
@@ -1360,6 +1381,11 @@ export class FlagBattleGame {
     };
     saveStream(finalStream);
 
+    // Carry the open Qualifying poll onto the scheduled Final stream.
+    if (this.stream?.id) {
+      transferPoll(this.stream.id, finalStream.id);
+    }
+
     if (this.stream) {
       this.stream.mode = "qualifying";
       this.stream.status = "finished";
@@ -1449,6 +1475,9 @@ export class FlagBattleGame {
       this.finalStage = null;
       this.stopLoop();
       if (this.stream) {
+        const poll = getLocalPoll(this.stream.id);
+        const pollPlaces = rankPollPlaces(poll);
+        closeLocalPoll(this.stream.id);
         this.stream.mode = "final";
         this.stream.status = "finished";
         this.stream.final = {
@@ -1456,6 +1485,7 @@ export class FlagBattleGame {
           winner: { code: flag.code, name: flag.name, img: flag.img },
           at: new Date().toISOString(),
           rules: "hole_swiss_battle",
+          pollPlaces,
         };
         this.stream.winner = this.stream.final.winner;
         this.stream.qualified = this.qualified.map((q) => ({
@@ -1466,6 +1496,12 @@ export class FlagBattleGame {
         this.stream.endedAt = new Date().toISOString();
         saveStream(this.stream);
         this._publishLive();
+        if (pollPlaces.length) {
+          const top = pollPlaces
+            .map((p) => `${p.rank}.${p.name}(+${p.points})`)
+            .join(" · ");
+          this._emit("phase", `Poll bonus locked — ${top}`);
+        }
       }
       this._emit("winner", `${flag.name} is the LAST FLAG STANDING!`);
       this._uiDirty = true;

@@ -85,9 +85,11 @@
       function render(poll) {
         const total = Object.values(poll.votes || {}).reduce((a, b) => a + b, 0);
         statusEl.textContent = `Stream ${poll.streamId} · ${total} vote${total === 1 ? "" : "s"}`;
-        ledeEl.textContent = myVote
-          ? `You voted. You can change your pick anytime.`
-          : `Tap a finalist to vote.`;
+        ledeEl.textContent = poll.closed
+          ? `Poll closed after the Final. Top places earn season bonus points.`
+          : myVote
+            ? `You voted. You can change your pick anytime until the Final ends.`
+            : `Vote who you think will win the Final (!vote XX in chat).`;
 
         const options = poll.options?.length
           ? poll.options
@@ -103,7 +105,7 @@
 
         optsEl.innerHTML = "";
         if (!options.length) {
-          optsEl.innerHTML = `<p class="empty">Poll opens when finalists are set (final intermission).</p>`;
+          optsEl.innerHTML = `<p class="empty">Poll opens when Qualifying starts. Vote who you think will win the Final.</p>`;
           return;
         }
 
@@ -113,6 +115,7 @@
           const btn = document.createElement("button");
           btn.type = "button";
           btn.className = "poll-option" + (myVote === opt.code ? " selected" : "");
+          btn.disabled = Boolean(poll.closed);
           btn.innerHTML = `
             <img src="${opt.img || `https://flagcdn.com/w80/${opt.code}.png`}" alt="" />
             <div>
@@ -122,6 +125,7 @@
             <div><strong>${count}</strong><div class="meta">${pct}%</div></div>
           `;
           btn.addEventListener("click", async () => {
+            if (poll.closed) return;
             myVote = opt.code;
             const next = await submitPollVote(streamId, opt.code, me);
             render(next);

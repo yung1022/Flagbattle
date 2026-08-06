@@ -2,6 +2,7 @@
  * Season sheet + points from stream ranking history.
  * Qualifying + Final livestreams are paired into one battle column.
  * Points: 1st→50, 2nd→49, … 50th→1 (Final places only; ranks beyond 50 score 0).
+ * Poll bonus when Final ends: 1st→10, 2nd→5, 3rd→3, 4th→2, 5th→1.
  * Finished battles: Final place, or non-qualifier place from average qualifying-round rank.
  * "Q" only while waiting for that battle’s Final.
  */
@@ -9,11 +10,33 @@
 import { previousPointsRanks, rankDelta } from "./rank-delta.js";
 
 export const POINTS_TOP_N = 50;
+/** Extra season points from Final poll places 1–5. */
+export const POLL_PLACE_POINTS = [10, 5, 3, 2, 1];
 
 export function pointsForRank(rank) {
   const r = Number(rank);
   if (!Number.isFinite(r) || r < 1 || r > POINTS_TOP_N) return 0;
   return POINTS_TOP_N + 1 - r;
+}
+
+export function pollPointsForPlace(rank) {
+  const r = Number(rank);
+  if (!Number.isFinite(r) || r < 1 || r > POLL_PLACE_POINTS.length) return 0;
+  return POLL_PLACE_POINTS[r - 1];
+}
+
+/** Sum frozen poll bonus for a country from a battle’s Final record. */
+export function pollBonusForBattle(battle, code) {
+  const places =
+    battle?.final?.final?.pollPlaces ||
+    battle?.final?.pollPlaces ||
+    null;
+  if (!Array.isArray(places) || !code) return 0;
+  const c = String(code).toLowerCase();
+  const hit = places.find((p) => String(p?.code || "").toLowerCase() === c);
+  if (!hit) return 0;
+  if (Number.isFinite(Number(hit.points))) return Number(hit.points);
+  return pollPointsForPlace(hit.rank);
 }
 
 function isFinalStream(s) {
@@ -312,6 +335,7 @@ export function buildSeasonSheet(streams, countries) {
     let points = 0;
     let finishes = 0;
     let best = null;
+    let pollBonus = 0;
     for (let i = 0; i < results.length; i++) {
       const r = results[i];
       // Points / best finish only from Final places — not avg nq ranks.
@@ -320,7 +344,9 @@ export function buildSeasonSheet(streams, countries) {
         points += pointsForRank(r);
         if (best == null || r < best) best = r;
       }
+      pollBonus += pollBonusForBattle(battles[i], c.code);
     }
+    points += pollBonus;
     return {
       code: c.code,
       name: c.name,
@@ -328,6 +354,7 @@ export function buildSeasonSheet(streams, countries) {
       results,
       deltas,
       points,
+      pollBonus,
       finishes,
       best,
     };

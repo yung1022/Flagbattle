@@ -559,11 +559,19 @@ function renderStreamLinks() {
 function shouldShowStreamPoll() {
   if (IS_TEST_STREAM) return false;
   if (!game.stream?.id) return false;
-  if (game.streamMode !== "final") return false;
+  // Available from Qualifying through Final (closes after champion).
+  if (game.phase === "idle") return false;
+  if (game.phase === "finished" && !game.winner && game.streamMode !== "final") {
+    // Qualifying complete overlay — still show poll
+    return true;
+  }
   return (
-    (game.phase === "intermission" && game.intermissionKind === "final") ||
+    game.phase === "intermission" ||
+    game.phase === "qualifying" ||
+    game.phase === "between_rounds" ||
+    game.phase === "qualifying_hold" ||
+    game.phase === "qualifying_complete" ||
     game.phase === "final" ||
-    (game.phase === "between_rounds" && Boolean(game.finalStage)) ||
     (game.phase === "finished" && Boolean(game.winner))
   );
 }
