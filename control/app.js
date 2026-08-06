@@ -29,11 +29,9 @@ const STORAGE_KEY = "flagbattle.mobile.v1";
 const $ = (id) => document.getElementById(id);
 const state = load();
 
-const ytScope = [
-  "https://www.googleapis.com/auth/youtube",
-  "https://www.googleapis.com/auth/youtube.force-ssl",
-  "https://www.googleapis.com/auth/youtube.upload",
-].join(" ");
+// Device flow allowlist: only youtube / youtube.readonly (NOT force-ssl / upload).
+// https://developers.google.com/identity/protocols/oauth2/limited-input-device#allowedscopes
+const ytScope = "https://www.googleapis.com/auth/youtube";
 
 /** Finished Finals (for Top 10 Short). */
 let hlStreams = [];

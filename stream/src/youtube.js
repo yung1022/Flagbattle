@@ -4,7 +4,7 @@ import path from "node:path";
 import { spawn } from "node:child_process";
 
 const SCOPES_HINT =
-  "youtube / youtube.force-ssl (run: npm run auth --prefix stream)";
+  "youtube scope (device auth) or youtube + youtube.force-ssl (Desktop auth)";
 
 export function createOAuthClient() {
   const clientId = process.env.GOOGLE_CLIENT_ID;
@@ -342,7 +342,7 @@ export async function setVideoThumbnail(youtube, videoId, filePath) {
     console.warn("Thumbnail upload failed:", msg);
     if (/forbidden|verified|permission/i.test(msg)) {
       console.warn(
-        "Custom thumbnails require a verified YouTube channel (and youtube.force-ssl scope)."
+        "Custom thumbnails may need a verified channel (Desktop auth with youtube.force-ssl if device tokens lack that scope)."
       );
     }
     return false;

@@ -13,11 +13,9 @@ loadEnv();
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const envFile = path.resolve(__dirname, "../.env");
-// force-ssl needed for custom thumbnails + live chat insert
-const SCOPE = [
-  "https://www.googleapis.com/auth/youtube",
-  "https://www.googleapis.com/auth/youtube.force-ssl",
-].join(" ");
+// Device flow allowlist: youtube / youtube.readonly only (not force-ssl).
+// https://developers.google.com/identity/protocols/oauth2/limited-input-device#allowedscopes
+const SCOPE = "https://www.googleapis.com/auth/youtube";
 
 const clientId = process.env.GOOGLE_CLIENT_ID;
 const clientSecret = process.env.GOOGLE_CLIENT_SECRET;
