@@ -140,7 +140,7 @@ async function main() {
 
   await postChatLinks(youtubeClient, broadcastId, tunnelUrl, MODE);
 
-  // Nightbot owns !vote (saves YouTube Data API quota). Opt-in old loop: CHAT_VOTE=1
+  // Nightbot owns !vote as a backup. Bare country names use the chat listener below.
   const apiBase = tunnelUrl || `http://127.0.0.1:${PORT}`;
   const nightbot = await syncNightbotVoteCommand(apiBase);
   if (nightbot.ok) {
@@ -154,8 +154,10 @@ async function main() {
     console.log(`  ${nightbotVoteMessage(apiBase)}`);
   }
 
-  // Bare country-name votes need the YouTube chat listener (Nightbot cannot
-  // match arbitrary country names with one command). Default ON; set CHAT_VOTE=0 to disable.
+  // Bare country-name votes need a chat listener (Nightbot cannot match
+  // arbitrary country names with one command). Default ON via Innertube
+  // (no Data API list quota). CHAT_VOTE=0 disables; CHAT_VOTE_SOURCE=api
+  // forces the old quota-burning liveChatMessages.list path.
   if (String(process.env.CHAT_VOTE || "1").trim() !== "0") {
     chatAbort = new AbortController();
     startChatVoteLoop({
@@ -165,8 +167,11 @@ async function main() {
       signal: chatAbort.signal,
       getStreamId: () => readLiveStreamId(PORT),
     }).catch((err) => console.warn("[chat-vote] stopped:", err.message || err));
+    const src = String(process.env.CHAT_VOTE_SOURCE || "innertube")
+      .trim()
+      .toLowerCase();
     console.log(
-      "[chat-vote] Listening for !vote and bare country names (CHAT_VOTE=0 to disable)"
+      `[chat-vote] Listening for !vote and bare country names via ${src} (CHAT_VOTE=0 to disable)`
     );
   } else {
     console.log("[chat-vote] Off (CHAT_VOTE=0) — Nightbot !vote only");
