@@ -1683,8 +1683,13 @@ export class FlagBattleGame {
   _buildFinalRanking(winner) {
     const ranking = [];
     const seen = new Set();
+    const qualSet = new Set(
+      (this.qualified || []).map((q) => String(q.code || "").toLowerCase())
+    );
     const push = (row) => {
       if (!row?.code || seen.has(row.code)) return;
+      // Final ranking is finalists only — never Qualifying fallouts / all countries.
+      if (qualSet.size && !qualSet.has(String(row.code).toLowerCase())) return;
       if (winner && row.code === winner.code && ranking.length) return;
       seen.add(row.code);
       ranking.push({
@@ -1721,6 +1726,11 @@ export class FlagBattleGame {
     // Hole stage (before Swiss): reverse fall order — unchanged logic.
     for (const row of [...this._fallOrder].reverse()) {
       push(row);
+    }
+
+    // Any remaining qualified finalists (edge cases) append by name.
+    for (const q of this.qualified || []) {
+      push(q);
     }
 
     return ranking;
