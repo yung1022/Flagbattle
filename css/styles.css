@@ -584,6 +584,92 @@ body.final-mode .timer {
   color: var(--muted);
 }
 
+.stream-shoutout {
+  flex-shrink: 0;
+  margin-top: 4px;
+  padding-top: 6px;
+  border-top: 1px solid rgba(230, 184, 74, 0.28);
+}
+
+.stream-shoutout-head {
+  font-family: var(--font-display);
+  letter-spacing: 0.08em;
+  font-size: clamp(12px, 2.6vw, 16px);
+  color: var(--teal, #2ec4b8);
+  margin-bottom: 4px;
+}
+
+.stream-shoutout-card {
+  display: grid;
+  grid-template-columns: 36px 1fr;
+  gap: 8px;
+  align-items: center;
+  min-height: 40px;
+}
+
+.stream-shoutout-card.stream-shoutout-pulse {
+  animation: shoutout-in 0.45s ease-out;
+}
+
+@keyframes shoutout-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.stream-shoutout-avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid rgba(46, 196, 182, 0.55);
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.stream-shoutout-avatar-fallback {
+  display: grid;
+  place-items: center;
+  font-weight: 800;
+  font-size: 14px;
+  color: var(--ink);
+}
+
+.stream-shoutout-name {
+  font-size: clamp(11px, 2.4vw, 14px);
+  font-weight: 800;
+  color: var(--ink);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.stream-shoutout-count {
+  font-size: clamp(10px, 2.1vw, 12px);
+  font-weight: 700;
+  color: var(--gold-hot);
+  margin-top: 1px;
+}
+
+.stream-shoutout-empty {
+  grid-column: 1 / -1;
+  font-size: clamp(10px, 2.2vw, 12px);
+  font-weight: 700;
+  color: var(--muted);
+}
+
+.stream-shoutout-hint {
+  margin-top: 4px;
+  font-size: clamp(9px, 1.9vw, 11px);
+  font-weight: 700;
+  line-height: 1.25;
+  color: var(--muted);
+}
+
 .stream-poll {
   position: absolute;
   right: var(--safe-x);
@@ -1174,7 +1260,7 @@ body.stream-mode.final-mode .brand-bar {
   top: calc(var(--safe-top) + var(--top-panel-h) + 0.4%);
 }
 
-/* Recent votes: top-right 50%, same height as qualified list */
+/* Recent votes + shoutout: top-right 50%, same height as qualified list */
 body.stream-mode .stream-recent-votes {
   top: var(--safe-top);
   left: 50%;
@@ -1183,6 +1269,15 @@ body.stream-mode .stream-recent-votes {
   height: var(--top-panel-h);
   border-left: none;
   padding: 6px 8px;
+}
+
+body.stream-mode .stream-recent-votes-rows {
+  flex: 1 1 auto;
+  max-height: 42%;
+}
+
+body.stream-mode .stream-shoutout {
+  margin-top: auto;
 }
 
 /* Live poll: bottom strip under arena, clear of YouTube chat */

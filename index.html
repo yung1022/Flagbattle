@@ -73,12 +73,18 @@
         <!-- QR overlay removed — links are posted to YouTube live chat. -->
         <aside class="stream-links" id="stream-links" hidden></aside>
 
-        <!-- Recent chatter votes (last 5) — hint pinned at bottom forever -->
+        <!-- Recent chatter votes + shoutout zone -->
         <aside class="stream-recent-votes" id="stream-recent-votes" hidden>
           <div class="stream-recent-votes-head">RECENT VOTES</div>
           <div class="stream-recent-votes-rows" id="stream-recent-votes-rows"></div>
-          <div class="stream-recent-votes-hint">
-            Type a country or !vote Japan — you’ll show up here
+          <div class="stream-shoutout" id="stream-shoutout">
+            <div class="stream-shoutout-head">SHOUTOUT ZONE</div>
+            <div class="stream-shoutout-card" id="stream-shoutout-card">
+              <div class="stream-shoutout-empty">Vote to get featured</div>
+            </div>
+            <div class="stream-shoutout-hint">
+              Type a country or !vote Japan · vote more = more shoutouts
+            </div>
           </div>
         </aside>
 

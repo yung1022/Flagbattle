@@ -66,7 +66,7 @@ Manual command (if no token), after each go-live:
 #### If chatters only type the country (no `!vote`)
 Nightbot alone **cannot** match every country name with one command. Go-live enables a chat listener (`CHAT_VOTE=1`) that reads Live Chat via **Innertube** (the same path youtube.com uses — **no Data API list quota**):
 
-1. Messages like `Japan`, `Brazil`, or `us` count as votes (same as `!vote Japan`).
+1. Messages like `Japan`, `Brazil`, or `us` count as votes (same as `!vote Japan`). Vote as many times as you want — each vote adds to the tally. More votes → more **Shoutout Zone** features on stream.
 2. Nightbot `!vote` still works as a backup when `NIGHTBOT_TOKEN` is set.
 3. Set `CHAT_VOTE=0` to disable the listener and rely on `!vote` / web poll only.
 4. Optional: `CHAT_VOTE_SOURCE=api` forces the old `liveChatMessages.list` path (burns quota). `CHAT_VOTE_REPLIES=0` skips bot chat replies (those still use Data API insert units).
