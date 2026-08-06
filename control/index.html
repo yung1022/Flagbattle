@@ -63,26 +63,29 @@
 
         <h2 class="subhead">Testing streams</h2>
         <p class="hint">
-          Easy dry-runs — nothing is saved or configured. Opens the arena with
-          <code>?teststream=</code> and short timings.
+          Easy dry-run — same as go-live: <strong>Qualifying → Final</strong> in
+          one stream. Nothing is saved. Opens with
+          <code>?teststream=1</code> and short timings.
         </p>
         <div class="actions test-actions">
-          <a class="btn" id="btn-test-qual" href="../?stream=1&autostart=1&mobile=1&teststream=qualifying"
-            >Test Qualifying</a
-          >
-          <a class="btn" id="btn-test-hole" href="../?stream=1&autostart=1&mobile=1&teststream=hole"
-            >Test Final hole</a
-          >
-          <a class="btn" id="btn-test-swiss" href="../?stream=1&autostart=1&mobile=1&teststream=swiss"
-            >Test Swiss</a
-          >
-          <a class="btn" id="btn-test-final4" href="../?stream=1&autostart=1&mobile=1&teststream=final4"
-            >Test Final 4</a
+          <a
+            class="btn primary"
+            id="btn-test-full"
+            href="../?stream=1&autostart=1&mobile=1&teststream=1"
+            >Test full battle (Qual → Final)</a
           >
         </div>
         <p class="note">
-          URLs: <code>?teststream=qualifying</code>,
-          <code>hole</code>, <code>swiss</code>, <code>final4</code>
+          Stage-only shortcuts (optional):
+          <a id="btn-test-hole" href="../?stream=1&autostart=1&mobile=1&teststream=hole"
+            >hole</a
+          >,
+          <a id="btn-test-swiss" href="../?stream=1&autostart=1&mobile=1&teststream=swiss"
+            >swiss</a
+          >,
+          <a id="btn-test-final4" href="../?stream=1&autostart=1&mobile=1&teststream=final4"
+            >final4</a
+          >
         </p>
       </section>
 
@@ -108,8 +111,9 @@
           />
         </label>
         <p class="note">
-          Mode is chosen automatically: after a finished Qualifying run comes
-          Final; otherwise Qualifying.
+          Every go-live is a <strong>full battle</strong> (Qualifying → Final in
+          one stream). Bare country names in chat count as votes
+          (<code>CHAT_VOTE=1</code>).
         </p>
         <label class="field">
           <span>Privacy</span>
@@ -125,7 +129,7 @@
         </label>
         <label class="field">
           <span>Duration minutes</span>
-          <input id="duration-min" inputmode="numeric" placeholder="40" value="40" />
+          <input id="duration-min" inputmode="numeric" placeholder="150" value="150" />
         </label>
 
         <div class="actions">

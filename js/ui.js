@@ -384,7 +384,10 @@ function renderHud() {
       badge.className = "test-stream-badge";
       document.querySelector(".stage")?.appendChild(badge);
     }
-    badge.textContent = `TEST · ${TEST_STREAM} · no save`;
+    badge.textContent =
+      TEST_STREAM === "full"
+        ? "TEST · FULL BATTLE · no save"
+        : `TEST · ${TEST_STREAM} · no save`;
     badge.hidden = false;
   } else if (badge) {
     badge.hidden = true;
