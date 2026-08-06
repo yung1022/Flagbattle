@@ -36,9 +36,8 @@ const els = {
   streamPoll: document.getElementById("stream-poll"),
   streamPollRows: document.getElementById("stream-poll-rows"),
   streamPollTotal: document.getElementById("stream-poll-total"),
-  subsPill: document.getElementById("subs-pill"),
-  subsCount: document.getElementById("subs-count"),
-  subsChannel: document.getElementById("subs-channel"),
+  streamRecentVotes: document.getElementById("stream-recent-votes"),
+  streamRecentVotesRows: document.getElementById("stream-recent-votes-rows"),
   finalistsReveal: document.getElementById("finalists-reveal"),
   finalistsTitle: document.getElementById("finalists-title"),
   finalistsLive: document.getElementById("finalists-live"),
@@ -273,7 +272,7 @@ function renderBoard() {
   if (key === lastBoardKey) return;
   lastBoardKey = key;
 
-  els.boardTrack.classList.toggle("marquee", flags.length > 10);
+  els.boardTrack.classList.toggle("marquee", flags.length > 8);
   els.boardTrack.innerHTML = "";
 
   if (!flags.length) {
@@ -296,15 +295,22 @@ function renderBoard() {
   const row = document.createElement("div");
   row.className = "board-row";
   for (const f of flags) {
+    const chip = document.createElement("div");
+    chip.className = "board-chip";
     const img = document.createElement("img");
     img.className = "board-flag";
     img.src = f.img;
     img.alt = f.name;
     img.title = f.name;
-    row.appendChild(img);
+    const name = document.createElement("span");
+    name.className = "board-chip-name";
+    name.textContent = f.name;
+    chip.appendChild(img);
+    chip.appendChild(name);
+    row.appendChild(chip);
   }
   els.boardTrack.appendChild(row);
-  if (flags.length > 10) {
+  if (flags.length > 8) {
     const clone = row.cloneNode(true);
     clone.setAttribute("aria-hidden", "true");
     els.boardTrack.appendChild(clone);
@@ -580,6 +586,7 @@ function renderStreamPoll(poll) {
   if (!els.streamPoll || !els.streamPollRows) return;
   if (!shouldShowStreamPoll()) {
     els.streamPoll.hidden = true;
+    renderRecentVotes(null);
     return;
   }
 
@@ -593,10 +600,12 @@ function renderStreamPoll(poll) {
 
   if (!options.length) {
     els.streamPoll.hidden = true;
+    renderRecentVotes(null);
     return;
   }
 
   els.streamPoll.hidden = false;
+  renderRecentVotes(poll);
   const votes = poll?.votes || {};
   const total = Object.values(votes).reduce((a, b) => a + b, 0);
   els.streamPollTotal.textContent = `${total} vote${total === 1 ? "" : "s"}`;
@@ -604,7 +613,7 @@ function renderStreamPoll(poll) {
   const ranked = [...options].sort(
     (a, b) => (votes[b.code] || 0) - (votes[a.code] || 0)
   );
-  const top = ranked.slice(0, 6);
+  const top = ranked.slice(0, 5);
   const key = top.map((o) => `${o.code}:${votes[o.code] || 0}`).join("|") + `:${total}`;
   if (key === lastPollKey) return;
   lastPollKey = key;
@@ -625,9 +634,42 @@ function renderStreamPoll(poll) {
   }
 }
 
+let lastRecentKey = "";
+
+function renderRecentVotes(poll) {
+  if (!els.streamRecentVotes || !els.streamRecentVotesRows) return;
+  if (!shouldShowStreamPoll()) {
+    els.streamRecentVotes.hidden = true;
+    return;
+  }
+  const recent = Array.isArray(poll?.recentVotes) ? poll.recentVotes.slice(0, 5) : [];
+  if (!recent.length) {
+    els.streamRecentVotes.hidden = true;
+    return;
+  }
+  els.streamRecentVotes.hidden = false;
+  const key = recent.map((r) => `${r.voter}:${r.code}:${r.at}`).join("|");
+  if (key === lastRecentKey) return;
+  lastRecentKey = key;
+
+  els.streamRecentVotesRows.innerHTML = "";
+  for (const r of recent) {
+    const row = document.createElement("div");
+    row.className = "stream-recent-vote";
+    const who = String(r.voter || "Viewer").replace(/^@/, "");
+    row.innerHTML = `
+      <img src="${r.img || `https://flagcdn.com/w40/${r.code}.png`}" alt="" />
+      <div class="who">@${who}</div>
+      <div class="pick">${r.name || String(r.code || "").toUpperCase()}</div>
+    `;
+    els.streamRecentVotesRows.appendChild(row);
+  }
+}
+
 async function refreshStreamPoll() {
   if (!shouldShowStreamPoll() || !game.stream?.id) {
     if (els.streamPoll) els.streamPoll.hidden = true;
+    if (els.streamRecentVotes) els.streamRecentVotes.hidden = true;
     return;
   }
   const poll = await fetchPoll(game.stream.id);
@@ -700,45 +742,12 @@ window.addEventListener(
 );
 setTimeout(() => unlockAudio(), 800);
 
-function formatSubs(n) {
-  if (n == null || Number.isNaN(n)) return "—";
-  // Full count with thousands separators (no K/M abbreviation).
-  return Math.round(Number(n)).toLocaleString("en-US");
-}
-
-async function refreshSubs() {
-  if (!els.subsPill || !els.subsCount) return;
-  try {
-    const channelId = params.get("channelId") || "";
-    const qs = channelId ? `?id=${encodeURIComponent(channelId)}` : "";
-    const res = await fetch(`/api/channel${qs}`, { cache: "no-store" });
-    if (!res.ok) {
-      // Keep prior value if any; hide only when never loaded.
-      return;
-    }
-    const data = await res.json();
-    if (data.hiddenSubscriberCount) {
-      els.subsCount.textContent = "HIDDEN";
-    } else {
-      els.subsCount.textContent = formatSubs(data.subscriberCount);
-    }
-    if (els.subsChannel) {
-      els.subsChannel.textContent = data.customUrl || data.title || "";
-    }
-    els.subsPill.hidden = false;
-  } catch {
-    /* API offline / GitHub Pages without server */
-  }
-}
-
-// Keep on-stream poll board + subs fresh for viewers.
+// Keep on-stream poll board fresh for viewers.
 clearInterval(pollTimer);
 pollTimer = setInterval(() => {
   renderStreamLinks();
   refreshStreamPoll();
 }, 2000);
-refreshSubs();
-setInterval(refreshSubs, 30_000);
 window.addEventListener("resize", () => {
   layoutSquareArena();
   syncArena();

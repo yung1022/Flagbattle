@@ -41,14 +41,15 @@ Battle sheet: each battle is one column (qualifying + Final paired). Finalists s
 
 Control hub Highlights also offers a **landscape full-rankings video**: every country revealed one-by-one (last→#1) with 5s national anthem each, plus avg qualifying place. Encodes faster than realtime via WebCodecs.
 
-### Chat voting (Final) — Nightbot
+### Chat voting — Nightbot + bare country names
 
-YouTube Data API chat polling is **off** by default (quota). Use **Nightbot**:
+**Nightbot can only trigger on a command name** (e.g. `!vote`). It cannot run a single regex that matches every country someone types in chat.
 
-1. Join Nightbot to your YouTube channel: https://nightbot.tv  
-2. Add a repo / `stream/.env` secret **`NIGHTBOT_TOKEN`** (Nightbot OAuth token with `commands` scope).  
-   Go-live will create/update `!vote` to hit the live tunnel automatically.  
-3. Viewers type a country **name or 2-letter code**:
+#### If chatters type `!vote …`
+1. Join Nightbot: https://nightbot.tv  
+2. Set **`NIGHTBOT_TOKEN`** (OAuth with `commands` scope) in `stream/.env` / Action secrets.  
+   Go-live creates/updates `!vote` automatically.  
+3. Viewers type:
 
 ```
 !vote Japan
@@ -56,20 +57,29 @@ YouTube Data API chat polling is **off** by default (quota). Use **Nightbot**:
 !vote go United States
 ```
 
-Replies (from Nightbot):
-- `{name} voted Japan successfully`
-- `{name} country not found — try a name or 2-letter code.`
-- `{name} poll is offline — wait for the live stream.`
-
-Nightbot only shows the reply when the API returns HTTP 200 (errors are returned as chat text, not status codes). Country names in `$(query)` must be URL-encoded.
-
-Without a token, add the command yourself after each go-live (tunnel URL is printed in the Action log):
+Manual command (if no token), after each go-live:
 
 ```
 !commands add !vote $(urlfetch https://YOUR-TUNNEL.trycloudflare.com/api/poll/vote?code=$(urlencode $(query))&voter=$(urlencode $(user))&format=text)
 ```
 
-Web poll still works. To re-enable the old YouTube API vote loop: `CHAT_VOTE=1`.
+#### If chatters only type the country (no `!vote`)
+Nightbot alone cannot do this for all countries. Use the built-in YouTube chat listener (on by default):
+
+1. Leave **`CHAT_VOTE` unset** (or `CHAT_VOTE=1`) in `stream/.env` / Action secrets.  
+2. Go-live reads live chat; messages like `Japan`, `Brazil`, or `us` count as votes.  
+3. Set `CHAT_VOTE=0` only if you want Nightbot `!vote` and want to save YouTube API quota.
+
+Optional Nightbot workaround for a few popular countries: add a **command named exactly like the country** (no `!`, no spaces — Nightbot command names cannot contain spaces):
+
+```
+!commands add Japan $(urlfetch https://YOUR-TUNNEL…/api/poll/vote?code=jp&voter=$(urlencode $(user))&format=text)
+!commands add Brazil $(urlfetch https://YOUR-TUNNEL…/api/poll/vote?code=br&voter=$(urlencode $(user))&format=text)
+```
+
+That only covers those exact single-word triggers. Prefer `CHAT_VOTE` for everyone typing bare country names (including `United States`).
+
+Web poll still works either way.
 
 ### How polls work for viewers
 

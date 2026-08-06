@@ -430,7 +430,7 @@ function parseNightbotUserHeader(raw) {
   }
 }
 
-function applyPollVote({ streamId, code, voterId }) {
+function applyPollVote({ streamId, code, voterId, voterName }) {
   if (!streamId || !code || !voterId) {
     return {
       ok: false,
@@ -450,6 +450,7 @@ function applyPollVote({ streamId, code, voterId }) {
     options: [],
     votes: {},
     voters: {},
+    recentVotes: [],
   });
   if (!poll.options?.length) {
     return { ok: false, status: 409, error: "poll_closed" };
@@ -463,10 +464,27 @@ function applyPollVote({ streamId, code, voterId }) {
   if (!allowed.has(code)) {
     return { ok: false, status: 400, error: "not_an_option" };
   }
+  const country = COUNTRY_BY_CODE.get(code);
   const prev = poll.voters[voterId];
   if (prev && poll.votes[prev] > 0) poll.votes[prev] -= 1;
   poll.voters[voterId] = code;
   poll.votes[code] = (poll.votes[code] || 0) + 1;
+  const who = String(voterName || voterId || "Viewer")
+    .replace(/^nb:/, "")
+    .replace(/^yt:/, "")
+    .slice(0, 40);
+  const entry = {
+    voter: who,
+    code,
+    name: country?.name || code.toUpperCase(),
+    img: `https://flagcdn.com/w40/${code}.png`,
+    at: Date.now(),
+  };
+  const prevRecent = Array.isArray(poll.recentVotes) ? poll.recentVotes : [];
+  poll.recentVotes = [
+    entry,
+    ...prevRecent.filter((r) => r && r.voter !== who),
+  ].slice(0, 5);
   poll.updatedAt = Date.now();
   writeJson(pollPath(streamId), poll);
   schedulePublicSync({ pollId: streamId, github: true });
@@ -475,7 +493,7 @@ function applyPollVote({ streamId, code, voterId }) {
     status: 200,
     error: null,
     poll,
-    country: COUNTRY_BY_CODE.get(code),
+    country,
   };
 }
 
@@ -756,7 +774,7 @@ async function handleApi(req, res, url) {
     } else if (!resolved) {
       result = { ok: false, status: 400, error: "unknown_country" };
     } else {
-      result = applyPollVote({ streamId, code, voterId });
+      result = applyPollVote({ streamId, code, voterId, voterName });
     }
     if (wantText) {
       // Nightbot only posts the body when HTTP status is 2xx.

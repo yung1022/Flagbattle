@@ -35,11 +35,6 @@
             <div class="board-meta" id="board-meta">0 qualified</div>
           </div>
           <div class="board-track" id="board-track"></div>
-          <div class="subs-pill" id="subs-pill" hidden>
-            <span class="subs-label">SUBS</span>
-            <strong id="subs-count">—</strong>
-            <span class="subs-channel" id="subs-channel"></span>
-          </div>
         </header>
 
         <div class="brand-bar">
@@ -76,6 +71,12 @@
 
         <!-- QR overlay removed — links are posted to YouTube live chat. -->
         <aside class="stream-links" id="stream-links" hidden></aside>
+
+        <!-- Recent chatter votes (last 5) -->
+        <aside class="stream-recent-votes" id="stream-recent-votes" hidden>
+          <div class="stream-recent-votes-head">RECENT VOTES</div>
+          <div class="stream-recent-votes-rows" id="stream-recent-votes-rows"></div>
+        </aside>
 
         <!-- Live poll results on stream -->
         <aside class="stream-poll" id="stream-poll" hidden>
