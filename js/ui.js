@@ -676,7 +676,9 @@ function renderRecentVotes(poll) {
     els.streamRecentVotes.hidden = true;
     return;
   }
-  const recent = Array.isArray(poll?.recentVotes) ? poll.recentVotes.slice(0, 5) : [];
+  const recent = Array.isArray(poll?.recentVotes)
+    ? poll.recentVotes.slice(0, 5)
+    : [];
   els.streamRecentVotes.hidden = false;
   const key = recent.length
     ? recent.map((r) => `${r.voter}:${r.code}:${r.at}`).join("|")
@@ -684,15 +686,8 @@ function renderRecentVotes(poll) {
   if (key === lastRecentKey) return;
   lastRecentKey = key;
 
+  // Rows only — the pinned hint lives outside #stream-recent-votes-rows.
   els.streamRecentVotesRows.innerHTML = "";
-  if (!recent.length) {
-    const empty = document.createElement("div");
-    empty.className = "stream-recent-vote-empty";
-    empty.textContent =
-      "Type a country or !vote Japan — you’ll show up here";
-    els.streamRecentVotesRows.appendChild(empty);
-    return;
-  }
   for (const r of recent) {
     const row = document.createElement("div");
     row.className = "stream-recent-vote";
