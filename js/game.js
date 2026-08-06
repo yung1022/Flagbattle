@@ -86,6 +86,8 @@ export const CONFIG = {
   baseHp: 100,
   /** HP lost per collision hit during battling modes. */
   hitDamage: 5,
+  /** Min approach speed (along contact normal) to count as a hit. */
+  hitSpeedMin: 0.22,
   hitCooldownSec: 0.35,
   battleRate: 2.2,
   /** Skip full UI notifications; physics still every frame. */
@@ -958,36 +960,57 @@ export class FlagBattleGame {
             B.y += ny * overlap;
             const avn = A.vx * nx + A.vy * ny;
             const bvn = B.vx * nx + B.vy * ny;
+
+            if (dealHits) {
+              // nx points A → B. Approach speed > 0 when they slam together.
+              // closing = how fast the gap shrinks = avn - bvn.
+              const approach = avn - bvn;
+              const minHit = CONFIG.hitSpeedMin ?? 0.22;
+              if (approach > minHit) {
+                // Relative impact: each flag that is driving into the other
+                // deals a hit (−hitDamage HP). Head-on slams hit both.
+                const aIntoB = avn > minHit * 0.5;
+                const bIntoA = -bvn > minHit * 0.5;
+                if (aIntoB) this._applyHit(B, A);
+                if (bIntoA) this._applyHit(A, B);
+                // Mutual scrape/slam with clear closing but unclear aggressor.
+                if (!aIntoB && !bIntoA) {
+                  this._applyHit(A, B);
+                  this._applyHit(B, A);
+                }
+              }
+            }
+
             const exchange = (avn - bvn) * CONFIG.pushStrength;
             A.vx -= exchange * nx;
             A.vy -= exchange * ny;
             B.vx += exchange * nx;
             B.vy += exchange * ny;
-
-            if (dealHits) {
-              // Closing speed — only count as a "hit" when they slam together.
-              const closing = bvn - avn;
-              if (closing > 0.12) {
-                this._applyHit(A);
-                this._applyHit(B);
-              }
-            }
           }
         }
       }
     }
   }
 
-  _applyHit(f) {
+  /**
+   * Apply one collision hit: −hitDamage HP (default 5 of 100).
+   * @param {object} f flag taking damage
+   * @param {object|null} by flag that dealt the hit
+   */
+  _applyHit(f, by = null) {
     if (!f?.alive || f.falling) return;
     if ((f.hitCd || 0) > 0) return;
     f.hitCd = CONFIG.hitCooldownSec;
-    f.hp = Math.max(0, (f.hp ?? CONFIG.baseHp) - CONFIG.hitDamage);
+    const dmg = Math.max(1, Number(CONFIG.hitDamage) || 5);
+    const maxHp = f.maxHp || CONFIG.baseHp || 100;
+    f.hp = Math.max(0, (f.hp ?? maxHp) - dmg);
     f.pulse = 1;
     this._uiDirty = true;
     if (f.hp <= 0) {
-      // Find a living opponent as the scorer when possible.
-      const foe = this.fighters.find((o) => o !== f && o.alive && !o.falling);
+      const foe =
+        by && by.alive && !by.falling
+          ? by
+          : this.fighters.find((o) => o !== f && o.alive && !o.falling);
       this._battleEliminate(f, foe || null);
     }
   }
