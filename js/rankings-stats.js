@@ -59,9 +59,102 @@ function isQualifyingStream(s) {
   );
 }
 
+/** Unified Qual→Final livestream (rounds + Final ranking on one record). */
+function isUnifiedBattleStream(s) {
+  if (!s || !isFinalStream(s)) return false;
+  if (!Array.isArray(s.qualified) || !s.qualified.length) return false;
+  return Array.isArray(s.rounds) && s.rounds.length > 0;
+}
+
+/**
+ * Finalist-only Final ranking for sheet/points.
+ * Strips polluted rows (e.g. merged-stream Qual fallouts that made ranking = 194).
+ */
+export function normalizeFinalistRanking(battleOrFinal, qualifiedList) {
+  const final =
+    battleOrFinal?.final?.final != null
+      ? battleOrFinal.final
+      : battleOrFinal?.final != null && battleOrFinal.final.ranking
+        ? battleOrFinal
+        : battleOrFinal;
+  const ranking = Array.isArray(final?.final?.ranking)
+    ? final.final.ranking
+    : Array.isArray(final?.ranking)
+      ? final.ranking
+      : [];
+  if (!ranking.length) return [];
+
+  const qual =
+    qualifiedList ||
+    battleOrFinal?.final?.qualified ||
+    battleOrFinal?.qualifying?.qualified ||
+    final?.qualified ||
+    [];
+  const qualSet = new Set(
+    (Array.isArray(qual) ? qual : [])
+      .map((q) => String(q?.code || "").toLowerCase())
+      .filter(Boolean)
+  );
+  if (!qualSet.size) {
+    return ranking.map((r, i) => ({
+      ...r,
+      rank: Number(r.rank) || i + 1,
+    }));
+  }
+
+  const filtered = ranking.filter((r) =>
+    qualSet.has(String(r?.code || "").toLowerCase())
+  );
+  // Polluted ranking: keep finalist relative order, renumber 1..N.
+  if (filtered.length && filtered.length < ranking.length) {
+    return filtered.map((r, i) => ({
+      code: r.code,
+      name: r.name,
+      img: r.img,
+      rank: i + 1,
+    }));
+  }
+  return filtered.map((r, i) => ({
+    ...r,
+    rank: Number(r.rank) || i + 1,
+  }));
+}
+
+/** Chronological key: live start, else schedule time. */
+function streamTimeKey(s) {
+  return s?.startedAt || s?.scheduledAt || "";
+}
+
+/** Final-only companion (separate stream, not a unified Qual→Final). */
+function isFinalOnlyCompanion(s) {
+  if (!s || !isFinalStream(s)) return false;
+  if (isUnifiedBattleStream(s)) return false;
+  // Companion Finals have no Qualifying rounds of their own.
+  return !(Array.isArray(s.rounds) && s.rounds.length > 0);
+}
+
+function qualifiedCodes(s) {
+  return new Set(
+    (s?.qualified || [])
+      .map((q) => String(q?.code || "").toLowerCase())
+      .filter(Boolean)
+  );
+}
+
+function qualifiedOverlapRatio(a, b) {
+  const A = qualifiedCodes(a);
+  const B = qualifiedCodes(b);
+  if (!A.size || !B.size) return 0;
+  let hit = 0;
+  for (const c of A) if (B.has(c)) hit += 1;
+  return hit / Math.max(A.size, B.size);
+}
+
 /**
  * Pair a finished qualifying stream with the following Final into one battle.
  * Old combined streams (qual + final on one record) stay a single column.
+ * Unified go-live (Qual→Final in one stream) is also one column — never
+ * absorbed as the Final half of a different Qualifying stream.
  * @returns {Array<{
  *   id: string,
  *   qualifying: object|null,
@@ -73,52 +166,90 @@ function isQualifyingStream(s) {
  */
 export function pairBattles(streams) {
   const sorted = [...(streams || [])].sort((a, b) =>
-    (a.startedAt || "").localeCompare(b.startedAt || "")
+    streamTimeKey(a).localeCompare(streamTimeKey(b))
   );
+  const used = new Set();
   const battles = [];
-  let i = 0;
-  while (i < sorted.length) {
-    const s = sorted[i];
 
-    // Single record that already includes a Final ranking (legacy combined).
-    if (isFinalStream(s) && Array.isArray(s.qualified) && s.mode !== "final") {
+  const take = (s) => {
+    if (!s?.id || used.has(s.id)) return false;
+    used.add(s.id);
+    return true;
+  };
+
+  // 1) Unified / legacy combined records are complete battles on their own.
+  for (const s of sorted) {
+    if (used.has(s.id)) continue;
+    if (isUnifiedBattleStream(s)) {
+      take(s);
       battles.push(makeBattle({ qualifying: s, final: s }));
-      i += 1;
       continue;
     }
+    // Legacy combined without mode:"final" (ranking + qualified, may lack rounds).
+    if (
+      isFinalStream(s) &&
+      Array.isArray(s.qualified) &&
+      s.qualified.length &&
+      s.mode !== "final" &&
+      Array.isArray(s.final?.ranking) &&
+      s.final.ranking.length
+    ) {
+      take(s);
+      battles.push(makeBattle({ qualifying: s, final: s }));
+    }
+  }
 
-    if (isQualifyingStream(s)) {
-      const next = sorted[i + 1];
-      if (next && isFinalStream(next) && next.mode === "final") {
-        battles.push(makeBattle({ qualifying: s, final: next }));
-        i += 2;
-        continue;
+  // 2) Pair remaining Qualifying with a Final-only companion (not unified).
+  for (let i = 0; i < sorted.length; i++) {
+    const s = sorted[i];
+    if (used.has(s.id) || !isQualifyingStream(s)) continue;
+
+    let final = null;
+    // Prefer the next chronological Final-only companion.
+    for (let j = i + 1; j < sorted.length; j++) {
+      const n = sorted[j];
+      if (used.has(n.id)) continue;
+      if (!isFinalOnlyCompanion(n)) continue;
+      final = n;
+      break;
+    }
+    // Scheduled Finals may sort before their Qual (startedAt null) — match by roster.
+    if (!final) {
+      let best = null;
+      let bestScore = 0;
+      for (const n of sorted) {
+        if (used.has(n.id) || n.id === s.id) continue;
+        if (!isFinalOnlyCompanion(n)) continue;
+        const score = qualifiedOverlapRatio(s, n);
+        if (score > bestScore) {
+          bestScore = score;
+          best = n;
+        }
       }
-      // Qualifying followed by a Final that carries ranking but no mode tag.
-      if (
-        next &&
-        isFinalStream(next) &&
-        !isQualifyingStream(next) &&
-        next.id !== s.id
-      ) {
-        battles.push(makeBattle({ qualifying: s, final: next }));
-        i += 2;
-        continue;
-      }
-      battles.push(makeBattle({ qualifying: s, final: null }));
-      i += 1;
-      continue;
+      if (best && bestScore >= 0.9) final = best;
     }
 
+    take(s);
+    if (final) take(final);
+    battles.push(makeBattle({ qualifying: s, final }));
+  }
+
+  // 3) Any leftover Final / other records.
+  for (const s of sorted) {
+    if (used.has(s.id)) continue;
+    take(s);
     if (isFinalStream(s)) {
       battles.push(makeBattle({ qualifying: null, final: s }));
-      i += 1;
-      continue;
+    } else {
+      battles.push(makeBattle({ qualifying: s, final: null }));
     }
-
-    battles.push(makeBattle({ qualifying: s, final: null }));
-    i += 1;
   }
+
+  battles.sort((a, b) =>
+    (a.startedAt || a.final?.scheduledAt || "").localeCompare(
+      b.startedAt || b.final?.scheduledAt || ""
+    )
+  );
   return battles;
 }
 
@@ -205,7 +336,8 @@ export function buildNonQualifierRanks(battle) {
   for (const q of battle?.qualifying?.qualified || battle?.final?.qualified || []) {
     if (q?.code) excluded.add(q.code);
   }
-  const finalRanking = battle?.final?.final?.ranking || [];
+  // Finalists only (normalize strips polluted Qual fallouts from merged streams).
+  const finalRanking = normalizeFinalistRanking(battle);
   for (const row of finalRanking) {
     if (row?.code) excluded.add(row.code);
   }
@@ -256,9 +388,10 @@ function nonQualifierRanksFor(battle) {
 
 /** True when this country has a scored Final place in the battle. */
 export function isFinalistInBattle(battle, code) {
-  const ranking = battle?.final?.final?.ranking;
-  if (!Array.isArray(ranking) || !ranking.length) return false;
-  return ranking.some((r) => r.code === code);
+  const ranking = normalizeFinalistRanking(battle);
+  if (!ranking.length) return false;
+  const c = String(code || "").toLowerCase();
+  return ranking.some((r) => String(r.code || "").toLowerCase() === c);
 }
 
 /**
@@ -284,11 +417,12 @@ export function battleResult(stream, code) {
 export function battleResultForBattle(battle, code) {
   const final = battle?.final;
   const qualifying = battle?.qualifying;
-  const ranking = final?.final?.ranking;
+  const ranking = normalizeFinalistRanking(battle);
 
   // Finished Final (or legacy combined) → Final place, else avg qualifying rank.
   if (Array.isArray(ranking) && ranking.length) {
-    const row = ranking.find((r) => r.code === code);
+    const c = String(code || "").toLowerCase();
+    const row = ranking.find((r) => String(r.code || "").toLowerCase() === c);
     if (row?.rank != null) return Number(row.rank);
     const nqRank = nonQualifierRanksFor(battle).get(code);
     if (nqRank != null) return nqRank;
