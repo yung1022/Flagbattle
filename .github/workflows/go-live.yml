@@ -26,9 +26,9 @@ on:
         required: false
         default: "public"
       duration_minutes:
-        description: "Stop the runner after N minutes"
+        description: "Stop the runner after N minutes (empty = 40 qual / 120 final)"
         required: false
-        default: "40"
+        default: ""
 
 permissions:
   contents: write
@@ -125,12 +125,22 @@ jobs:
           GITHUB_DATA_BRANCH: main
         run: |
           set +e
-          EXTRA=(--mode "${STREAM_MODE:-qualifying}")
+          MODE="${STREAM_MODE:-qualifying}"
+          # Final (hole→Swiss→Final4) needs more wall clock than Qualifying.
+          if [ -n "${DURATION_MIN}" ]; then
+            RUN_MIN="${DURATION_MIN}"
+          elif [ "$MODE" = "final" ]; then
+            RUN_MIN="120"
+          else
+            RUN_MIN="40"
+          fi
+          EXTRA=(--mode "$MODE")
           if [ -n "${DEMO_SECONDS}" ]; then
             EXTRA+=(--demo "${DEMO_SECONDS}")
           fi
           EXTRA+=(--privacy "${PRIVACY:-public}")
-          timeout "${DURATION_MIN:-40}m" npm run go-live -- "${EXTRA[@]}"
+          echo "Go-live mode=$MODE duration_cap=${RUN_MIN}m"
+          timeout "${RUN_MIN}m" npm run go-live -- "${EXTRA[@]}"
           code=$?
           set -e
           # 124 = timeout hit planned end; treat as clean stop

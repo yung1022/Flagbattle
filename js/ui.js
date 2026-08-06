@@ -453,8 +453,18 @@ function renderHud() {
       els.phaseText.textContent = "Qualifying complete";
       els.timer.hidden = true;
     } else {
-      els.phaseText.textContent = "Champion";
-      els.timer.hidden = true;
+      const holdMs =
+        typeof game.winnerHoldRemainingMs === "function"
+          ? game.winnerHoldRemainingMs()
+          : 0;
+      els.phaseText.textContent = holdMs > 0 ? "Champion" : "Champion";
+      if (holdMs > 0) {
+        els.timer.textContent = formatMs(holdMs);
+        els.timer.hidden = false;
+        els.roundMeta.textContent = "Winner hold · stream ends after countdown";
+      } else {
+        els.timer.hidden = true;
+      }
     }
   } else {
     els.phaseText.textContent = "Ready";
