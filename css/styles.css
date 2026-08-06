@@ -1057,18 +1057,24 @@ body.stream-mode .board-track {
   flex: 1;
   min-height: 0;
   overflow-x: hidden;
-  overflow-y: auto;
+  overflow-y: hidden;
   mask-image: linear-gradient(180deg, transparent, #000 4%, #000 96%, transparent);
   border: none;
   background: transparent;
   backdrop-filter: none;
   padding: 4px 6px 8px;
+  display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 0;
+}
+
+body.stream-mode .board-track.marquee {
+  overflow: hidden;
 }
 
 body.stream-mode .board-track.marquee .board-row {
-  animation: none;
+  animation: marqueeY var(--board-scroll-s, 22s) linear infinite;
+  flex-shrink: 0;
 }
 
 body.stream-mode .board-row {
@@ -1076,6 +1082,11 @@ body.stream-mode .board-row {
   align-items: stretch;
   gap: 4px;
   width: 100%;
+}
+
+@keyframes marqueeY {
+  from { transform: translateY(0); }
+  to { transform: translateY(-100%); }
 }
 
 body.stream-mode .board-chip {
