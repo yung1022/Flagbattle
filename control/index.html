@@ -63,20 +63,23 @@
 
         <h2 class="subhead">Testing streams</h2>
         <p class="hint">
-          Easy dry-run — same as go-live: <strong>Qualifying → Final</strong> in
-          one stream. Nothing is saved. Opens with
-          <code>?teststream=1</code> and short timings.
+          Easy dry-run — same as go-live:
+          <strong>Sprint → Qualifying → Final</strong> in one stream. Nothing is
+          saved. Opens with <code>?teststream=1</code> and short timings.
         </p>
         <div class="actions test-actions">
           <a
             class="btn primary"
             id="btn-test-full"
             href="../?stream=1&autostart=1&mobile=1&teststream=1"
-            >Test full battle (Qual → Final)</a
+            >Test full battle (Sprint → Qual → Final)</a
           >
         </div>
         <p class="note">
           Stage-only shortcuts (optional):
+          <a id="btn-test-sprint" href="../?stream=1&autostart=1&mobile=1&teststream=sprint"
+            >sprint</a
+          >,
           <a id="btn-test-hole" href="../?stream=1&autostart=1&mobile=1&teststream=hole"
             >hole</a
           >,
@@ -86,6 +89,7 @@
           <a id="btn-test-final4" href="../?stream=1&autostart=1&mobile=1&teststream=final4"
             >final4</a
           >
+          · skip Sprint with <code>&amp;sprint=0</code>
         </p>
       </section>
 
@@ -111,8 +115,9 @@
           />
         </label>
         <p class="note">
-          Every go-live is a <strong>full battle</strong> (Qualifying → Final in
-          one stream). Bare country names in chat count as votes
+          Every go-live is a <strong>full battle</strong> (Sprint → Qualifying →
+          Final in one stream). During Sprint, typing a country spawns that flag
+          (wins unscored). After Sprint, bare country names count as votes
           (<code>CHAT_VOTE=1</code>).
         </p>
         <label class="field">

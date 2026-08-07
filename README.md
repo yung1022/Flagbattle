@@ -6,13 +6,14 @@ Vertical **9:16** all-country flag battle for YouTube Shorts livestreams.
 
 ## Rules
 
-Qualifying and Final run in **one livestream** (no intermission).
+Sprint, Qualifying, and Final run in **one livestream** (no intermission).
 
 ### Unified livestream
-1. **Qualifying clock (full 30:00)** starts immediately — every non-qualified country each round; last flag qualifies. Poll is open from the start.
-2. Brief **finalists reveal**, then **Final — Last Flag Standing** among qualifiers (hole → Swiss 1v1 → Final 4).
-3. Vote anytime: type a country or `!vote XX` in chat / web poll.
-4. **Hole rule:** when a country falls through the hole, it is **eliminated** and the round **resets** with the remaining countries, until Swiss / Final 4.
+1. **Sprint (15:00)** — all flags, smaller hole. Type a country in chat to spawn/revive it. Last flag standing wins the sprint round; wins are **not** season points. Left board = recent sprint wins; recent-vote / shoutout panels show recent spawns.
+2. **Qualifying clock (full 30:00)** — every non-qualified country each round; last flag qualifies. Poll stays open.
+3. Brief **finalists reveal**, then **Final — Last Flag Standing** among qualifiers (hole → Swiss 1v1 → Final 4).
+4. Vote anytime after Sprint: type a country or `!vote XX` in chat / web poll.
+5. **Hole rule:** when a country falls through the hole, it is **eliminated** and the round **resets** with the remaining countries, until Swiss / Final 4.
 
 ## Viewer pages (GitHub Pages)
 
@@ -98,7 +99,7 @@ PUBLIC_SITE=https://yung1022.github.io/Flagbattle npm run go-live --prefix strea
 # Optional: force a mode locally with --mode qualifying|final
 ```
 
-The GitHub Action always starts a **full battle** (Qualifying → Final in one livestream).
+The GitHub Action always starts a **full battle** (Sprint → Qualifying → Final in one livestream).
 Optional `--mode final` remains for local recovery of a Final-only run.
 
 Livestream titles auto-format as **`FLAG BATTLE - DD/MM/YYYY #N`** (and rotating variations). `#N` is the stream number that day and resets at midnight (`STREAM_TITLE_TZ`, default UTC). Override with `YT_TITLE` only if you need a fixed title.
