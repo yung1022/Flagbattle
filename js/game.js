@@ -18,10 +18,10 @@ import { parseVoteMessage } from "./vote-message.js";
 import { averageQualifyingRating } from "./rankings-stats.js";
 
 /**
- * @typedef {"idle" | "qualifying" | "qualifying_hold" | "between_rounds" | "final" | "qualifying_complete" | "finished"} Phase
+ * @typedef {"idle" | "sprint" | "qualifying" | "qualifying_hold" | "between_rounds" | "final" | "qualifying_complete" | "finished"} Phase
  * @typedef {"qualifying" | "final"} StreamMode
  * @typedef {"hole" | "swiss" | "battle" | null} FinalStage
- * @typedef {"full" | "hole" | "swiss" | "final4" | null} TestStreamKind
+ * @typedef {"full" | "hole" | "swiss" | "final4" | "sprint" | null} TestStreamKind
  */
 
 const params = new URLSearchParams(location.search);
@@ -44,6 +44,7 @@ export function normalizeTestStream(raw) {
   ) {
     return "full";
   }
+  if (v === "sprint") return "sprint";
   if (v === "hole" || v === "final" || v === "final1" || v === "part1") return "hole";
   if (v === "swiss" || v === "part2") return "swiss";
   if (v === "final4" || v === "last" || v === "part3") {
@@ -72,6 +73,10 @@ const STREAM_MODE =
 
 export const CONFIG = {
   qualifyingMs: 30 * 60 * 1000,
+  /** Pre-battle Sprint (chat spawn + hole) — wins do not score season points. */
+  sprintMs: 15 * 60 * 1000,
+  /** Sprint hole aperture (radians) — smaller than Qualifying/Final. */
+  sprintHoleWidth: 0.42,
   /** Qualifying rim — must match CSS --rim / SVG circle. */
   arenaRadius: 0.42,
   /** Final hole stage — larger circle; UI chrome is tightened to fit. */
@@ -126,6 +131,8 @@ export const CONFIG = {
 
 function applyEasyTestConfig() {
   CONFIG.qualifyingMs = 90 * 1000;
+  CONFIG.sprintMs = 25 * 1000;
+  CONFIG.sprintHoleWidth = 0.5;
   CONFIG.betweenRoundMs = 500;
   CONFIG.holeSpeed = 2.4;
   CONFIG.holeWidth = 1.0;
@@ -236,6 +243,13 @@ export class FlagBattleGame {
     this._pendingFinalReset = false;
     this._finalResetRemaining = null;
     this._finalElimLock = false;
+    this._pendingSprintReset = false;
+    this._pendingSprintEnd = false;
+    this.sprintEndsAt = 0;
+    /** @type {Array<{code:string,name:string,img:string,at:number,voter?:string}>} */
+    this.recentSprintWins = [];
+    /** @type {Array<{code:string,name:string,img:string,at:number,voter?:string,avatar?:string}>} */
+    this.recentSpawns = [];
     this._swissPairQueue = [];
     this._swissMatchOver = false;
     this._battleAccum = 0;
@@ -287,6 +301,11 @@ export class FlagBattleGame {
     this._pendingFinalReset = false;
     this._finalResetRemaining = null;
     this._finalElimLock = false;
+    this._pendingSprintReset = false;
+    this._pendingSprintEnd = false;
+    this.sprintEndsAt = 0;
+    this.recentSprintWins = [];
+    this.recentSpawns = [];
     this._swissPairQueue = [];
     this._swissMatchOver = false;
     this._battleAccum = 0;
@@ -298,7 +317,7 @@ export class FlagBattleGame {
       "reset",
       this.streamMode === "final"
         ? "Final ready — hole (reset on fall) → Swiss 1v1 → last flag standing."
-        : "Qualifying ready — last flag in the circle qualifies."
+        : "Sprint → Qualifying → Final. Type a country to spawn in Sprint."
     );
     this._flushUi(true);
   }
@@ -424,7 +443,8 @@ export class FlagBattleGame {
         sourceStreamId: null,
       };
       this._publishLive();
-      this._startOpenBattle();
+      if (params.get("sprint") === "0") this._startOpenBattle();
+      else this._startSprint();
     }
     this._startLoop();
     this._flushUi(true);
@@ -433,7 +453,10 @@ export class FlagBattleGame {
   /** Easy teststream — synthetic field, short timings, zero persistence.
    * Default (`full`) always runs Qualifying → Final on one page (same as go-live). */
   _startTestStream(kind) {
-    const mode = kind === "full" || kind === "qualifying" ? "qualifying" : "final";
+    const mode =
+      kind === "full" || kind === "qualifying" || kind === "sprint"
+        ? "qualifying"
+        : "final";
     this.streamMode = mode;
     this.stream = {
       id: `test_${kind}_${Date.now().toString(36)}`,
@@ -453,10 +476,17 @@ export class FlagBattleGame {
     this._emit("phase", `TESTSTREAM · ${label} (easy · no save)`);
     this._initTeststreamPoll();
 
-    // Default Easy teststream: always the same unified Qual → Final livestream.
+    // Default Easy teststream: Sprint → Qual → Final (same as go-live).
     if (kind === "full" || kind === "qualifying") {
       this._publishLive();
-      this._startOpenBattle();
+      if (params.get("sprint") === "0") this._startOpenBattle();
+      else this._startSprint();
+      return;
+    }
+
+    if (kind === "sprint") {
+      this._publishLive();
+      this._startSprint();
       return;
     }
 
@@ -658,24 +688,170 @@ export class FlagBattleGame {
     );
   }
 
+  /** Open poll early so chat typing works during Sprint + Qualifying. */
+  _ensureOpenPoll() {
+    if (!this.stream) return;
+    const existing = getLocalPoll(this.stream.id);
+    if (existing?.options?.length) return;
+    initLocalPoll(
+      this.stream.id,
+      COUNTRIES.map((c) => ({
+        code: c.code,
+        name: c.name,
+        img: flagUrl(c.code, 80),
+      }))
+    );
+  }
+
+  /**
+   * Pre-battle Sprint: all flags in a smaller-hole arena.
+   * Chat spawn by typing a country. Last standing = sprint win (no season points).
+   */
+  _startSprint() {
+    this._ensureOpenPoll();
+    this.round = 0;
+    this.qualified = [];
+    this.eliminated = [];
+    this._fallOrder = [];
+    this._pendingSprintReset = false;
+    this._pendingSprintEnd = false;
+    this.recentSprintWins = [];
+    this.recentSpawns = [];
+    this.sprintEndsAt = performance.now() + CONFIG.sprintMs;
+    this.phase = "sprint";
+    this.finalStage = null;
+    this.streamMode = "qualifying";
+    this._fillSprintField();
+    const mins = Math.max(1, Math.round(CONFIG.sprintMs / 60000));
+    this._emit(
+      "phase",
+      `SPRINT — ${mins}:00 · smaller hole · type a country to spawn · wins don’t score points`
+    );
+    this._publishLive();
+    this._uiDirty = true;
+  }
+
+  _fillSprintField() {
+    const list = shuffle(COUNTRIES);
+    this.fighters = list.map((c, i) => this._makeFighter(c, i, list.length));
+    this.holeAngle = rand(0, Math.PI * 2);
+    this.roundStartedAt = performance.now();
+    this.arenaScale = 1;
+    this._uiDirty = true;
+  }
+
+  /**
+   * Chat / poll: spawn or revive a country during Sprint.
+   * @returns {boolean}
+   */
+  spawnSprintCountry(code, { voter = "", avatar = "" } = {}) {
+    if (this.phase !== "sprint") return false;
+    const c = String(code || "").toLowerCase();
+    const country = COUNTRIES.find((x) => x.code === c);
+    if (!country) return false;
+
+    const entry = {
+      code: country.code,
+      name: country.name,
+      img: flagUrl(country.code, 80),
+      voter: String(voter || "").replace(/^@/, "").slice(0, 40),
+      avatar: String(avatar || "").slice(0, 500),
+      at: Date.now(),
+    };
+    this.recentSpawns = [
+      entry,
+      ...this.recentSpawns.filter((r) => r.code !== country.code),
+    ].slice(0, 8);
+
+    let f = this.fighters.find((x) => x.code === country.code);
+    if (f && f.alive && !f.falling) {
+      f.pulse = 1;
+      this._uiDirty = true;
+      return true;
+    }
+
+    if (f) {
+      // Revive a fallen flag mid-round.
+      f.alive = true;
+      f.falling = false;
+      f.hp = f.maxHp || CONFIG.baseHp;
+      const ang = rand(0, Math.PI * 2);
+      const rad = rand(0.08, this.arenaRadiusNow() * 0.55);
+      f.x = 0.5 + Math.cos(ang) * rad;
+      f.y = 0.5 + Math.sin(ang) * rad;
+      f.vx = rand(-0.35, 0.35);
+      f.vy = rand(-0.35, 0.35);
+      f.pulse = 1;
+    } else {
+      f = this._makeFighter(country, this.fighters.length, this.fighters.length + 1);
+      f.pulse = 1;
+      this.fighters.push(f);
+    }
+    this._emit("phase", `${entry.voter || "Chat"} spawned ${country.name}`);
+    this._uiDirty = true;
+    return true;
+  }
+
+  _sprintWin(flag) {
+    if (!flag?.code || this._pendingSprintReset || this._pendingSprintEnd) return;
+    const win = {
+      code: flag.code,
+      name: flag.name,
+      img: flag.img || flagUrl(flag.code, 80),
+      at: Date.now(),
+    };
+    this.recentSprintWins = [win, ...this.recentSprintWins].slice(0, 16);
+    flag.pulse = 1;
+    this.phase = "between_rounds";
+    this._pendingSprintReset = true;
+    this._betweenUntil =
+      performance.now() + Math.max(900, CONFIG.betweenRoundMs);
+    this._emit(
+      "phase",
+      `SPRINT WIN — ${flag.name}! (no season points) · resetting…`
+    );
+    this._publishLive();
+    this._uiDirty = true;
+  }
+
+  _resetSprintRound() {
+    this._pendingSprintReset = false;
+    if (this.sprintEndsAt && performance.now() >= this.sprintEndsAt) {
+      this._endSprint();
+      return;
+    }
+    this.phase = "sprint";
+    this.round += 1;
+    this.eliminated = [];
+    this._fallOrder = [];
+    this._fillSprintField();
+    this._emit(
+      "phase",
+      `SPRINT round ${this.round + 1} — type a country to spawn · smaller hole`
+    );
+    this._publishLive();
+  }
+
+  _endSprint() {
+    this._pendingSprintReset = false;
+    this._pendingSprintEnd = false;
+    this.fighters = [];
+    this.eliminated = [];
+    this._fallOrder = [];
+    this.sprintEndsAt = 0;
+    this._emit(
+      "phase",
+      `Sprint over — ${this.recentSprintWins.length} win${this.recentSprintWins.length === 1 ? "" : "s"} (unscored). Qualifying next.`
+    );
+    this._startOpenBattle();
+  }
+
   /**
    * Open the winner poll and start Qualifying immediately (no intermission).
    */
   _startOpenBattle() {
     this.round = 0;
-    if (this.stream) {
-      const existing = getLocalPoll(this.stream.id);
-      if (!existing?.options?.length) {
-        initLocalPoll(
-          this.stream.id,
-          COUNTRIES.map((c) => ({
-            code: c.code,
-            name: c.name,
-            img: flagUrl(c.code, 80),
-          }))
-        );
-      }
-    }
+    this._ensureOpenPoll();
     this.qualifyingEndsAt = performance.now() + CONFIG.qualifyingMs;
     const qSec = Math.max(1, Math.round(CONFIG.qualifyingMs / 1000));
     const qLabel =
@@ -788,7 +964,11 @@ export class FlagBattleGame {
 
     if (this.phase === "between_rounds") {
       if (now >= this._betweenUntil) {
-        if (this._pendingQualComplete) {
+        if (this._pendingSprintReset) {
+          this._resetSprintRound();
+        } else if (this._pendingSprintEnd) {
+          this._endSprint();
+        } else if (this._pendingQualComplete) {
           this._pendingQualComplete = false;
           this._finishQualifyingStream();
         } else if (this._pendingFinalReset) {
@@ -809,6 +989,21 @@ export class FlagBattleGame {
           this._startNextQualifyingRound();
         }
       }
+      this.onFrame();
+      this._flushUi();
+      return;
+    }
+
+    // Sprint clock — end even mid-round (finish current between_rounds first).
+    if (
+      this.phase === "sprint" &&
+      this.sprintEndsAt &&
+      now >= this.sprintEndsAt
+    ) {
+      this.phase = "between_rounds";
+      this._pendingSprintEnd = true;
+      this._betweenUntil = now + Math.max(600, CONFIG.betweenRoundMs * 0.5);
+      this._emit("phase", "Sprint time’s up — Qualifying next…");
       this.onFrame();
       this._flushUi();
       return;
@@ -839,7 +1034,11 @@ export class FlagBattleGame {
       return;
     }
 
-    if (this.phase === "qualifying" || this.phase === "final") {
+    if (
+      this.phase === "sprint" ||
+      this.phase === "qualifying" ||
+      this.phase === "final"
+    ) {
       if (
         this.phase === "qualifying" &&
         !this.qualifyingExpired &&
@@ -878,7 +1077,20 @@ export class FlagBattleGame {
         const standingNow = this.fighters.filter((f) => f.alive && !f.falling);
         const alive = this.fighters.filter((f) => f.alive);
 
-        if (this.phase === "qualifying") {
+        if (this.phase === "sprint") {
+          if (standingNow.length === 1) {
+            for (const f of this.fighters) {
+              if (f.falling && f.alive) this._markFallen(f);
+            }
+            this._sprintWin(standingNow[0]);
+          } else if (alive.length === 0) {
+            this._emit("phase", "Everyone fell — resetting Sprint field.");
+            this.phase = "between_rounds";
+            this._pendingSprintReset = true;
+            this._betweenUntil =
+              now + Math.max(700, CONFIG.betweenRoundMs * 0.6);
+          }
+        } else if (this.phase === "qualifying") {
           if (standingNow.length === 1) {
             for (const f of this.fighters) {
               if (f.falling && f.alive) this._markFallen(f);
@@ -1161,6 +1373,10 @@ export class FlagBattleGame {
 
   /** Hole half-width in radians. Final hole stage: shut for holeClosedSec, then open. */
   _holeHalfWidth(roundProgress = 0) {
+    if (this.phase === "sprint") {
+      const w = CONFIG.sprintHoleWidth ?? CONFIG.holeWidth * 0.5;
+      return (w * (1 + roundProgress * 0.45)) / 2;
+    }
     if (this.phase === "final" && this.finalStage === "hole") {
       const elapsed = this.roundStartedAt
         ? (performance.now() - this.roundStartedAt) / 1000
@@ -1917,6 +2133,11 @@ export class FlagBattleGame {
       endedAt: this.stream?.endedAt || null,
       winnerHoldRemainingMs: this.winnerHoldRemainingMs(),
       qualifyingRemainingMs: this.qualifyingRemainingMs(),
+      sprintRemainingMs: this.sprintRemainingMs(),
+      sprintActive:
+        this.phase === "sprint" ||
+        this._pendingSprintReset ||
+        this._pendingSprintEnd,
       finalLiveAt: this.finalLiveAt || extra.finalLiveAt || null,
       updatedAt: Date.now(),
       ...extra,
@@ -1945,8 +2166,25 @@ export class FlagBattleGame {
     }
     // During Final between-rounds, don't show qualifying clock.
     if (this.streamMode === "final") return 0;
+    // Sprint between-rounds uses the Sprint clock, not Qualifying.
+    if (this._pendingSprintReset || this._pendingSprintEnd) return 0;
     if (!this.qualifyingEndsAt) return CONFIG.qualifyingMs;
     return Math.max(0, this.qualifyingEndsAt - now);
+  }
+
+  sprintRemainingMs(now = performance.now()) {
+    if (this.phase === "sprint") {
+      if (!this.sprintEndsAt) return CONFIG.sprintMs;
+      return Math.max(0, this.sprintEndsAt - now);
+    }
+    if (
+      this.phase === "between_rounds" &&
+      (this._pendingSprintReset || this._pendingSprintEnd)
+    ) {
+      if (!this.sprintEndsAt) return 0;
+      return Math.max(0, this.sprintEndsAt - now);
+    }
+    return 0;
   }
 
   standing() {
@@ -1954,6 +2192,14 @@ export class FlagBattleGame {
   }
 
   boardFlags() {
+    // Sprint: left board = recent sprint wins (not season points).
+    if (
+      this.phase === "sprint" ||
+      (this.phase === "between_rounds" &&
+        (this._pendingSprintReset || this._pendingSprintEnd))
+    ) {
+      return this.recentSprintWins || [];
+    }
     // Swiss: top board shows the current Final-4 cut line (top 4 by score).
     if (this._swissBoardActive()) {
       return this._swissBoardLeaders(4);
@@ -2018,7 +2264,12 @@ export class FlagBattleGame {
     const battling =
       this.finalStage === "swiss" || this.finalStage === "battle";
     let width = 0;
-    if (!battling && (this.phase === "qualifying" || this.phase === "final")) {
+    if (
+      !battling &&
+      (this.phase === "sprint" ||
+        this.phase === "qualifying" ||
+        this.phase === "final")
+    ) {
       width = this._holeHalfWidth(t) * 2;
     } else if (!battling) {
       width = CONFIG.holeWidth;

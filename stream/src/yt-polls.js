@@ -66,6 +66,15 @@ export async function startYoutubePollOrchestrator({
       return;
     }
 
+    // Sprint is chat-spawn only — wait until Qualifying before pinning a poll.
+    if (
+      live.sprintActive ||
+      live.phase === "sprint" ||
+      (Number(live.sprintRemainingMs) || 0) > 0
+    ) {
+      return;
+    }
+
     // Final 4 battling — switch to finalist poll (replaces community poll).
     if (
       !postedFinal4 &&

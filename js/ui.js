@@ -32,9 +32,13 @@ const els = {
   streamPollRows: document.getElementById("stream-poll-rows"),
   streamPollTotal: document.getElementById("stream-poll-total"),
   streamRecentVotes: document.getElementById("stream-recent-votes"),
+  streamRecentVotesHead: document.getElementById("stream-recent-votes-head"),
   streamRecentVotesRows: document.getElementById("stream-recent-votes-rows"),
+  streamRecentVotesHint: document.getElementById("stream-recent-votes-hint"),
   streamShoutout: document.getElementById("stream-shoutout"),
+  streamShoutoutHead: document.getElementById("stream-shoutout-head"),
   streamShoutoutCard: document.getElementById("stream-shoutout-card"),
+  streamShoutoutHint: document.getElementById("stream-shoutout-hint"),
   finalistsReveal: document.getElementById("finalists-reveal"),
   finalistsTitle: document.getElementById("finalists-title"),
   finalistsLive: document.getElementById("finalists-live"),
@@ -230,9 +234,19 @@ function syncArena() {
   }
 }
 
+function isSprintPhase() {
+  return (
+    game.phase === "sprint" ||
+    (game.phase === "between_rounds" &&
+      (game._pendingSprintReset || game._pendingSprintEnd))
+  );
+}
+
 function renderBoard() {
   const flags = game.boardFlags();
+  const sprintBoard = isSprintPhase();
   const qualBoard =
+    !sprintBoard &&
     game.streamMode !== "final" &&
     (game.phase === "qualifying" ||
       game.phase === "qualifying_hold" ||
@@ -241,7 +255,12 @@ function renderBoard() {
       game.phase === "between_rounds" ||
       (game.phase === "finished" && !game.winner));
 
-  if (game.streamMode === "final") {
+  if (sprintBoard) {
+    els.boardLabel.textContent = "SPRINT WINS";
+    els.boardMeta.textContent = flags.length
+      ? `${flags.length} win${flags.length === 1 ? "" : "s"} · no points`
+      : "Type a country to spawn";
+  } else if (game.streamMode === "final") {
     if (game.phase === "finished" && game.winner) {
       els.boardLabel.textContent = "CHAMPION";
       els.boardMeta.textContent = game.winner.name;
@@ -285,13 +304,14 @@ function renderBoard() {
   if (!flags.length) {
     const empty = document.createElement("div");
     empty.className = "board-empty";
-    empty.textContent =
-      game.phase === "qualifying" ||
-      game.phase === "between_rounds" ||
-      game.phase === "qualifying_hold"
+    empty.textContent = sprintBoard
+      ? "No sprint wins yet — last flag standing wins the round"
+      : game.phase === "qualifying" ||
+          game.phase === "between_rounds" ||
+          game.phase === "qualifying_hold"
         ? "Waiting for first qualifier…"
         : game.phase === "idle"
-          ? "Press Start — last flag in the circle qualifies"
+          ? "Press Start — Sprint then Qualifying → Final"
           : "—";
     els.boardTrack.appendChild(empty);
     return;
@@ -395,7 +415,10 @@ function renderHud() {
   }
 
   if (els.roundMeta) {
-    if (game.phase === "idle") els.roundMeta.textContent = "Hole circle · no damage";
+    if (game.phase === "idle") els.roundMeta.textContent = "Sprint → Qualifying → Final";
+    else if (isSprintPhase())
+      els.roundMeta.textContent =
+        "Sprint · smaller hole · type a country to spawn · wins unscored";
     else if (game.phase === "qualifying_hold")
       els.roundMeta.textContent = "All qualified · waiting on clock";
     else if (game.phase === "qualifying_complete")
@@ -414,7 +437,11 @@ function renderHud() {
     else els.roundMeta.textContent = `Qualifying · Round ${game.round}`;
   }
 
-  if (game.phase === "qualifying_complete") {
+  if (isSprintPhase()) {
+    els.phaseText.textContent = "Sprint";
+    els.timer.textContent = formatMs(game.sprintRemainingMs());
+    els.timer.hidden = false;
+  } else if (game.phase === "qualifying_complete") {
     els.phaseText.textContent = "Finalists";
     els.timer.hidden = true;
   } else if (inFinal && (game.phase === "final" || game.phase === "between_rounds")) {
@@ -477,6 +504,7 @@ function renderHud() {
   renderStreamLinks();
 
   const busy =
+    game.phase === "sprint" ||
     game.phase === "qualifying" ||
     game.phase === "qualifying_hold" ||
     game.phase === "qualifying_complete" ||
@@ -565,14 +593,13 @@ function renderStreamLinks() {
 
 function shouldShowStreamPoll() {
   if (!game.stream?.id) return false;
-  // Available from Qualifying through Final (closes after champion).
-  // Easy teststream uses the same HUD chrome (in-memory poll only).
+  // Sprint + Qualifying through Final (closes after champion).
   if (game.phase === "idle") return false;
   if (game.phase === "finished" && !game.winner && game.streamMode !== "final") {
-    // Qualifying complete overlay — still show poll
     return true;
   }
   return (
+    game.phase === "sprint" ||
     game.phase === "qualifying" ||
     game.phase === "between_rounds" ||
     game.phase === "qualifying_hold" ||
@@ -580,6 +607,51 @@ function shouldShowStreamPoll() {
     game.phase === "final" ||
     (game.phase === "finished" && Boolean(game.winner))
   );
+}
+
+function applySprintHudCopy() {
+  const sprint = isSprintPhase();
+  if (els.streamRecentVotesHead) {
+    els.streamRecentVotesHead.textContent = sprint ? "RECENT SPAWNS" : "RECENT VOTES";
+  }
+  if (els.streamRecentVotesHint) {
+    els.streamRecentVotesHint.textContent = sprint
+      ? "TYPE A COUNTRY TO SPAWN"
+      : "TYPE A COUNTRY OR !VOTE";
+  }
+  if (els.streamShoutoutHead) {
+    els.streamShoutoutHead.textContent = sprint ? "SPAWN ZONE" : "SHOUTOUT ZONE";
+  }
+  if (els.streamShoutoutHint) {
+    els.streamShoutoutHint.textContent = sprint
+      ? "TYPE YOUR COUNTRY TO SPAWN!"
+      : "TYPE YOUR COUNTRY TO GET FEATURED!";
+  }
+}
+
+/** Chat votes during Sprint also revive/spawn that country in the arena. */
+let sprintSpawnEndsAt = 0;
+let sprintLastVoteAt = 0;
+
+function applySprintSpawnsFromPoll(poll) {
+  if (game.phase !== "sprint" || typeof game.spawnSprintCountry !== "function") {
+    return;
+  }
+  if (game.sprintEndsAt !== sprintSpawnEndsAt) {
+    sprintSpawnEndsAt = game.sprintEndsAt;
+    sprintLastVoteAt = 0;
+  }
+  const recent = Array.isArray(poll?.recentVotes) ? poll.recentVotes : [];
+  const fresh = recent
+    .filter((r) => r?.code && (Number(r.at) || 0) > sprintLastVoteAt)
+    .sort((a, b) => (Number(a.at) || 0) - (Number(b.at) || 0));
+  for (const r of fresh) {
+    game.spawnSprintCountry(r.code, {
+      voter: r.voter || "",
+      avatar: r.avatar || "",
+    });
+    sprintLastVoteAt = Math.max(sprintLastVoteAt, Number(r.at) || 0);
+  }
 }
 
 function renderStreamPoll(poll) {
@@ -590,6 +662,8 @@ function renderStreamPoll(poll) {
     return;
   }
 
+  applySprintSpawnsFromPoll(poll);
+
   const options = poll?.options?.length
     ? poll.options
     : (game.qualified || []).map((q) => ({
@@ -597,6 +671,13 @@ function renderStreamPoll(poll) {
         name: q.name,
         img: q.img,
       }));
+
+  // During Sprint: show spawn panel, hide Final poll bars.
+  if (isSprintPhase()) {
+    els.streamPoll.hidden = true;
+    renderRecentVotes(poll || { recentVotes: [] });
+    return;
+  }
 
   if (!options.length) {
     els.streamPoll.hidden = true;
@@ -646,13 +727,17 @@ function renderRecentVotes(poll) {
     els.streamRecentVotes.hidden = true;
     return;
   }
-  const recent = Array.isArray(poll?.recentVotes)
-    ? poll.recentVotes.slice(0, 4)
-    : [];
+  applySprintHudCopy();
+  const sprint = isSprintPhase();
+  const recent = sprint
+    ? (Array.isArray(game.recentSpawns) ? game.recentSpawns.slice(0, 4) : [])
+    : Array.isArray(poll?.recentVotes)
+      ? poll.recentVotes.slice(0, 4)
+      : [];
   els.streamRecentVotes.hidden = false;
-  const key = recent.length
+  const key = `${sprint ? "s" : "v"}:` + (recent.length
     ? recent.map((r) => `${r.voter}:${r.code}:${r.at}`).join("|")
-    : "__empty__";
+    : "__empty__");
   if (key !== lastRecentKey) {
     lastRecentKey = key;
     els.streamRecentVotesRows.innerHTML = "";
@@ -675,11 +760,30 @@ function renderRecentVotes(poll) {
 }
 
 function updateShoutoutPool(poll) {
+  const sprint = isSprintPhase();
+  const list = [];
+  // Sprint: prefer spawners from recentSpawns (chat typed a country).
+  if (sprint && Array.isArray(game.recentSpawns) && game.recentSpawns.length) {
+    const map = new Map();
+    for (const r of game.recentSpawns) {
+      const id = r.voterId || r.voter;
+      if (!id) continue;
+      const prev = map.get(id) || {
+        id,
+        name: String(r.voter || "Viewer").replace(/^@/, ""),
+        avatar: r.avatar || "",
+        count: 0,
+      };
+      prev.count += 1;
+      if (r.avatar) prev.avatar = r.avatar;
+      map.set(id, prev);
+    }
+    list.push(...map.values());
+  }
   const stats = poll?.voterStats && typeof poll.voterStats === "object"
     ? poll.voterStats
     : null;
-  const list = [];
-  if (stats) {
+  if (!list.length && stats) {
     for (const [id, s] of Object.entries(stats)) {
       const count = Number(s?.count) || 0;
       if (count < 1) continue;
@@ -740,11 +844,14 @@ function renderShoutoutCard(forceNew) {
     const pick = pickWeightedShoutout(shoutoutShownId);
     if (!pick) {
       shoutoutShownId = "";
-      els.streamShoutoutCard.innerHTML = `<div class="stream-shoutout-empty">Vote to get featured</div>`;
+      els.streamShoutoutCard.innerHTML = `<div class="stream-shoutout-empty">${
+        isSprintPhase() ? "Spawn to get featured" : "Vote to get featured"
+      }</div>`;
       return;
     }
     shoutoutShownId = pick.id;
     shoutoutUntil = now + 7000;
+    const unit = isSprintPhase() ? "spawn" : "vote";
     const initial = (pick.name || "?").trim().charAt(0).toUpperCase() || "?";
     const avatarHtml = pick.avatar
       ? `<img class="stream-shoutout-avatar" src="${escapeAttr(pick.avatar)}" alt="" />`
@@ -753,7 +860,7 @@ function renderShoutoutCard(forceNew) {
       ${avatarHtml}
       <div class="stream-shoutout-meta">
         <div class="stream-shoutout-name">@${escapeHtml(pick.name)}</div>
-        <div class="stream-shoutout-count">${pick.count} vote${pick.count === 1 ? "" : "s"} this stream</div>
+        <div class="stream-shoutout-count">${pick.count} ${unit}${pick.count === 1 ? "" : "s"} this stream</div>
       </div>
     `;
     els.streamShoutoutCard.classList.remove("stream-shoutout-pulse");
@@ -768,7 +875,8 @@ function renderShoutoutCard(forceNew) {
   if (cur) {
     const countEl = els.streamShoutoutCard.querySelector(".stream-shoutout-count");
     if (countEl) {
-      countEl.textContent = `${cur.count} vote${cur.count === 1 ? "" : "s"} this stream`;
+      const unit = isSprintPhase() ? "spawn" : "vote";
+      countEl.textContent = `${cur.count} ${unit}${cur.count === 1 ? "" : "s"} this stream`;
     }
   }
 }
