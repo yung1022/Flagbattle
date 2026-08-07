@@ -1171,26 +1171,7 @@
   "voters": {
     "nb:youtube:UCjrii0S-8k6sfc_ds3V-mRg": "de"
   },
-  "closed": false,
-  "closedAt": null,
-  "updatedAt": 1786061577624,
-  "voterStats": {
-    "nb:youtube:UCjrii0S-8k6sfc_ds3V-mRg": {
-      "name": "@CurtisPlaysYT",
-      "avatar": "",
-      "count": 1,
-      "lastAt": 1786061577624
-    }
-  },
-  "recentVotes": [
-    {
-      "voter": "@CurtisPlaysYT",
-      "voterId": "nb:youtube:UCjrii0S-8k6sfc_ds3V-mRg",
-      "code": "de",
-      "name": "Germany",
-      "img": "https://flagcdn.com/w40/de.png",
-      "avatar": "",
-      "at": 1786061577624
-    }
-  ]
+  "closed": true,
+  "closedAt": "2026-08-07T01:10:50.212Z",
+  "updatedAt": 1786065050356
 }
