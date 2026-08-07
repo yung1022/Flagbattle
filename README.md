@@ -101,6 +101,8 @@ PUBLIC_SITE=https://yung1022.github.io/Flagbattle npm run go-live --prefix strea
 The GitHub Action always starts a **full battle** (Qualifying → Final in one livestream).
 Optional `--mode final` remains for local recovery of a Final-only run.
 
+Livestream titles auto-format as **`FLAG BATTLE - DD/MM/YYYY #N`** (and rotating variations). `#N` is the stream number that day and resets at midnight (`STREAM_TITLE_TZ`, default UTC). Override with `YT_TITLE` only if you need a fixed title.
+
 ## Mobile / cloud stream
 
 See [`control/`](control/) and [`stream/`](stream/). Repo Action secrets:

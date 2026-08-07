@@ -83,14 +83,15 @@ jobs:
           test -n "$GOOGLE_CLIENT_SECRET"
           test -n "$GOOGLE_REFRESH_TOKEN"
           MODE="${STREAM_MODE:-qualifying}"
-          TITLE="FLAG BATTLE — Qualifying → Final · Last Flag Standing (Live)"
+          # Title is built at go-live: FLAG BATTLE - DD/MM/YYYY #N (+ variations).
+          # Override with a secret/env YT_TITLE only if you need a fixed title.
           {
             echo "GOOGLE_CLIENT_ID=$GOOGLE_CLIENT_ID"
             echo "GOOGLE_CLIENT_SECRET=$GOOGLE_CLIENT_SECRET"
             echo "GOOGLE_REFRESH_TOKEN=$GOOGLE_REFRESH_TOKEN"
             echo "YT_PRIVACY=public"
-            echo "YT_TITLE=$TITLE"
             echo "STREAM_MODE=$MODE"
+            echo "STREAM_TITLE_TZ=${STREAM_TITLE_TZ:-UTC}"
             echo "PUBLIC_SITE=https://yung1022.github.io/Flagbattle"
             # Smoother encode on GitHub-hosted runners (Shorts-friendly 9:16)
             echo "STREAM_WIDTH=720"

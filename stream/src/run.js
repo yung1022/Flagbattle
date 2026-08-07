@@ -27,6 +27,7 @@ import {
 import { startChatVoteLoop } from "./chat-vote.js";
 import { syncNightbotVoteCommand, nightbotVoteMessage } from "./nightbot.js";
 import { startYoutubePollOrchestrator } from "./yt-polls.js";
+import { buildNextLiveTitle } from "./live-title.js";
 
 loadEnv();
 
@@ -44,10 +45,11 @@ const PORT = Number(process.env.GAME_PORT || 5173);
 const DEMO = args.demo ?? process.env.DEMO_SECONDS;
 const PRIVACY = args.privacy || process.env.YT_PRIVACY || "public";
 const MODE = normalizeMode(args.mode || process.env.STREAM_MODE || "qualifying");
+const liveTitle = buildNextLiveTitle({ root: ROOT });
 const TITLE =
   args.title ||
   process.env.YT_TITLE ||
-  "FLAG BATTLE — Qualifying → Final · Last Flag Standing (Live)";
+  liveTitle.title;
 const DESCRIPTION =
   process.env.YT_DESCRIPTION ||
   "FLAG BATTLE livestream. Qualifying (last flag in the circle qualifies) → Final: hole (reset on fall) → Swiss 1v1 → last flag standing — all in one stream.\n\nVote who wins: type a country name, or !vote Japan / !vote jp. Live Chat polls + web poll & rankings: https://yung1022.github.io/Flagbattle/";
@@ -61,6 +63,13 @@ let chatAbort = null;
 
 async function main() {
   console.log("▶ FLAG BATTLE auto-stream");
+  if (!args.title && !process.env.YT_TITLE) {
+    console.log(
+      `Title: ${TITLE} (${liveTitle.dateLabel} · #${liveTitle.streamNumber} · ${liveTitle.timeZone})`
+    );
+  } else {
+    console.log(`Title: ${TITLE}`);
+  }
   assertBinaries();
 
   pulseSink = await startPulseAudio();
