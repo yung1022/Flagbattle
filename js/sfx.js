@@ -1,10 +1,13 @@
 /**
  * Round SFX + text-to-speech announcements.
  * In stream mode, also POSTs to /api/announce so PulseAudio→FFmpeg can hear it.
+ * Includes a quiet looping ambient pad for livestream atmosphere.
  */
 
 let audioCtx = null;
 let lastSpeakAt = 0;
+let ambientNodes = null;
+let ambientStarted = false;
 
 function ctx() {
   if (!audioCtx) {
@@ -101,13 +104,99 @@ export function announceRoundWinner(name, { champion = false } = {}) {
   }
 }
 
+/**
+ * Quiet looping ambient pad (Web Audio) — calm bed under the battle.
+ * Safe to call repeatedly; starts once after audio unlock.
+ */
+export function startAmbientMusic() {
+  const ac = ctx();
+  if (!ac || ambientStarted) return;
+  ambientStarted = true;
+
+  try {
+    const master = ac.createGain();
+    master.gain.value = 0.0001;
+    master.connect(ac.destination);
+
+    const filter = ac.createBiquadFilter();
+    filter.type = "lowpass";
+    filter.frequency.value = 720;
+    filter.Q.value = 0.7;
+    filter.connect(master);
+
+    // Soft detuned triad — Am-ish calm bed.
+    const voices = [
+      { freq: 110, type: "sine", gain: 0.045 },
+      { freq: 164.81, type: "sine", gain: 0.032 },
+      { freq: 220, type: "triangle", gain: 0.018 },
+      { freq: 329.63, type: "sine", gain: 0.012 },
+    ];
+
+    const oscs = [];
+    for (const v of voices) {
+      const osc = ac.createOscillator();
+      const g = ac.createGain();
+      osc.type = v.type;
+      osc.frequency.value = v.freq;
+      g.gain.value = v.gain;
+      osc.connect(g);
+      g.connect(filter);
+      osc.start();
+      oscs.push(osc);
+    }
+
+    // Slow filter + volume breathe.
+    const lfo = ac.createOscillator();
+    const lfoGain = ac.createGain();
+    lfo.frequency.value = 0.07;
+    lfoGain.gain.value = 180;
+    lfo.connect(lfoGain);
+    lfoGain.connect(filter.frequency);
+    lfo.start();
+
+    const now = ac.currentTime;
+    master.gain.exponentialRampToValueAtTime(0.085, now + 2.5);
+
+    ambientNodes = { master, filter, oscs, lfo, lfoGain };
+  } catch (err) {
+    ambientStarted = false;
+    console.warn("[ambient]", err?.message || err);
+  }
+}
+
+export function stopAmbientMusic() {
+  if (!ambientNodes) return;
+  try {
+    const ac = ctx();
+    const { master, oscs, lfo } = ambientNodes;
+    const now = ac?.currentTime || 0;
+    master.gain.cancelScheduledValues(now);
+    master.gain.setValueAtTime(Math.max(0.0001, master.gain.value), now);
+    master.gain.exponentialRampToValueAtTime(0.0001, now + 1.2);
+    setTimeout(() => {
+      try {
+        for (const o of oscs || []) o.stop();
+        lfo?.stop();
+      } catch {
+        /* ignore */
+      }
+      ambientNodes = null;
+      ambientStarted = false;
+    }, 1400);
+  } catch {
+    ambientNodes = null;
+    ambientStarted = false;
+  }
+}
+
 export function unlockAudio() {
   const ac = ctx();
   if (!ac) return;
-  // Prime with a tiny blip so autoplay policies allow later SFX.
+  // Prime with a tiny blip so autoplay policies allow later SFX / music.
   try {
     tone(880, 0.03, "sine", 0.001, 0);
   } catch {
     /* ignore */
   }
+  startAmbientMusic();
 }
