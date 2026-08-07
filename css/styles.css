@@ -78,6 +78,40 @@ body {
   to { transform: translateY(48px); }
 }
 
+/* Soft screen breathe — calm pulse over the whole arena frame */
+.stage-pulse {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  background:
+    radial-gradient(
+      70% 55% at 50% 48%,
+      rgba(46, 196, 182, 0.14),
+      transparent 62%
+    ),
+    radial-gradient(
+      120% 80% at 50% 50%,
+      transparent 45%,
+      rgba(3, 7, 11, 0.35) 100%
+    );
+  animation: stagePulse 4.8s ease-in-out infinite;
+  mix-blend-mode: screen;
+  opacity: 0.85;
+}
+
+@keyframes stagePulse {
+  0%,
+  100% {
+    opacity: 0.45;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.95;
+    transform: scale(1.02);
+  }
+}
+
 /* —— Top board —— */
 .board {
   position: absolute;
@@ -575,13 +609,16 @@ body.final-mode .timer {
 
 .stream-recent-votes-hint {
   flex-shrink: 0;
-  margin-top: 4px;
-  padding-top: 6px;
+  margin-top: 2px;
+  padding-top: 4px;
   border-top: 1px solid rgba(230, 184, 74, 0.25);
-  font-size: clamp(10px, 2.2vw, 12px);
-  font-weight: 700;
-  line-height: 1.3;
-  color: var(--muted);
+  font-family: var(--font-display);
+  letter-spacing: 0.05em;
+  font-size: clamp(13px, 2.9vw, 18px);
+  font-weight: 400;
+  line-height: 1.1;
+  color: var(--gold-hot);
+  text-shadow: 0 1px 6px rgba(0, 0, 0, 0.55);
 }
 
 .stream-shoutout {
@@ -664,10 +701,13 @@ body.final-mode .timer {
 
 .stream-shoutout-hint {
   margin-top: 4px;
-  font-size: clamp(9px, 1.9vw, 11px);
-  font-weight: 700;
-  line-height: 1.25;
-  color: var(--muted);
+  font-family: var(--font-display);
+  letter-spacing: 0.04em;
+  font-size: clamp(14px, 3.1vw, 20px);
+  font-weight: 400;
+  line-height: 1.1;
+  color: var(--gold-hot);
+  text-shadow: 0 1px 8px rgba(0, 0, 0, 0.6);
 }
 
 .stream-poll {
@@ -1215,11 +1255,29 @@ body.stream-mode .stream-recent-votes {
 
 body.stream-mode .stream-recent-votes-rows {
   flex: 1 1 auto;
-  max-height: 42%;
+  max-height: 34%;
 }
 
 body.stream-mode .stream-shoutout {
   margin-top: auto;
+}
+
+body.stream-mode .stream-shoutout-card {
+  min-height: 34px;
+  gap: 6px;
+}
+
+body.stream-mode .stream-shoutout-avatar {
+  width: 32px;
+  height: 32px;
+}
+
+body.stream-mode .stream-recent-votes-hint {
+  font-size: clamp(14px, 1.55vw, 20px);
+}
+
+body.stream-mode .stream-shoutout-hint {
+  font-size: clamp(15px, 1.7vw, 22px);
 }
 
 /* Live poll: bottom strip under arena, clear of YouTube chat */
@@ -1239,9 +1297,15 @@ body.stream-mode .stage::before {
   animation: none;
   opacity: 0.55;
 }
+/* Keep a calm screen pulse on stream (readable, not flashy) */
+body.stream-mode .stage-pulse {
+  animation: stagePulse 5.5s ease-in-out infinite;
+  mix-blend-mode: soft-light;
+  opacity: 0.75;
+}
 body.stream-mode .brand,
 body.stream-mode .brand-inline {
-  animation: none;
+  animation: brandPulse 3.2s ease-in-out infinite;
 }
 body.stream-mode .hole-arc {
   animation: none;
