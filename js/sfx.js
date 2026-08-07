@@ -8,6 +8,21 @@ let audioCtx = null;
 let lastSpeakAt = 0;
 let ambientNodes = null;
 let ambientStarted = false;
+let streamAudioWatch = null;
+
+function isStreamPage() {
+  try {
+    if (typeof document !== "undefined" && document.body?.classList?.contains("stream-mode")) {
+      return true;
+    }
+    if (typeof location !== "undefined") {
+      return new URLSearchParams(location.search).has("stream");
+    }
+  } catch {
+    /* ignore */
+  }
+  return false;
+}
 
 function ctx() {
   if (!audioCtx) {
@@ -17,6 +32,20 @@ function ctx() {
   }
   if (audioCtx.state === "suspended") audioCtx.resume().catch(() => {});
   return audioCtx;
+}
+
+/** Play a near-silent buffer — helps kick AudioContext out of suspended. */
+function primeAudioGraph(ac) {
+  if (!ac) return;
+  try {
+    const buf = ac.createBuffer(1, 1, ac.sampleRate || 44100);
+    const src = ac.createBufferSource();
+    src.buffer = buf;
+    src.connect(ac.destination);
+    src.start(0);
+  } catch {
+    /* ignore */
+  }
 }
 
 function tone(freq, dur, type = "sine", gain = 0.12, when = 0) {
@@ -107,6 +136,7 @@ export function announceRoundWinner(name, { champion = false } = {}) {
 /**
  * Quiet looping ambient pad (Web Audio) — calm bed under the battle.
  * Safe to call repeatedly; starts once after audio unlock.
+ * Louder on ?stream=1 so Pulse→FFmpeg→YouTube still hears it after capture.
  */
 export function startAmbientMusic() {
   const ac = ctx();
@@ -125,11 +155,12 @@ export function startAmbientMusic() {
     filter.connect(master);
 
     // Soft detuned triad — Am-ish calm bed.
+    const stream = isStreamPage();
     const voices = [
-      { freq: 110, type: "sine", gain: 0.045 },
-      { freq: 164.81, type: "sine", gain: 0.032 },
-      { freq: 220, type: "triangle", gain: 0.018 },
-      { freq: 329.63, type: "sine", gain: 0.012 },
+      { freq: 110, type: "sine", gain: stream ? 0.09 : 0.045 },
+      { freq: 164.81, type: "sine", gain: stream ? 0.065 : 0.032 },
+      { freq: 220, type: "triangle", gain: stream ? 0.04 : 0.018 },
+      { freq: 329.63, type: "sine", gain: stream ? 0.028 : 0.012 },
     ];
 
     const oscs = [];
@@ -155,7 +186,9 @@ export function startAmbientMusic() {
     lfo.start();
 
     const now = ac.currentTime;
-    master.gain.exponentialRampToValueAtTime(0.085, now + 2.5);
+    // Stream capture (Pulse mix / AAC) loses headroom — keep bed audible.
+    const target = stream ? 0.22 : 0.085;
+    master.gain.exponentialRampToValueAtTime(target, now + 1.2);
 
     ambientNodes = { master, filter, oscs, lfo, lfoGain };
   } catch (err) {
@@ -189,14 +222,61 @@ export function stopAmbientMusic() {
   }
 }
 
-export function unlockAudio() {
+/**
+ * Resume AudioContext + start ambient. Returns whether context is running.
+ * Safe to call often (stream Chrome has no real user gesture).
+ */
+export async function unlockAudio() {
   const ac = ctx();
-  if (!ac) return;
-  // Prime with a tiny blip so autoplay policies allow later SFX / music.
+  if (!ac) return false;
+  try {
+    if (ac.state === "suspended") await ac.resume();
+  } catch {
+    /* ignore */
+  }
+  primeAudioGraph(ac);
+  // Tiny blip so autoplay policies allow later SFX / music.
   try {
     tone(880, 0.03, "sine", 0.001, 0);
   } catch {
     /* ignore */
   }
   startAmbientMusic();
+  try {
+    if (ac.state === "suspended") await ac.resume();
+  } catch {
+    /* ignore */
+  }
+  return ac.state === "running";
+}
+
+/**
+ * Keep Web Audio alive for go-live Chrome (Pulse → FFmpeg).
+ * Retries resume until running, then light keep-alive if it suspends again.
+ */
+export function ensureStreamAudio() {
+  if (!isStreamPage()) return;
+  if (streamAudioWatch) return;
+
+  const tick = () => {
+    unlockAudio().catch(() => {});
+  };
+
+  tick();
+  // Early bursts — Chrome often needs a few resume attempts after load.
+  setTimeout(tick, 200);
+  setTimeout(tick, 800);
+  setTimeout(tick, 2000);
+
+  streamAudioWatch = setInterval(() => {
+    const ac = audioCtx;
+    if (!ac || ac.state !== "running" || !ambientStarted) {
+      tick();
+    }
+  }, 2000);
+
+  const onVis = () => tick();
+  document.addEventListener("visibilitychange", onVis);
+  window.addEventListener("focus", onVis);
+  window.addEventListener("pageshow", onVis);
 }

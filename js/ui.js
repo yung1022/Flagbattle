@@ -2,7 +2,7 @@ import { FlagBattleGame, CONFIG, flagSizeForCount, IS_TEST_STREAM, TEST_STREAM }
 import { COUNTRIES } from "./countries.js";
 import { fetchPoll } from "./store.js";
 import { siteBase as resolveSiteBase } from "./public.js";
-import { announceRoundWinner, unlockAudio } from "./sfx.js";
+import { announceRoundWinner, unlockAudio, ensureStreamAudio } from "./sfx.js";
 
 const game = new FlagBattleGame();
 const params = new URLSearchParams(location.search);
@@ -970,13 +970,22 @@ if (params.has("autostart")) {
   });
 }
 
-// Headless Chrome / stream: unlock audio once the page is interactive.
+// Unlock Web Audio (ambient + SFX). Stream Chrome has no real gesture — keep retrying.
 window.addEventListener(
   "pointerdown",
   () => unlockAudio(),
   { once: true, passive: true }
 );
-setTimeout(() => unlockAudio(), 800);
+window.addEventListener(
+  "keydown",
+  () => unlockAudio(),
+  { once: true, passive: true }
+);
+if (params.has("stream") || params.has("autostart")) {
+  ensureStreamAudio();
+} else {
+  setTimeout(() => unlockAudio(), 800);
+}
 
 // Keep on-stream poll board fresh for viewers.
 clearInterval(pollTimer);

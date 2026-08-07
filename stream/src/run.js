@@ -360,10 +360,16 @@ function startPulseAudio() {
           // Sink may already exist from a prior run.
           console.warn("Pulse null-sink load returned", code, "(continuing)");
         }
-        spawn(pactl, ["set-default-sink", sinkName], { stdio: "ignore" }).on(
-          "exit",
-          () => resolve(sinkName)
-        );
+        const finish = () => {
+          // Unmute + full volume so Web Audio ambient reaches FFmpeg.
+          spawn(pactl, ["set-sink-mute", sinkName, "0"], { stdio: "ignore" });
+          spawn(pactl, ["set-sink-volume", sinkName, "100%"], { stdio: "ignore" });
+          spawn(pactl, ["set-default-sink", sinkName], { stdio: "ignore" }).on(
+            "exit",
+            () => resolve(sinkName)
+          );
+        };
+        finish();
       });
     });
     boot.on("error", () => resolve(null));
@@ -602,8 +608,10 @@ function startChrome(displayNum, url, w, h) {
       "--no-default-browser-check",
       "--disable-infobars",
       "--disable-session-crashed-bubble",
-      "--disable-features=TranslateUI,PaintHolding",
+      // Keep Web Audio / ambient music outputting to Pulse (not sandboxed out).
+      "--disable-features=TranslateUI,PaintHolding,AudioServiceOutOfProcess,AudioServiceSandbox",
       "--autoplay-policy=no-user-gesture-required",
+      "--disable-background-media-suspend",
       "--no-sandbox",
       // Prefer SwiftShader compositing over fully disabling GPU (smoother layers).
       "--use-gl=angle",
@@ -614,7 +622,6 @@ function startChrome(displayNum, url, w, h) {
       "--disable-backgrounding-occluded-windows",
       "--disable-ipc-flooding-protection",
       "--memory-pressure-off",
-      "--autoplay-policy=no-user-gesture-required",
       `--user-data-dir=${userData}`,
       url,
     ],
@@ -623,8 +630,10 @@ function startChrome(displayNum, url, w, h) {
       env: {
         ...process.env,
         DISPLAY: displayNum,
-        PULSE_SINK: process.env.PULSE_SINK || "",
-        PULSE_SOURCE: process.env.PULSE_SOURCE || "",
+        ...(process.env.PULSE_SINK ? { PULSE_SINK: process.env.PULSE_SINK } : {}),
+        ...(process.env.PULSE_SOURCE
+          ? { PULSE_SOURCE: process.env.PULSE_SOURCE }
+          : {}),
       },
     }
   );
@@ -674,19 +683,15 @@ function startFfmpeg(displayNum, rtmpUrl, w, h, fps) {
   ];
 
   if (usePulse && pulseSource) {
+    // Capture Chrome/espeak from the null-sink monitor. Don't amix with
+    // anullsrc at equal weight — that halves ambient volume to near-silence.
     args.push(
       "-thread_queue_size",
       "512",
       "-f",
       "pulse",
       "-i",
-      pulseSource,
-      "-f",
-      "lavfi",
-      "-i",
-      "anullsrc=channel_layout=stereo:sample_rate=44100",
-      "-filter_complex",
-      "[1:a][2:a]amix=inputs=2:duration=first:dropout_transition=2[a]"
+      pulseSource
     );
   } else {
     args.push(
@@ -703,7 +708,7 @@ function startFfmpeg(displayNum, rtmpUrl, w, h, fps) {
     "-map",
     "0:v",
     "-map",
-    usePulse && pulseSource ? "[a]" : "1:a",
+    "1:a",
     "-c:v",
     "libx264",
     "-preset",
@@ -731,9 +736,12 @@ function startFfmpeg(displayNum, rtmpUrl, w, h, fps) {
     "-c:a",
     "aac",
     "-b:a",
-    "128k",
+    "160k",
     "-ar",
     "44100",
+    ...(usePulse && pulseSource
+      ? ["-af", "aresample=async=1:first_pts=0,volume=1.6"]
+      : []),
     "-shortest",
     "-f",
     "flv",
