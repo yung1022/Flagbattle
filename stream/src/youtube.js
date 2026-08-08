@@ -235,8 +235,10 @@ export async function createLiveBroadcast({
   });
 
   const thumb = await resolveThumbnailFile(thumbnailPath);
+  let thumbnailSet = false;
   if (thumb) {
-    await setVideoThumbnail(youtube, broadcastId, thumb);
+    const result = await setVideoThumbnail(youtube, broadcastId, thumb);
+    thumbnailSet = Boolean(result?.ok);
   } else {
     console.warn("No usable thumbnail file found (need JPEG/PNG under 2MB)");
   }
@@ -253,33 +255,51 @@ export async function createLiveBroadcast({
     streamName: ingestion.streamName,
     ingestionAddress: ingestion.ingestionAddress,
     thumbnailPath: thumb,
+    thumbnailSet,
   };
 }
 
 /** YouTube custom thumbs must be < 2MB — prefer compressed JPEG assets. */
 export async function resolveThumbnailFile(preferred) {
+  const dir = preferred ? path.dirname(preferred) : "";
+  const base = preferred ? path.basename(preferred) : "";
+  // Prefer ready-made YouTube JPEGs before the large source PNG.
   const candidates = [
-    preferred,
     preferred && preferred.replace(/\.png$/i, "-yt.jpg"),
-    preferred && path.join(path.dirname(preferred), "thumbnail-yt.jpg"),
-    preferred && path.join(path.dirname(preferred), "thumbnail-yt-1280.jpg"),
+    dir && path.join(dir, "thumbnail-yt.jpg"),
+    dir && path.join(dir, "thumbnail-yt-1280.jpg"),
+    // Explicit .jpg path already (run.js may pass this).
+    preferred && /\.jpe?g$/i.test(preferred) ? preferred : null,
+    // Oversized PNG last — usually skipped for size, kept as ffmpeg source.
+    preferred && /\.png$/i.test(base) ? preferred : null,
   ].filter(Boolean);
 
+  const seen = new Set();
   for (const file of candidates) {
-    if (!fs.existsSync(file)) continue;
-    const size = fs.statSync(file).size;
+    const abs = path.resolve(file);
+    if (seen.has(abs)) continue;
+    seen.add(abs);
+    if (!fs.existsSync(abs)) continue;
+    const size = fs.statSync(abs).size;
     if (size > 2 * 1024 * 1024) {
-      console.warn(`Thumbnail too large (${size} bytes): ${file}`);
+      console.warn(`Thumbnail too large (${size} bytes): ${abs}`);
       continue;
     }
-    return file;
+    console.log(`Using thumbnail file ${path.basename(abs)} (${size} bytes)`);
+    return abs;
   }
 
   // Last resort: compress PNG → JPEG with ffmpeg if available.
-  if (preferred && fs.existsSync(preferred)) {
-    const out = path.join(path.dirname(preferred), "thumbnail-yt-runtime.jpg");
-    const ok = await compressThumbnail(preferred, out);
+  const pngSource =
+    (preferred && /\.png$/i.test(preferred) && preferred) ||
+    (dir && path.join(dir, "thumbnail.png"));
+  if (pngSource && fs.existsSync(pngSource)) {
+    const out = path.join(path.dirname(pngSource), "thumbnail-yt-runtime.jpg");
+    const ok = await compressThumbnail(pngSource, out);
     if (ok && fs.existsSync(out) && fs.statSync(out).size <= 2 * 1024 * 1024) {
+      console.log(
+        `Compressed runtime thumbnail ${path.basename(out)} (${fs.statSync(out).size} bytes)`
+      );
       return out;
     }
   }
@@ -311,6 +331,9 @@ function compressThumbnail(input, output) {
   });
 }
 
+/**
+ * @returns {Promise<{ ok: boolean, rateLimited?: boolean, unauthorized?: boolean, message?: string }>}
+ */
 export async function setVideoThumbnail(youtube, videoId, filePath) {
   if (!filePath || !fs.existsSync(filePath)) {
     throw new Error("thumbnail file missing");
@@ -336,17 +359,71 @@ export async function setVideoThumbnail(youtube, videoId, filePath) {
       },
     });
     console.log(`Thumbnail set from ${path.basename(filePath)} (${size} bytes)`);
-    return true;
+    return { ok: true };
   } catch (err) {
     const msg = err.message || String(err);
     console.warn("Thumbnail upload failed:", msg);
-    if (/forbidden|verified|permission/i.test(msg)) {
+    const rateLimited = /too many thumbnails|rateLimit|quota/i.test(msg);
+    const unauthorized =
+      /not be properly authorized|forbidden|permission|verified/i.test(msg);
+    if (unauthorized && !rateLimited) {
       console.warn(
         "Custom thumbnails may need a verified channel (Desktop auth with youtube.force-ssl if device tokens lack that scope)."
       );
     }
+    return { ok: false, rateLimited, unauthorized, message: msg };
+  }
+}
+
+/**
+ * Ensure custom thumbnail is applied. Skips if already set.
+ * Retries with backoff for rate-limits / pre-live auth quirks — does NOT
+ * double-upload on success (that was burning YouTube's thumbnail quota).
+ */
+export async function ensureVideoThumbnail(
+  youtube,
+  videoId,
+  filePath,
+  {
+    alreadySet = false,
+    retries = 3,
+    baseDelayMs = 45_000,
+    /** Wait before the first attempt (use when a prior set just failed). */
+    initialDelayMs = 0,
+  } = {}
+) {
+  if (alreadySet) {
+    console.log("Thumbnail already set — skipping retry");
+    return true;
+  }
+  const thumb = await resolveThumbnailFile(filePath);
+  if (!thumb) {
+    console.warn("No usable thumbnail to upload");
     return false;
   }
+
+  if (initialDelayMs > 0) {
+    console.log(
+      `Waiting ${Math.round(initialDelayMs / 1000)}s before thumbnail retry…`
+    );
+    await new Promise((r) => setTimeout(r, initialDelayMs));
+  }
+
+  for (let attempt = 0; attempt <= retries; attempt++) {
+    if (attempt > 0) {
+      const delay = baseDelayMs * attempt;
+      console.log(
+        `Retrying thumbnail in ${Math.round(delay / 1000)}s (attempt ${attempt + 1}/${retries + 1})…`
+      );
+      await new Promise((r) => setTimeout(r, delay));
+    }
+    const result = await setVideoThumbnail(youtube, videoId, thumb);
+    if (result.ok) return true;
+    // Unauthorized often clears after the broadcast is live — keep trying.
+    // Rate limit needs a longer pause (handled by baseDelayMs * attempt).
+  }
+  console.warn("Could not set custom thumbnail after retries");
+  return false;
 }
 
 /** Wait until YouTube sees the ingest, then transition broadcast → live. */
