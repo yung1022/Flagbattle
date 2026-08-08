@@ -311,7 +311,7 @@ async function postChatLinks(youtube, id, apiUrl, mode = "qualifying") {
 
   // One combined instructions message (YouTube live chat ~200 char limit).
   const line =
-    `Vote: type Japan or !vote jp. ` +
+    `Vote/spawn: type Japan or !vote jp (flag may take ~30s). ` +
     `Poll: ${poll} · Rankings: ${rank}`;
   void mode;
 

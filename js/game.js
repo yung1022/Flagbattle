@@ -867,6 +867,7 @@ export class FlagBattleGame {
       f.spawnVotes = nextVotes;
       f.sizeMult = this._sizeMultForVotes(nextVotes);
       f.pulse = 1;
+      if (entry.voter) f.spawnedBy = entry.voter;
       if (grew) {
         playSfx("bigflag");
         this._emit(
@@ -894,6 +895,7 @@ export class FlagBattleGame {
       f.vx = rand(-0.35, 0.35);
       f.vy = rand(-0.35, 0.35);
       f.pulse = 1;
+      if (entry.voter) f.spawnedBy = entry.voter;
     } else {
       f = this._makeFighter(
         { ...country, spawnVotes: nextVotes },
@@ -901,6 +903,7 @@ export class FlagBattleGame {
         this.fighters.length + 1
       );
       f.pulse = 1;
+      if (entry.voter) f.spawnedBy = entry.voter;
       this.fighters.push(f);
     }
     playSfx(grew ? "bigflag" : "spawn");
