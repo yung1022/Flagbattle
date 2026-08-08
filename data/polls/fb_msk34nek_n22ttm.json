@@ -1024,7 +1024,7 @@
     "dm": 0,
     "do": 0,
     "ec": 0,
-    "eg": 0,
+    "eg": 1,
     "sv": 0,
     "gq": 0,
     "er": 0,
@@ -1175,11 +1175,12 @@
     "yt:UCI5urA_FCws6BWBN-LVYICA": "lt",
     "yt:UCYjTpMmtbv3183O5-eYI6_w": "au",
     "yt:UCY_0mPTzOJx9OelnUU8M1gw": "is",
-    "yt:UCmlgQwH9Rsv64yB3ib3ePGQ": "us"
+    "yt:UCmlgQwH9Rsv64yB3ib3ePGQ": "us",
+    "yt:UCl7jYk-M_LNOLMtUavYWgMA": "eg"
   },
   "closed": false,
   "closedAt": null,
-  "updatedAt": 1786178817733,
+  "updatedAt": 1786179132692,
   "voterStats": {
     "yt:UCt6KDg7ftGLz-ftgvH2DtwA": {
       "name": "@WeatherGuyCurtis",
@@ -1222,9 +1223,24 @@
       "avatar": "https://yt4.ggpht.com/HF8ChLoT7S-mT33o7rI3ByoP650IyVUv-zH6z-hmgYQMIfMCIG8P520_LnLY72o9gJx2UQO1=s64-c-k-c0x00ffffff-no-rj",
       "count": 1,
       "lastAt": 1786178817733
+    },
+    "yt:UCl7jYk-M_LNOLMtUavYWgMA": {
+      "name": "@latifmousa7952",
+      "avatar": "https://yt4.ggpht.com/g1UYcCe-i-bKscm2EA1MKZ99vYJA62kxujsAMCwgViXxayDFmNiBmY4aAIt5WykLIFB-lXPJ=s64-c-k-c0x00ffffff-no-rj",
+      "count": 1,
+      "lastAt": 1786179132692
     }
   },
   "recentVotes": [
+    {
+      "voter": "@latifmousa7952",
+      "voterId": "yt:UCl7jYk-M_LNOLMtUavYWgMA",
+      "code": "eg",
+      "name": "Egypt",
+      "img": "https://flagcdn.com/w40/eg.png",
+      "avatar": "https://yt4.ggpht.com/g1UYcCe-i-bKscm2EA1MKZ99vYJA62kxujsAMCwgViXxayDFmNiBmY4aAIt5WykLIFB-lXPJ=s64-c-k-c0x00ffffff-no-rj",
+      "at": 1786179132692
+    },
     {
       "voter": "@4MTileFrom2048",
       "voterId": "yt:UCmlgQwH9Rsv64yB3ib3ePGQ",
@@ -1260,15 +1276,6 @@
       "img": "https://flagcdn.com/w40/sg.png",
       "avatar": "https://yt4.ggpht.com/ytc/AIdro_m5evfCF_YxC_lDCZai6PdDPi8RLB_PVhrL3a1ARTLFBM2x9-KClsWFWW2FfUzwIrVBkQ=s64-c-k-c0x00ffffff-no-rj",
       "at": 1786178692798
-    },
-    {
-      "voter": "@Myra-wg2vq",
-      "voterId": "yt:UCY_0mPTzOJx9OelnUU8M1gw",
-      "code": "sg",
-      "name": "Singapore",
-      "img": "https://flagcdn.com/w40/sg.png",
-      "avatar": "https://yt4.ggpht.com/ytc/AIdro_m5evfCF_YxC_lDCZai6PdDPi8RLB_PVhrL3a1ARTLFBM2x9-KClsWFWW2FfUzwIrVBkQ=s64-c-k-c0x00ffffff-no-rj",
-      "at": 1786178681174
     }
   ]
 }
