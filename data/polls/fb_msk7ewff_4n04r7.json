@@ -1039,7 +1039,7 @@
     "ge": 0,
     "de": 0,
     "gh": 0,
-    "gr": 0,
+    "gr": 1,
     "gd": 0,
     "gt": 0,
     "gn": 0,
@@ -1171,76 +1171,10 @@
   "voters": {
     "yt:UC3ZJ4I5BFkE051P7vz17lwg": "iq",
     "yt:UCbqvVBXOIzUDOcPDZeUVMsQ": "iq",
-    "yt:UCcK12hie2d1Exc6rdTG7Vnw": "iq"
+    "yt:UCcK12hie2d1Exc6rdTG7Vnw": "iq",
+    "yt:UCMRGJqS4qXUYSMyVEFo6fwQ": "gr"
   },
-  "closed": false,
-  "closedAt": null,
-  "updatedAt": 1786186305826,
-  "voterStats": {
-    "yt:UC3ZJ4I5BFkE051P7vz17lwg": {
-      "name": "@Fotbolledits-n1g",
-      "avatar": "https://yt4.ggpht.com/_RJA-VuMi-Vo6dZVgBNZjFqsJgFpoZVu3X3Mo7gQu4zEo01fa3qqJrnmNDYa079cLN95DS4t=s64-c-k-c0x00ffffff-no-rj",
-      "count": 5,
-      "lastAt": 1786183614782
-    },
-    "yt:UCbqvVBXOIzUDOcPDZeUVMsQ": {
-      "name": "@WaranMustafa",
-      "avatar": "https://yt4.ggpht.com/ytc/AIdro_mzksONrz3OSuVyyUUITS-9yLU_QutU4tCOAyRp5DM_vrG8UFaU5FJrp_beNznUEi3uUg=s64-c-k-c0x00ffffff-no-rj",
-      "count": 1,
-      "lastAt": 1786183858495
-    },
-    "yt:UCcK12hie2d1Exc6rdTG7Vnw": {
-      "name": "@seychellebaraquiel2576",
-      "avatar": "https://yt4.ggpht.com/ytc/AIdro_mwi0jj_TJNtJYmt2F4VSWQC0WjcLur-Cx8HqQSHNzi3aEH=s64-c-k-c0x00ffffff-no-rj",
-      "count": 1,
-      "lastAt": 1786186305826
-    }
-  },
-  "recentVotes": [
-    {
-      "voter": "@seychellebaraquiel2576",
-      "voterId": "yt:UCcK12hie2d1Exc6rdTG7Vnw",
-      "code": "iq",
-      "name": "Iraq",
-      "img": "https://flagcdn.com/w40/iq.png",
-      "avatar": "https://yt4.ggpht.com/ytc/AIdro_mwi0jj_TJNtJYmt2F4VSWQC0WjcLur-Cx8HqQSHNzi3aEH=s64-c-k-c0x00ffffff-no-rj",
-      "at": 1786186305826
-    },
-    {
-      "voter": "@WaranMustafa",
-      "voterId": "yt:UCbqvVBXOIzUDOcPDZeUVMsQ",
-      "code": "iq",
-      "name": "Iraq",
-      "img": "https://flagcdn.com/w40/iq.png",
-      "avatar": "https://yt4.ggpht.com/ytc/AIdro_mzksONrz3OSuVyyUUITS-9yLU_QutU4tCOAyRp5DM_vrG8UFaU5FJrp_beNznUEi3uUg=s64-c-k-c0x00ffffff-no-rj",
-      "at": 1786183858495
-    },
-    {
-      "voter": "@Fotbolledits-n1g",
-      "voterId": "yt:UC3ZJ4I5BFkE051P7vz17lwg",
-      "code": "iq",
-      "name": "Iraq",
-      "img": "https://flagcdn.com/w40/iq.png",
-      "avatar": "https://yt4.ggpht.com/_RJA-VuMi-Vo6dZVgBNZjFqsJgFpoZVu3X3Mo7gQu4zEo01fa3qqJrnmNDYa079cLN95DS4t=s64-c-k-c0x00ffffff-no-rj",
-      "at": 1786183614782
-    },
-    {
-      "voter": "@Fotbolledits-n1g",
-      "voterId": "yt:UC3ZJ4I5BFkE051P7vz17lwg",
-      "code": "iq",
-      "name": "Iraq",
-      "img": "https://flagcdn.com/w40/iq.png",
-      "avatar": "https://yt4.ggpht.com/_RJA-VuMi-Vo6dZVgBNZjFqsJgFpoZVu3X3Mo7gQu4zEo01fa3qqJrnmNDYa079cLN95DS4t=s64-c-k-c0x00ffffff-no-rj",
-      "at": 1786183592628
-    },
-    {
-      "voter": "@Fotbolledits-n1g",
-      "voterId": "yt:UC3ZJ4I5BFkE051P7vz17lwg",
-      "code": "iq",
-      "name": "Iraq",
-      "img": "https://flagcdn.com/w40/iq.png",
-      "avatar": "https://yt4.ggpht.com/_RJA-VuMi-Vo6dZVgBNZjFqsJgFpoZVu3X3Mo7gQu4zEo01fa3qqJrnmNDYa079cLN95DS4t=s64-c-k-c0x00ffffff-no-rj",
-      "at": 1786183570428
-    }
-  ]
+  "closed": true,
+  "closedAt": "2026-08-08T11:14:44.242Z",
+  "updatedAt": 1786187684438
 }
