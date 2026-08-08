@@ -869,6 +869,37 @@ body.invasion-mode .brand-bar {
   color: var(--gold-hot);
   text-shadow: 0 1px 8px rgba(0, 0, 0, 0.6);
   overflow: hidden;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.25em 0.45em;
+}
+
+.stream-shoutout-hint .shoutout-hint-main {
+  color: var(--gold-hot);
+}
+
+.stream-shoutout-hint .shoutout-hint-sep {
+  color: rgba(255, 255, 255, 0.45);
+  font-weight: 700;
+}
+
+.stream-shoutout-hint .shoutout-hint-sub {
+  color: #fff;
+  letter-spacing: 0.06em;
+  animation: subscribePulse 1.6s ease-in-out infinite;
+}
+
+@keyframes subscribePulse {
+  0%,
+  100% {
+    opacity: 0.85;
+    filter: brightness(1);
+  }
+  50% {
+    opacity: 1;
+    filter: brightness(1.25);
+  }
 }
 
 .stream-poll {
