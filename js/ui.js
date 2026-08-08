@@ -490,13 +490,13 @@ function renderBoard() {
   } else if (game.phase === "main") {
     els.boardLabel.textContent = "ELIMINATIONS";
     els.boardMeta.textContent = flags.length
-      ? `${flags.length} recent · last death ranks`
-      : "HP combat · random events";
+      ? `${flags.length} recent · last standing wins`
+      : "Last flag standing wins · events live";
   } else if (game.phase === "invasion") {
     els.boardLabel.textContent = "INVASION";
     els.boardMeta.textContent = flags.length
-      ? `${flags.length} fallen · last alive wins`
-      : "Aliens attacking · hole sealed";
+      ? `${flags.length} fallen · last standing wins`
+      : "Aliens attacking · last standing wins";
   } else if (game.streamMode === "final") {
     if (game.phase === "finished" && game.winner) {
       els.boardLabel.textContent = "CHAMPION";
@@ -993,9 +993,14 @@ function applySprintHudCopy() {
     els.streamShoutoutHead.textContent = spawn ? "SPAWN ZONE" : "SHOUTOUT ZONE";
   }
   if (els.streamShoutoutHint) {
-    els.streamShoutoutHint.textContent = spawn
-      ? "5 VOTES = BIG FLAG!"
-      : "TYPE YOUR COUNTRY TO GET FEATURED!";
+    if (spawn) {
+      els.streamShoutoutHint.innerHTML =
+        `<span class="shoutout-hint-main">5 VOTES = BIG FLAG!</span>` +
+        `<span class="shoutout-hint-sep" aria-hidden="true">·</span>` +
+        `<span class="shoutout-hint-sub">SUBSCRIBE FOR MORE FLAG BATTLES!</span>`;
+    } else {
+      els.streamShoutoutHint.textContent = "TYPE YOUR COUNTRY TO GET FEATURED!";
+    }
     fitHintIntoParent(els.streamShoutoutHint);
   }
 }

@@ -1026,7 +1026,7 @@ export class FlagBattleGame {
     const mins = Math.max(1, Math.round(span / 60000));
     this._emit(
       "phase",
-      `MAIN — ~${mins} min · HP + attacks · random events (saw / black hole / catch)`
+      `MAIN — last flag standing wins · ~${mins} min to invasion · events (saw / black hole / catch)`
     );
     if (opts.showcaseEvent) {
       // Showcase: keep a full field + visible event (no instant wipe).
@@ -1540,11 +1540,16 @@ export class FlagBattleGame {
           this._tickAliens(dt);
         }
         const standingNow = this.fighters.filter((f) => f.alive && !f.falling);
-        // Only Invasion crowns a champion — Main always runs until its clock.
-        if (this.phase === "invasion") {
+        // Last flag standing wins the game (Main or Invasion) — not the clock.
+        // Showcase Main keeps a full field for event demos.
+        if (
+          (this.phase === "invasion" ||
+            (this.phase === "main" && !this._showcaseMain)) &&
+          standingNow.length <= 1
+        ) {
           if (standingNow.length === 1) {
             this._onLastFlag(standingNow[0]);
-          } else if (standingNow.length === 0) {
+          } else {
             const last = this._deathSeq[this._deathSeq.length - 1];
             if (last) {
               const f = this.fighters.find((x) => x.code === last.code);
@@ -1555,15 +1560,6 @@ export class FlagBattleGame {
               }
             }
           }
-        } else if (this.phase === "main" && standingNow.length === 0) {
-          // Keep Main populated until the clock → invasion.
-          for (const f of shuffle(this.fighters).slice(0, 40)) {
-            f.alive = true;
-            f.falling = false;
-            f.hp = CONFIG.baseHp;
-            f.pulse = 1;
-          }
-          this._emit("phase", "Field restocked — Main continues");
         }
       } else if (battling) {
         this._moveFighters(dt, { physicsRim: true, solidRim: true });
