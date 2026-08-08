@@ -981,7 +981,7 @@
     "ag": 0,
     "ar": 0,
     "am": 0,
-    "au": 2,
+    "au": 3,
     "at": 0,
     "az": 0,
     "bs": 0,
@@ -1037,7 +1037,7 @@
     "ga": 0,
     "gm": 0,
     "ge": 0,
-    "de": 7,
+    "de": 15,
     "gh": 0,
     "gr": 0,
     "gd": 0,
@@ -1048,7 +1048,7 @@
     "ht": 0,
     "hn": 0,
     "hu": 0,
-    "is": 0,
+    "is": 1,
     "in": 0,
     "id": 0,
     "ir": 0,
@@ -1073,7 +1073,7 @@
     "lr": 0,
     "ly": 0,
     "li": 0,
-    "lt": 0,
+    "lt": 40,
     "lu": 0,
     "mg": 0,
     "mw": 0,
@@ -1128,7 +1128,7 @@
     "rs": 0,
     "sc": 0,
     "sl": 0,
-    "sg": 0,
+    "sg": 6,
     "sk": 0,
     "si": 0,
     "sb": 0,
@@ -1157,7 +1157,7 @@
     "ua": 0,
     "ae": 0,
     "gb": 0,
-    "us": 0,
+    "us": 1,
     "uy": 0,
     "uz": 0,
     "vu": 0,
@@ -1169,19 +1169,23 @@
     "zw": 0
   },
   "voters": {
-    "yt:UCt6KDg7ftGLz-ftgvH2DtwA": "jp",
+    "yt:UCt6KDg7ftGLz-ftgvH2DtwA": "de",
     "yt:UCUgQVOKIu_DRsNdExym9nsA": "th",
-    "yt:UCOEVmGQQZaQZdQmz5PxmFvw": "au"
+    "yt:UCOEVmGQQZaQZdQmz5PxmFvw": "au",
+    "yt:UCI5urA_FCws6BWBN-LVYICA": "lt",
+    "yt:UCYjTpMmtbv3183O5-eYI6_w": "au",
+    "yt:UCY_0mPTzOJx9OelnUU8M1gw": "is",
+    "yt:UCmlgQwH9Rsv64yB3ib3ePGQ": "us"
   },
   "closed": false,
   "closedAt": null,
-  "updatedAt": 1786177909294,
+  "updatedAt": 1786178817733,
   "voterStats": {
     "yt:UCt6KDg7ftGLz-ftgvH2DtwA": {
       "name": "@WeatherGuyCurtis",
       "avatar": "https://yt4.ggpht.com/3PuySRevJq43xYWt3wUGed-cG1o-22JmiCyDVUBHuA19alAzjCXsg0vFxQDaoZEHAH_T2m5i4w=s64-c-k-c0x00ffffff-no-rj",
-      "count": 13,
-      "lastAt": 1786177909294
+      "count": 19,
+      "lastAt": 1786178486091
     },
     "yt:UCUgQVOKIu_DRsNdExym9nsA": {
       "name": "@MsRackool",
@@ -1194,53 +1198,77 @@
       "avatar": "https://yt4.ggpht.com/T056rclqSIUDqZBMbK7NNuAYAAPiAsVUqJ5wUxiZa9mZOWHPRR_iBkQVF3e-gzOwsJbm2Xaz=s64-c-k-c0x00ffffff-no-rj",
       "count": 1,
       "lastAt": 1786177724622
+    },
+    "yt:UCI5urA_FCws6BWBN-LVYICA": {
+      "name": "@ksaverah9157",
+      "avatar": "https://yt4.ggpht.com/dVSnWTNkY04Pgpb5XYMvw6tELwKwYJYzCUDOogjJJZ93W2TCPZT-s_PtY9nxZZXhjNCU5SvbYw=s64-c-k-c0x00ffffff-no-rj",
+      "count": 42,
+      "lastAt": 1786178645918
+    },
+    "yt:UCYjTpMmtbv3183O5-eYI6_w": {
+      "name": "@Kerryen539",
+      "avatar": "https://yt4.ggpht.com/Jq6P5q7ltZQEzEkDLEO8QHTY6wBGMqm85BbYXJjRD8mcpqp0-l5tYDcxww7k-zJL50Jwxz85hg=s64-c-k-c0x00ffffff-no-rj",
+      "count": 1,
+      "lastAt": 1786178073396
+    },
+    "yt:UCY_0mPTzOJx9OelnUU8M1gw": {
+      "name": "@Myra-wg2vq",
+      "avatar": "https://yt4.ggpht.com/ytc/AIdro_m5evfCF_YxC_lDCZai6PdDPi8RLB_PVhrL3a1ARTLFBM2x9-KClsWFWW2FfUzwIrVBkQ=s64-c-k-c0x00ffffff-no-rj",
+      "count": 7,
+      "lastAt": 1786178756021
+    },
+    "yt:UCmlgQwH9Rsv64yB3ib3ePGQ": {
+      "name": "@4MTileFrom2048",
+      "avatar": "https://yt4.ggpht.com/HF8ChLoT7S-mT33o7rI3ByoP650IyVUv-zH6z-hmgYQMIfMCIG8P520_LnLY72o9gJx2UQO1=s64-c-k-c0x00ffffff-no-rj",
+      "count": 1,
+      "lastAt": 1786178817733
     }
   },
   "recentVotes": [
     {
-      "voter": "@WeatherGuyCurtis",
-      "voterId": "yt:UCt6KDg7ftGLz-ftgvH2DtwA",
-      "code": "jp",
-      "name": "Japan",
-      "img": "https://flagcdn.com/w40/jp.png",
-      "avatar": "https://yt4.ggpht.com/3PuySRevJq43xYWt3wUGed-cG1o-22JmiCyDVUBHuA19alAzjCXsg0vFxQDaoZEHAH_T2m5i4w=s64-c-k-c0x00ffffff-no-rj",
-      "at": 1786177909294
+      "voter": "@4MTileFrom2048",
+      "voterId": "yt:UCmlgQwH9Rsv64yB3ib3ePGQ",
+      "code": "us",
+      "name": "United States",
+      "img": "https://flagcdn.com/w40/us.png",
+      "avatar": "https://yt4.ggpht.com/HF8ChLoT7S-mT33o7rI3ByoP650IyVUv-zH6z-hmgYQMIfMCIG8P520_LnLY72o9gJx2UQO1=s64-c-k-c0x00ffffff-no-rj",
+      "at": 1786178817733
     },
     {
-      "voter": "@WeatherGuyCurtis",
-      "voterId": "yt:UCt6KDg7ftGLz-ftgvH2DtwA",
-      "code": "au",
-      "name": "Australia",
-      "img": "https://flagcdn.com/w40/au.png",
-      "avatar": "https://yt4.ggpht.com/3PuySRevJq43xYWt3wUGed-cG1o-22JmiCyDVUBHuA19alAzjCXsg0vFxQDaoZEHAH_T2m5i4w=s64-c-k-c0x00ffffff-no-rj",
-      "at": 1786177867536
+      "voter": "@Myra-wg2vq",
+      "voterId": "yt:UCY_0mPTzOJx9OelnUU8M1gw",
+      "code": "is",
+      "name": "Iceland",
+      "img": "https://flagcdn.com/w40/is.png",
+      "avatar": "https://yt4.ggpht.com/ytc/AIdro_m5evfCF_YxC_lDCZai6PdDPi8RLB_PVhrL3a1ARTLFBM2x9-KClsWFWW2FfUzwIrVBkQ=s64-c-k-c0x00ffffff-no-rj",
+      "at": 1786178756021
     },
     {
-      "voter": "@Thesoccergoats67",
-      "voterId": "yt:UCOEVmGQQZaQZdQmz5PxmFvw",
-      "code": "au",
-      "name": "Australia",
-      "img": "https://flagcdn.com/w40/au.png",
-      "avatar": "https://yt4.ggpht.com/T056rclqSIUDqZBMbK7NNuAYAAPiAsVUqJ5wUxiZa9mZOWHPRR_iBkQVF3e-gzOwsJbm2Xaz=s64-c-k-c0x00ffffff-no-rj",
-      "at": 1786177724622
+      "voter": "@Myra-wg2vq",
+      "voterId": "yt:UCY_0mPTzOJx9OelnUU8M1gw",
+      "code": "sg",
+      "name": "Singapore",
+      "img": "https://flagcdn.com/w40/sg.png",
+      "avatar": "https://yt4.ggpht.com/ytc/AIdro_m5evfCF_YxC_lDCZai6PdDPi8RLB_PVhrL3a1ARTLFBM2x9-KClsWFWW2FfUzwIrVBkQ=s64-c-k-c0x00ffffff-no-rj",
+      "at": 1786178694313
     },
     {
-      "voter": "@MsRackool",
-      "voterId": "yt:UCUgQVOKIu_DRsNdExym9nsA",
-      "code": "th",
-      "name": "Thailand",
-      "img": "https://flagcdn.com/w40/th.png",
-      "avatar": "https://yt4.ggpht.com/ytc/AIdro_lFsXF1JmO8Jmttb_XGDdwtG9hMxdz1MaJhS8hH-3-gUsc=s64-c-k-c0x00ffffff-no-rj",
-      "at": 1786177520890
+      "voter": "@Myra-wg2vq",
+      "voterId": "yt:UCY_0mPTzOJx9OelnUU8M1gw",
+      "code": "sg",
+      "name": "Singapore",
+      "img": "https://flagcdn.com/w40/sg.png",
+      "avatar": "https://yt4.ggpht.com/ytc/AIdro_m5evfCF_YxC_lDCZai6PdDPi8RLB_PVhrL3a1ARTLFBM2x9-KClsWFWW2FfUzwIrVBkQ=s64-c-k-c0x00ffffff-no-rj",
+      "at": 1786178692798
     },
     {
-      "voter": "@WeatherGuyCurtis",
-      "voterId": "yt:UCt6KDg7ftGLz-ftgvH2DtwA",
-      "code": "be",
-      "name": "Belgium",
-      "img": "https://flagcdn.com/w40/be.png",
-      "avatar": "https://yt4.ggpht.com/3PuySRevJq43xYWt3wUGed-cG1o-22JmiCyDVUBHuA19alAzjCXsg0vFxQDaoZEHAH_T2m5i4w=s64-c-k-c0x00ffffff-no-rj",
-      "at": 1786177286898
+      "voter": "@Myra-wg2vq",
+      "voterId": "yt:UCY_0mPTzOJx9OelnUU8M1gw",
+      "code": "sg",
+      "name": "Singapore",
+      "img": "https://flagcdn.com/w40/sg.png",
+      "avatar": "https://yt4.ggpht.com/ytc/AIdro_m5evfCF_YxC_lDCZai6PdDPi8RLB_PVhrL3a1ARTLFBM2x9-KClsWFWW2FfUzwIrVBkQ=s64-c-k-c0x00ffffff-no-rj",
+      "at": 1786178681174
     }
   ]
 }
