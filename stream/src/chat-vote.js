@@ -16,7 +16,7 @@ import {
 
 /** Bot / system replies we post — never treat these as votes. */
 const BOT_REPLY_RE =
-  /\bvoted\b.+\bsuccessfully\b|Usage:\s*!vote|country not found|poll is not open|vote failed/i;
+  /\bvoted\b.+\bsuccessfully\b|Flag may take up to|Usage:\s*!vote|country not found|poll is not open|vote failed/i;
 
 /**
  * @param {object} opts
@@ -343,7 +343,10 @@ async function handleChatMessage({
 
   const n = Number(vote.voteCount) || 0;
   const tally = n > 1 ? ` (${n} votes)` : "";
-  await reply(`${author} voted ${country.name} successfully${tally}`);
+  // Chat → poll → stream can lag; warn that the flag may take a bit to appear.
+  await reply(
+    `${author} voted ${country.name} successfully${tally}. Flag may take up to ~30s to spawn.`
+  );
 }
 
 /**

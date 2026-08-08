@@ -96,6 +96,7 @@ function ensureFighterEl(f) {
   el.className = "fighter";
   el.dataset.id = f.id;
   el.innerHTML = `
+    <div class="spawn-label" hidden></div>
     <img alt="${f.name}" src="${f.img}" loading="lazy" decoding="async" />
     <div class="hp-bar" hidden><i></i></div>
   `;
@@ -236,6 +237,29 @@ function syncArena() {
           bar.classList.toggle("low", pct <= 30);
           bar.classList.toggle("mid", pct > 30 && pct <= 60);
         }
+      }
+    }
+
+    const label = el.querySelector(".spawn-label");
+    if (label) {
+      const who = String(f.spawnedBy || "").trim();
+      if (who) {
+        const text = who.length > 16 ? `${who.slice(0, 15)}…` : who;
+        if (label.dataset.who !== who) {
+          label.dataset.who = who;
+          label.textContent = text;
+          label.title = who;
+        }
+        label.hidden = false;
+        el.classList.add("has-spawner");
+      } else {
+        if (label.dataset.who) {
+          label.dataset.who = "";
+          label.textContent = "";
+          label.removeAttribute("title");
+        }
+        label.hidden = true;
+        el.classList.remove("has-spawner");
       }
     }
   }

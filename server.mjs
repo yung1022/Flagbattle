@@ -515,7 +515,10 @@ function formatVoteText(result, voterLabel) {
     const name = result.country?.name || "OK";
     const n = Number(result.voteCount) || 0;
     const tally = n > 1 ? ` (${n} votes)` : "";
-    return `${who} voted ${name} successfully${tally}`.slice(0, 200);
+    return `${who} voted ${name} successfully${tally}. Flag may take up to ~30s to spawn.`.slice(
+      0,
+      200
+    );
   }
   switch (result.error) {
     case "usage":
