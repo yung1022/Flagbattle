@@ -25,14 +25,10 @@
         <button type="button" class="btn primary" id="btn-refresh">Refresh</button>
       </div>
       <p class="lede">
-        Qualifying + Final are <strong>one column</strong> per battle.
-        Final place for finalists:
-        <strong>Final 4</strong> by elimination order,
-        <strong>Swiss cuts</strong> by average Qualifying place,
-        <strong>hole</strong> by reverse fall order.
-        Non-qualifiers use average Qualifying place.
-        <strong>Q</strong> only while waiting for that battle’s Final.
-        Points from Finals only (50→1). Arrows =
+        Each whole-game win (Last Flag Standing) = <strong>+1 point</strong>.
+        Same points → whoever earned their point <strong>first</strong> ranks higher.
+        Battle sheet still shows Final place / <strong>Q</strong> / nq for history.
+        Arrows =
         <span class="delta-up">↑</span>/<span class="delta-down">↓</span> vs
         previous battle.
       </p>
@@ -49,8 +45,7 @@
         <div class="card">
           <h2>POINTS LEADERBOARD</h2>
           <div class="meta">
-            Sum of all finished Finals. Top 50 places score
-            <code>51 − rank</code> points.
+            +1 per whole-game win. Tiebreak: earlier first win ranks higher.
           </div>
           <div id="points-list"></div>
         </div>
@@ -221,7 +216,7 @@
             const note = document.createElement("div");
             note.className = "meta";
             note.style.marginTop = "12px";
-            note.textContent = `${zero.length} countries still at 0 pts (no Final points yet). See Battle sheet for full grid.`;
+            note.textContent = `${zero.length} countries still at 0 wins. See Battle sheet for full grid.`;
             pointsList.appendChild(note);
           }
         }
@@ -233,7 +228,6 @@
       function pointsRow(row) {
         const div = document.createElement("div");
         div.className = "rank-row points-row";
-        const best = row.best != null ? `#${row.best}` : "nq";
         const d = formatDelta(row.delta);
         div.innerHTML = `
           <span class="rank-num">#${row.rank}</span>
@@ -241,7 +235,7 @@
           <span class="points-name">${row.name}</span>
           <span class="delta ${d.cls}" title="Places vs previous battle">${d.arrow}${d.text === "—" ? "" : d.text}</span>
           <strong class="points-total">${row.points}</strong>
-          <span class="meta points-meta">${row.finishes} final${row.finishes === 1 ? "" : "s"} · best ${best}</span>
+          <span class="meta points-meta">${row.finishes} win${row.finishes === 1 ? "" : "s"}${row.best != null ? ` · best #${row.best}` : ""}</span>
         `;
         return div;
       }
@@ -260,7 +254,7 @@
         table.id = "battle-sheet";
         const thead = document.createElement("thead");
         const headRow = document.createElement("tr");
-        headRow.innerHTML = `<th class="sticky-col">Country</th><th class="pts-col">Pts</th>`;
+        headRow.innerHTML = `<th class="sticky-col">Country</th><th class="pts-col">Wins</th>`;
         for (const b of sheet.battles) {
           const th = document.createElement("th");
           th.title = `${b.id}${b.winner ? ` · ${b.winner}` : ""}${b.ended || b.hasFinal ? "" : " · waiting for Final"}`;
@@ -310,9 +304,11 @@
                   : `<span class="delta ${d.cls}">${d.arrow}${d.text}</span>`;
               td.innerHTML = `<span class="cell-place">${result}</span>${arrow}`;
               td.title =
-                delta == null || delta === 0
-                  ? `${pointsForRank(result)} pts`
-                  : `${pointsForRank(result)} pts · ${delta > 0 ? "up" : "down"} ${Math.abs(delta)}`;
+                result === 1
+                  ? "+1 win"
+                  : delta == null || delta === 0
+                    ? `Final place #${result}`
+                    : `Final place #${result} · ${delta > 0 ? "up" : "down"} ${Math.abs(delta)}`;
             }
             tr.appendChild(td);
           });
@@ -377,7 +373,7 @@
           const value = imageSource.value || "season";
           let entries = [];
           let title = "TOP 10";
-          let subtitle = "Season points";
+          let subtitle = "Season wins (+1 per game)";
           let filename = "flag-battle-season-top10.png";
 
           if (value === "season") {
@@ -390,7 +386,7 @@
             }));
             if (!entries.some((e) => e.points > 0)) {
               imageStatus.textContent =
-                "No season points yet — finish a Final first, or pick a stream Final.";
+                "No wins yet — finish a game first, or pick a stream Final.";
               btnDlImage.disabled = true;
               rankPreview.hidden = true;
               return;
@@ -405,7 +401,7 @@
               code: r.code,
               name: r.name,
               img: r.img || `https://flagcdn.com/w160/${r.code}.png`,
-              points: pointsForRank(r.rank),
+              points: Number(r.rank) === 1 ? 1 : 0,
             }));
             const when = stream?.startedAt
               ? new Date(stream.startedAt).toLocaleDateString()
@@ -534,11 +530,11 @@
       function rankRow(row) {
         const div = document.createElement("div");
         div.className = "rank-row";
-        const pts = pointsForRank(row.rank);
+        const win = Number(row.rank) === 1 ? " · +1 win" : "";
         div.innerHTML = `
           <span class="rank-num">#${row.rank}</span>
           <img src="${row.img || `https://flagcdn.com/w80/${row.code}.png`}" alt="" />
-          <span>${row.name}${pts ? ` · ${pts} pts` : ""}</span>
+          <span>${row.name}${win}</span>
         `;
         return div;
       }
