@@ -16,6 +16,7 @@ import {
 import { resolveApiBase, pagesDataUrl } from "./public.js";
 import { parseVoteMessage } from "./vote-message.js";
 import { averageQualifyingRating } from "./rankings-stats.js";
+import { playSfx } from "./sfx.js";
 
 /**
  * @typedef {"idle" | "sprint" | "main" | "invasion" | "qualifying" | "qualifying_hold" | "between_rounds" | "final" | "qualifying_complete" | "finished"} Phase
@@ -867,10 +868,13 @@ export class FlagBattleGame {
       f.sizeMult = this._sizeMultForVotes(nextVotes);
       f.pulse = 1;
       if (grew) {
+        playSfx("bigflag");
         this._emit(
           "phase",
           `${country.name} grew BIG (${nextVotes} votes)!`
         );
+      } else {
+        playSfx("spawn");
       }
       this._uiDirty = true;
       return true;
@@ -899,6 +903,7 @@ export class FlagBattleGame {
       f.pulse = 1;
       this.fighters.push(f);
     }
+    playSfx(grew ? "bigflag" : "spawn");
     this._emit(
       "phase",
       `${entry.voter || "Chat"} spawned ${country.name}${grew ? " · BIG!" : ""} (${nextVotes} votes)`
@@ -917,6 +922,7 @@ export class FlagBattleGame {
     };
     this.recentSprintWins = [win, ...this.recentSprintWins].slice(0, 16);
     flag.pulse = 1;
+    playSfx("opening_win");
     this.phase = "between_rounds";
     this._pendingSprintReset = true;
     this._betweenUntil =
@@ -1055,6 +1061,11 @@ export class FlagBattleGame {
       ev.label = "BLACK HOLE";
     }
     this.arenaEvent = ev;
+    playSfx("event");
+    // Event-specific stinger (saw buzz / black-hole whoosh / catch snap).
+    if (pick === "saw" || pick === "blackhole" || pick === "catch") {
+      playSfx(pick);
+    }
     this._emit("phase", `EVENT — ${ev.label} · 30s`);
     this._uiDirty = true;
   }
@@ -1112,7 +1123,7 @@ export class FlagBattleGame {
         if (!f.alive || f.falling) continue;
         const hitR = sawR + this._flagRadiusFor(f) * 0.85;
         if (Math.hypot(f.x - ev.x, f.y - ev.y) < hitR) {
-          this._eventEliminate(f, "saw");
+          this._eventEliminate(f, "saw", "saw");
         }
       }
     } else if (ev.type === "blackhole") {
@@ -1123,7 +1134,7 @@ export class FlagBattleGame {
         const dist = Math.hypot(dx, dy) || 0.001;
         f.vx += (dx / dist) * 1.1 * dt;
         f.vy += (dy / dist) * 1.1 * dt;
-        if (dist < 0.045) this._eventEliminate(f, "black hole");
+        if (dist < 0.045) this._eventEliminate(f, "black hole", "blackhole");
       }
     } else if (ev.type === "catch" && ev.hunterCode) {
       const hunter = this.fighters.find(
@@ -1135,18 +1146,19 @@ export class FlagBattleGame {
         if (f === hunter || !f.alive || f.falling) continue;
         const minD = hr + this._flagRadiusFor(f);
         if (Math.hypot(f.x - hunter.x, f.y - hunter.y) < minD * 0.95) {
-          this._eventEliminate(f, hunter.name);
+          this._eventEliminate(f, hunter.name, "catch");
         }
       }
     }
   }
 
-  _eventEliminate(f, byLabel) {
+  _eventEliminate(f, byLabel, sfxKind = "elim") {
     if (!f?.alive || f.falling) return;
     // Showcase / keep Main readable — events deal heavy damage, not always wipe.
     if (this._showcaseMain) {
       f.hp = Math.max(1, (f.hp || CONFIG.baseHp) - 35);
       f.pulse = 1;
+      playSfx(sfxKind || "hit");
       this._uiDirty = true;
       return;
     }
@@ -1154,6 +1166,7 @@ export class FlagBattleGame {
     f.hp = 0;
     this._recordDeath(f);
     this.eliminated.push(f);
+    playSfx(sfxKind || "elim");
     this._emit("elim", `${f.name} eliminated by ${byLabel}`);
     this._uiDirty = true;
   }
@@ -1199,6 +1212,7 @@ export class FlagBattleGame {
     this.roundStartedAt = performance.now();
     this.arenaScale = 1;
     if (this.stream) this.stream.mode = "final";
+    playSfx("invasion");
     this._emit(
       "phase",
       "ALIEN INVASION — hole sealed · survive the attack · last flag standing wins"
@@ -1255,7 +1269,10 @@ export class FlagBattleGame {
             f.alive = false;
             this._recordDeath(f);
             this.eliminated.push(f);
+            playSfx("alien");
             this._emit("elim", `${f.name} eliminated by alien`);
+          } else {
+            playSfx("alien");
           }
           this._uiDirty = true;
         }
@@ -1800,6 +1817,7 @@ export class FlagBattleGame {
     const maxHp = f.maxHp || CONFIG.baseHp || 100;
     f.hp = Math.max(0, (f.hp ?? maxHp) - dmg);
     f.pulse = 1;
+    playSfx(f.hp <= 0 ? "elim" : "hit");
     this._uiDirty = true;
     if (f.hp <= 0) {
       const foe =
@@ -1894,6 +1912,7 @@ export class FlagBattleGame {
     if (this.phase === "main" || this.phase === "invasion") {
       this._recordDeath(f);
     }
+    playSfx("fall");
     this._emit("elim", `${f.name} fell through the hole!`);
     this._uiDirty = true;
 

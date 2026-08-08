@@ -3,7 +3,12 @@ import { COUNTRIES } from "./countries.js";
 import { fetchPoll, fetchStreamsFromApi, listStreams } from "./store.js";
 import { buildPointsLeaderboard } from "./rankings-stats.js";
 import { siteBase as resolveSiteBase } from "./public.js";
-import { announceRoundWinner, unlockAudio, ensureStreamAudio } from "./sfx.js";
+import {
+  announceRoundWinner,
+  unlockAudio,
+  ensureStreamAudio,
+  startAmbientMusic,
+} from "./sfx.js";
 
 const game = new FlagBattleGame();
 const params = new URLSearchParams(location.search);
@@ -591,6 +596,8 @@ function renderFeed() {
 function maybeAnnounce(event) {
   if (!event || event.at === lastAnnouncedAt) return;
   lastAnnouncedAt = event.at;
+  // Keep ambient alive on feed activity (helps after tab focus / autoplay).
+  startAmbientMusic({ force: false });
   if (event.type === "qualify") {
     const name =
       game.qualified?.[game.qualified.length - 1]?.name ||
