@@ -277,9 +277,11 @@ function syncArenaHazards(arenaPx) {
   const parts = [];
 
   if (ev?.type === "saw") {
-    const deg = ((ev.angle || 0) * 180) / Math.PI;
+    const deg = (((ev.spin || 0) * 180) / Math.PI).toFixed(1);
+    const x = (ev.x ?? 0.5) * arenaPx;
+    const y = (ev.y ?? 0.5) * arenaPx;
     parts.push(
-      `<div class="hazard-saw" style="--saw-rot:${deg.toFixed(1)}deg"></div>`
+      `<div class="hazard-saw" style="transform:translate3d(${x}px,${y}px,0) translate(-50%,-50%) rotate(${deg}deg)"></div>`
     );
   }
   if (ev?.type === "blackhole") {
@@ -865,15 +867,39 @@ function shouldShowStreamPoll() {
   );
 }
 
+const SPAWN_HINT = "👉 TYPE A COUNTRY CODE IN CHAT TO SPAWN! 🏆";
+const VOTE_HINT = "TYPE A COUNTRY OR !VOTE";
+
+function fitHintIntoParent(el) {
+  if (!el) return;
+  const parent = el.parentElement;
+  if (!parent) return;
+  // Grow to fill available width; shrink until it fits the hint strip.
+  const maxPx = Math.min(42, Math.max(18, parent.clientWidth * 0.095));
+  let size = maxPx;
+  el.style.fontSize = `${size}px`;
+  el.style.whiteSpace = "normal";
+  // Cap height so it doesn't steal the whole column.
+  const maxH = Math.max(28, parent.clientHeight * 0.22);
+  let guard = 40;
+  while (
+    guard-- > 0 &&
+    size > 12 &&
+    (el.scrollWidth > el.clientWidth + 1 || el.scrollHeight > maxH)
+  ) {
+    size -= 1;
+    el.style.fontSize = `${size}px`;
+  }
+}
+
 function applySprintHudCopy() {
   const spawn = isSpawnVotePhase();
   if (els.streamRecentVotesHead) {
     els.streamRecentVotesHead.textContent = spawn ? "RECENT SPAWNS" : "RECENT VOTES";
   }
   if (els.streamRecentVotesHint) {
-    els.streamRecentVotesHint.textContent = spawn
-      ? "TYPE A COUNTRY TO SPAWN (= VOTE)"
-      : "TYPE A COUNTRY OR !VOTE";
+    els.streamRecentVotesHint.textContent = spawn ? SPAWN_HINT : VOTE_HINT;
+    fitHintIntoParent(els.streamRecentVotesHint);
   }
   if (els.streamShoutoutHead) {
     els.streamShoutoutHead.textContent = spawn ? "SPAWN ZONE" : "SHOUTOUT ZONE";
@@ -882,6 +908,7 @@ function applySprintHudCopy() {
     els.streamShoutoutHint.textContent = spawn
       ? "5 VOTES = BIG FLAG!"
       : "TYPE YOUR COUNTRY TO GET FEATURED!";
+    fitHintIntoParent(els.streamShoutoutHint);
   }
 }
 
@@ -1112,7 +1139,8 @@ function renderShoutoutCard(forceNew) {
       return;
     }
     shoutoutShownId = pick.id;
-    shoutoutUntil = now + 7000;
+    // Hold each shoutout 20–35s before rotating.
+    shoutoutUntil = now + (20_000 + Math.random() * 15_000);
     const unit = isSpawnVotePhase() ? "spawn" : "vote";
     const initial = (pick.name || "?").trim().charAt(0).toUpperCase() || "?";
     const avatarHtml = pick.avatar
@@ -1259,6 +1287,8 @@ pollTimer = setInterval(() => {
 window.addEventListener("resize", () => {
   layoutSquareArena();
   syncArena();
+  fitHintIntoParent(els.streamRecentVotesHint);
+  fitHintIntoParent(els.streamShoutoutHint);
 });
 
 async function enableMobileStreamHelpers() {
