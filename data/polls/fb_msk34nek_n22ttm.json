@@ -981,7 +981,7 @@
     "ag": 0,
     "ar": 0,
     "am": 0,
-    "au": 0,
+    "au": 1,
     "at": 0,
     "az": 0,
     "bs": 0,
@@ -1170,11 +1170,12 @@
   },
   "voters": {
     "yt:UCt6KDg7ftGLz-ftgvH2DtwA": "be",
-    "yt:UCUgQVOKIu_DRsNdExym9nsA": "th"
+    "yt:UCUgQVOKIu_DRsNdExym9nsA": "th",
+    "yt:UCOEVmGQQZaQZdQmz5PxmFvw": "au"
   },
   "closed": false,
   "closedAt": null,
-  "updatedAt": 1786177520890,
+  "updatedAt": 1786177724622,
   "voterStats": {
     "yt:UCt6KDg7ftGLz-ftgvH2DtwA": {
       "name": "@WeatherGuyCurtis",
@@ -1187,9 +1188,24 @@
       "avatar": "https://yt4.ggpht.com/ytc/AIdro_lFsXF1JmO8Jmttb_XGDdwtG9hMxdz1MaJhS8hH-3-gUsc=s64-c-k-c0x00ffffff-no-rj",
       "count": 1,
       "lastAt": 1786177520890
+    },
+    "yt:UCOEVmGQQZaQZdQmz5PxmFvw": {
+      "name": "@Thesoccergoats67",
+      "avatar": "https://yt4.ggpht.com/T056rclqSIUDqZBMbK7NNuAYAAPiAsVUqJ5wUxiZa9mZOWHPRR_iBkQVF3e-gzOwsJbm2Xaz=s64-c-k-c0x00ffffff-no-rj",
+      "count": 1,
+      "lastAt": 1786177724622
     }
   },
   "recentVotes": [
+    {
+      "voter": "@Thesoccergoats67",
+      "voterId": "yt:UCOEVmGQQZaQZdQmz5PxmFvw",
+      "code": "au",
+      "name": "Australia",
+      "img": "https://flagcdn.com/w40/au.png",
+      "avatar": "https://yt4.ggpht.com/T056rclqSIUDqZBMbK7NNuAYAAPiAsVUqJ5wUxiZa9mZOWHPRR_iBkQVF3e-gzOwsJbm2Xaz=s64-c-k-c0x00ffffff-no-rj",
+      "at": 1786177724622
+    },
     {
       "voter": "@MsRackool",
       "voterId": "yt:UCUgQVOKIu_DRsNdExym9nsA",
@@ -1225,15 +1241,6 @@
       "img": "https://flagcdn.com/w40/nl.png",
       "avatar": "https://yt4.ggpht.com/3PuySRevJq43xYWt3wUGed-cG1o-22JmiCyDVUBHuA19alAzjCXsg0vFxQDaoZEHAH_T2m5i4w=s64-c-k-c0x00ffffff-no-rj",
       "at": 1786177243322
-    },
-    {
-      "voter": "@WeatherGuyCurtis",
-      "voterId": "yt:UCt6KDg7ftGLz-ftgvH2DtwA",
-      "code": "nl",
-      "name": "Netherlands",
-      "img": "https://flagcdn.com/w40/nl.png",
-      "avatar": "https://yt4.ggpht.com/3PuySRevJq43xYWt3wUGed-cG1o-22JmiCyDVUBHuA19alAzjCXsg0vFxQDaoZEHAH_T2m5i4w=s64-c-k-c0x00ffffff-no-rj",
-      "at": 1786177120585
     }
   ]
 }
