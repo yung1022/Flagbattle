@@ -9,13 +9,17 @@ import {
   getLocalPoll,
   rankPollPlaces,
   fetchStreamsFromApi,
+  listStreams,
   setPersistEnabled,
   seedTeststreamPollDemo,
   startTeststreamChatVoteDemo,
 } from "./store.js";
 import { resolveApiBase, pagesDataUrl } from "./public.js";
 import { parseVoteMessage } from "./vote-message.js";
-import { averageQualifyingRating } from "./rankings-stats.js";
+import {
+  averageQualifyingRating,
+  computeWinRankReveal,
+} from "./rankings-stats.js";
 import { playSfx } from "./sfx.js";
 
 /**
@@ -144,6 +148,8 @@ export const CONFIG = {
   battleBounceBoost: 1.55,
   /** After Final champion, keep the winner on screen before ending the stream. */
   winnerHoldMs: 60 * 1000,
+  /** Full-screen rank-change reveal after a whole-game win (pauses combat). */
+  winRevealMs: 3000,
   /** Brief finalists reveal before Final starts in the same livestream. */
   finalistsRevealMs: 12 * 1000,
   /** Skip full UI notifications; physics still every frame. */
@@ -290,6 +296,9 @@ export class FlagBattleGame {
     this._battleAccum = 0;
     this._winnerHoldUntil = 0;
     this._winnerHoldDone = false;
+    /** @type {null | {code:string,name:string,img:string,fromRank:number|null,toRank:number,points:number,prevPoints:number,delta:number|null,firstWin:boolean}} */
+    this.rankReveal = null;
+    this._winRevealUntil = 0;
     this._pendingUnifiedFinal = false;
     this._raf = 0;
     this._lastTs = 0;
@@ -351,6 +360,8 @@ export class FlagBattleGame {
     this._battleAccum = 0;
     this._winnerHoldUntil = 0;
     this._winnerHoldDone = false;
+    this.rankReveal = null;
+    this._winRevealUntil = 0;
     this._pendingUnifiedFinal = false;
     this._uiDirty = true;
     this._emit(
@@ -1371,6 +1382,12 @@ export class FlagBattleGame {
       this._winnerHoldUntil &&
       !this._winnerHoldDone
     ) {
+      // Clear the 3s rank-reveal overlay once its pause window ends.
+      if (this.rankReveal && this._winRevealUntil && now >= this._winRevealUntil) {
+        this.rankReveal = null;
+        this._winRevealUntil = 0;
+        this._uiDirty = true;
+      }
       if (now >= this._winnerHoldUntil) {
         this._completeWinnerHold();
       } else {
@@ -2464,15 +2481,46 @@ export class FlagBattleGame {
       this.arenaEvent = null;
       // Keep the loop running so the winner banner stays live for the hold.
       this._winnerHoldDone = false;
-      this._winnerHoldUntil =
-        performance.now() + Math.max(5000, CONFIG.winnerHoldMs || 60_000);
+      const revealMs = Math.max(1000, CONFIG.winRevealMs || 3000);
+      const holdMs = Math.max(5000, CONFIG.winnerHoldMs || 60_000);
+      const now = performance.now();
+      // Pause everything for the rank-change reveal, then continue champion hold.
+      this._winRevealUntil = now + revealMs;
+      this._winnerHoldUntil = now + revealMs + holdMs;
+
+      // Championship rank change (+1 win) before we persist this stream's win.
+      try {
+        this.rankReveal = computeWinRankReveal(
+          listStreams(),
+          COUNTRIES,
+          { code: flag.code, name: flag.name, img: flag.img },
+          this.stream
+        );
+      } catch (err) {
+        console.warn("[rank-reveal]", err?.message || err);
+        this.rankReveal = {
+          code: flag.code,
+          name: flag.name,
+          img: flag.img,
+          fromRank: null,
+          toRank: 1,
+          points: 1,
+          prevPoints: 0,
+          delta: null,
+          firstWin: true,
+        };
+      }
+
+      const pointAt = new Date().toISOString();
       if (this.stream) {
         this.stream.mode = "final";
         this.stream.status = "winner_hold";
         this.stream.final = {
           ranking: this._buildFinalRanking(flag),
           winner: { code: flag.code, name: flag.name, img: flag.img },
-          at: new Date().toISOString(),
+          at: pointAt,
+          pointAt,
+          scoring: "wins_v1",
           rules: "opening_main_invasion",
           rankingRules: {
             primary: "last_death_elimination_sequence",
@@ -2490,13 +2538,26 @@ export class FlagBattleGame {
         this.stream.endedAt = null;
         saveStream(this.stream);
         this._publishLive({
-          winnerHoldRemainingMs: Math.max(0, this._winnerHoldUntil - performance.now()),
+          winnerHoldRemainingMs: Math.max(
+            0,
+            this._winnerHoldUntil - performance.now()
+          ),
+          rankReveal: this.rankReveal,
         });
       }
+      const rr = this.rankReveal;
+      const rankLine =
+        rr?.fromRank != null
+          ? `#${rr.fromRank} → #${rr.toRank}`
+          : `→ #${rr?.toRank ?? 1}`;
+      this._emit(
+        "rank_reveal",
+        `${flag.name} +1 win · ${rankLine} (${rr?.points ?? 1} pts)`
+      );
       this._emit("winner", `${flag.name} is the LAST FLAG STANDING!`);
       this._emit(
         "phase",
-        `Champion hold · ${Math.round((CONFIG.winnerHoldMs || 60_000) / 1000)}s before stream ends`
+        `Rank reveal · ${Math.round(revealMs / 1000)}s · then champion hold`
       );
       this._uiDirty = true;
       this._flushUi(true);
@@ -2507,6 +2568,8 @@ export class FlagBattleGame {
   _completeWinnerHold() {
     this._winnerHoldDone = true;
     this._winnerHoldUntil = 0;
+    this.rankReveal = null;
+    this._winRevealUntil = 0;
     if (this.stream && this.winner) {
       const poll = getLocalPoll(this.stream.id);
       const pollPlaces = rankPollPlaces(poll);

@@ -31,6 +31,13 @@ const els = {
   winnerBanner: document.getElementById("winner-banner"),
   winnerFlag: document.getElementById("winner-flag"),
   winnerName: document.getElementById("winner-name"),
+  rankReveal: document.getElementById("rank-reveal"),
+  rankRevealFlag: document.getElementById("rank-reveal-flag"),
+  rankRevealName: document.getElementById("rank-reveal-name"),
+  rankRevealChange: document.getElementById("rank-reveal-change"),
+  rankRevealFrom: document.getElementById("rank-reveal-from"),
+  rankRevealTo: document.getElementById("rank-reveal-to"),
+  rankRevealMeta: document.getElementById("rank-reveal-meta"),
   roundMeta: document.getElementById("round-meta"),
   streamLink: document.getElementById("stream-link"),
   streamLinks: document.getElementById("stream-links"),
@@ -474,7 +481,7 @@ function renderBoard() {
 
   if (showingPoints) {
     els.boardLabel.textContent = "CHAMPIONSHIP";
-    els.boardMeta.textContent = "Top 10 · season points";
+    els.boardMeta.textContent = "Top 10 · wins (+1 per game)";
   } else if (sprintBoard) {
     els.boardLabel.textContent = "OPENING WINS";
     els.boardMeta.textContent = flags.length
@@ -630,6 +637,9 @@ function maybeAnnounce(event) {
     announceRoundWinner(name, { champion: false });
   } else if (event.type === "winner") {
     announceRoundWinner(game.winner?.name || "Champion", { champion: true });
+  } else if (event.type === "rank_reveal") {
+    // Refresh Top 10 so the board catches the new win after the reveal.
+    refreshChampionshipTop10();
   }
 }
 
@@ -804,13 +814,60 @@ function renderHud() {
       ? "Start Battle"
       : "In Progress";
 
-  if (game.phase === "finished" && game.winner) {
+  renderRankReveal();
+
+  const showingReveal = Boolean(game.rankReveal && game._winRevealUntil);
+  if (game.phase === "finished" && game.winner && !showingReveal) {
     els.winnerBanner.classList.add("show");
     els.winnerFlag.src = game.winner.img;
     els.winnerFlag.alt = game.winner.name;
     els.winnerName.textContent = game.winner.name;
   } else {
     els.winnerBanner.classList.remove("show");
+  }
+}
+
+function renderRankReveal() {
+  const el = els.rankReveal;
+  if (!el) return;
+  const rr = game.rankReveal;
+  const show = Boolean(rr && game.phase === "finished" && game._winRevealUntil);
+  el.hidden = !show;
+  el.classList.toggle("show", show);
+  if (!show || !rr) return;
+
+  if (els.rankRevealFlag) {
+    els.rankRevealFlag.src = rr.img || game.winner?.img || "";
+    els.rankRevealFlag.alt = rr.name || "";
+  }
+  if (els.rankRevealName) els.rankRevealName.textContent = rr.name || "—";
+  if (els.rankRevealFrom) {
+    els.rankRevealFrom.textContent =
+      rr.fromRank != null ? `#${rr.fromRank}` : "NEW";
+  }
+  if (els.rankRevealTo) {
+    els.rankRevealTo.textContent = `#${rr.toRank ?? 1}`;
+  }
+  if (els.rankRevealChange) {
+    els.rankRevealChange.classList.remove("up", "down", "flat");
+    if (rr.delta == null || rr.delta === 0) {
+      els.rankRevealChange.classList.add("flat");
+    } else if (rr.delta > 0) {
+      els.rankRevealChange.classList.add("up");
+    } else {
+      els.rankRevealChange.classList.add("down");
+    }
+  }
+  if (els.rankRevealMeta) {
+    const pts = Number(rr.points) || 0;
+    if (rr.firstWin) {
+      els.rankRevealMeta.textContent = `First win · ${pts} pt${pts === 1 ? "" : "s"}`;
+    } else if (rr.delta != null && rr.delta !== 0) {
+      const dir = rr.delta > 0 ? "up" : "down";
+      els.rankRevealMeta.textContent = `${Math.abs(rr.delta)} ${dir} · ${pts} win${pts === 1 ? "" : "s"}`;
+    } else {
+      els.rankRevealMeta.textContent = `${pts} win${pts === 1 ? "" : "s"} · same place`;
+    }
   }
 }
 

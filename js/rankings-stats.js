@@ -1,20 +1,22 @@
 /**
  * Season sheet + points from stream ranking history.
  * Qualifying + Final livestreams are paired into one battle column.
- * Points: 1st→50, 2nd→49, … 50th→1 (Final places only; ranks beyond 50 score 0).
- * Poll bonus when Final ends: 1st→10, 2nd→5, 3rd→3, 4th→2, 5th→1.
- * Finished battles: Final place from recorded Final ranking
- *   (Final 4 by elim order, Swiss cuts by avg Qual place, hole by fall order),
- *   or non-qualifier place from average qualifying-round rank.
- * "Q" only while waiting for that battle’s Final.
+ *
+ * Scoring (wins_v1):
+ *   +1 point per whole-game win (Last Flag Standing / battle.winner).
+ *   Tiebreak: earlier first-win timestamp ranks higher.
+ * Opening (sprint) round wins are unscored.
+ *
+ * Battle sheet still shows Final place / Q / nq for history.
  */
 
 import { previousPointsRanks, rankDelta } from "./rank-delta.js";
 
 export const POINTS_TOP_N = 50;
-/** Extra season points from Final poll places 1–5. */
+/** @deprecated Poll bonus no longer adds season points (wins_v1). Kept for display helpers. */
 export const POLL_PLACE_POINTS = [10, 5, 3, 2, 1];
 
+/** @deprecated Place-based season points removed — use +1 per win. */
 export function pointsForRank(rank) {
   const r = Number(rank);
   if (!Number.isFinite(r) || r < 1 || r > POINTS_TOP_N) return 0;
@@ -34,7 +36,7 @@ export function pollBonusForBattle(battle, code) {
     battle?.final?.pollPlaces ||
     null;
   if (!Array.isArray(places) || !code) return 0;
-  const c = String(code).toLowerCase();
+  const c = String(code || "").toLowerCase();
   const hit = places.find((p) => String(p?.code || "").toLowerCase() === c);
   if (!hit) return 0;
   if (Number.isFinite(Number(hit.points))) return Number(hit.points);
@@ -152,9 +154,6 @@ function qualifiedOverlapRatio(a, b) {
 
 /**
  * Pair a finished qualifying stream with the following Final into one battle.
- * Old combined streams (qual + final on one record) stay a single column.
- * Unified go-live (Qual→Final in one stream) is also one column — never
- * absorbed as the Final half of a different Qualifying stream.
  * @returns {Array<{
  *   id: string,
  *   qualifying: object|null,
@@ -272,6 +271,27 @@ function makeBattle({ qualifying, final }) {
     ended,
     winner: final?.winner || final?.final?.winner || null,
   };
+}
+
+/** ISO timestamp when a battle awarded its whole-game win point. */
+export function battleWinAt(battle) {
+  if (!battle?.ended) return null;
+  const w = battle.winner || battle.final?.winner || battle.final?.final?.winner;
+  if (!w?.code) return null;
+  return (
+    battle.final?.final?.at ||
+    battle.final?.final?.pointAt ||
+    battle.final?.endedAt ||
+    battle.startedAt ||
+    null
+  );
+}
+
+/** True when this country won the whole game for the battle (+1 point). */
+export function isBattleWinner(battle, code) {
+  if (!battle?.ended || !code) return false;
+  const w = battle.winner || battle.final?.winner || battle.final?.final?.winner;
+  return String(w?.code || "").toLowerCase() === String(code).toLowerCase();
 }
 
 /** Stable short label for a battle column. */
@@ -471,18 +491,24 @@ export function buildSeasonSheet(streams, countries) {
     let points = 0;
     let finishes = 0;
     let best = null;
+    let firstWinAt = null;
     let pollBonus = 0;
-    for (let i = 0; i < results.length; i++) {
-      const r = results[i];
-      // Points / best finish only from Final places — not avg nq ranks.
-      if (typeof r === "number" && isFinalistInBattle(battles[i], c.code)) {
+    for (let i = 0; i < battles.length; i++) {
+      const b = battles[i];
+      // Whole-game win → +1 season point.
+      if (isBattleWinner(b, c.code)) {
+        points += 1;
         finishes += 1;
-        points += pointsForRank(r);
+        const at = battleWinAt(b);
+        if (at && (firstWinAt == null || at < firstWinAt)) firstWinAt = at;
+      }
+      // Track best Final place for sheet meta (not used for points/sort).
+      const r = results[i];
+      if (typeof r === "number" && isFinalistInBattle(b, c.code)) {
         if (best == null || r < best) best = r;
       }
-      pollBonus += pollBonusForBattle(battles[i], c.code);
+      pollBonus += pollBonusForBattle(b, c.code);
     }
-    points += pollBonus;
     return {
       code: c.code,
       name: c.name,
@@ -493,12 +519,18 @@ export function buildSeasonSheet(streams, countries) {
       pollBonus,
       finishes,
       best,
+      firstWinAt,
     };
   });
 
   rows.sort((a, b) => {
     if (b.points !== a.points) return b.points - a.points;
-    if ((a.best ?? 999) !== (b.best ?? 999)) return (a.best ?? 999) - (b.best ?? 999);
+    // Same wins: earlier first point → better position.
+    if (a.firstWinAt && b.firstWinAt && a.firstWinAt !== b.firstWinAt) {
+      return a.firstWinAt.localeCompare(b.firstWinAt);
+    }
+    if (a.firstWinAt && !b.firstWinAt) return -1;
+    if (!a.firstWinAt && b.firstWinAt) return 1;
     return a.name.localeCompare(b.name);
   });
 
@@ -532,6 +564,7 @@ export function buildPointsLeaderboard(streams, countries) {
     points: r.points,
     finishes: r.finishes,
     best: r.best,
+    firstWinAt: r.firstWinAt || null,
   }));
 
   const prevRanks = previousPointsRanks(
@@ -557,5 +590,82 @@ function buildPointsLeaderboardBare(streams, countries) {
     points: r.points,
     finishes: r.finishes,
     best: r.best,
+    firstWinAt: r.firstWinAt || null,
   }));
+}
+
+/**
+ * Compute championship rank change for a country after awarding +1 win.
+ * @param {Array} priorStreams streams BEFORE this win is recorded
+ * @param {Array} countries
+ * @param {{code:string,name:string,img?:string}} winner
+ * @param {object|null} currentStream stream record that will hold this win
+ * @returns {{code:string,name:string,img:string,fromRank:number|null,toRank:number,points:number,prevPoints:number,delta:number|null,firstWin:boolean}}
+ */
+export function computeWinRankReveal(
+  priorStreams,
+  countries,
+  winner,
+  currentStream = null
+) {
+  const code = String(winner?.code || "").toLowerCase();
+  const prior = (priorStreams || []).filter(
+    (s) => !currentStream?.id || s.id !== currentStream.id
+  );
+  const prevBoard = buildPointsLeaderboardBare(prior, countries);
+  const prevRow = prevBoard.find((r) => r.code === code);
+  const prevPoints = Number(prevRow?.points) || 0;
+  // Unranked (0 wins) shows as NEW rather than a zero-point alphabetical place.
+  const fromRank = prevPoints > 0 ? (prevRow?.rank ?? null) : null;
+
+  const pointAt = new Date().toISOString();
+  const hypothetical = {
+    ...(currentStream || {}),
+    id: currentStream?.id || `win-${code}-${pointAt}`,
+    mode: "final",
+    winner: {
+      code: winner.code,
+      name: winner.name,
+      img: winner.img || `https://flagcdn.com/w160/${winner.code}.png`,
+    },
+    final: {
+      ranking: [
+        {
+          code: winner.code,
+          name: winner.name,
+          img: winner.img || `https://flagcdn.com/w160/${winner.code}.png`,
+          rank: 1,
+        },
+      ],
+      winner: {
+        code: winner.code,
+        name: winner.name,
+        img: winner.img || `https://flagcdn.com/w160/${winner.code}.png`,
+      },
+      at: pointAt,
+      pointAt,
+      scoring: "wins_v1",
+    },
+    endedAt: pointAt,
+    startedAt: currentStream?.startedAt || pointAt,
+  };
+
+  const nextBoard = buildPointsLeaderboardBare([hypothetical, ...prior], countries);
+  const nextRow = nextBoard.find((r) => r.code === code);
+  const toRank = nextRow?.rank ?? 1;
+  const points = Number(nextRow?.points) || prevPoints + 1;
+  const delta =
+    fromRank != null && Number.isFinite(toRank) ? fromRank - toRank : null;
+
+  return {
+    code: winner.code,
+    name: winner.name,
+    img: winner.img || `https://flagcdn.com/w160/${winner.code}.png`,
+    fromRank,
+    toRank,
+    points,
+    prevPoints,
+    delta,
+    firstWin: prevPoints === 0,
+  };
 }
