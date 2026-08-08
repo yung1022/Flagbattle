@@ -176,6 +176,7 @@ function syncArena() {
 
   const showAllAlive = game.phase === "qualifying_hold";
   const visibleIds = new Set();
+  const hunterCode = game.arenaEvent?.hunterCode || "";
 
   for (const f of game.fighters) {
     const show = showAllAlive ? f.alive : f.alive || f.falling;
@@ -193,17 +194,26 @@ function syncArena() {
 
     visibleIds.add(f.id);
     const el = ensureFighterEl(f);
-    if (sizeChanged) el.style.setProperty("--size", `${sizeBase}px`);
+    const sizeMult = Number(f.sizeMult) || 1;
+    const px = Math.round(sizeBase * Math.max(0.85, Math.min(2.8, sizeMult)));
+    el.style.setProperty("--size", `${px}px`);
     const x = f.x * w;
     const y = f.y * h;
-    const scale = f.pulse > 0.2 ? 1.12 : 1;
-    el.style.transform = `translate3d(${x}px, ${y}px, 0) translate(-50%, -50%) scale(${scale})`;
+    const pulse = f.pulse > 0.2 ? 1.12 : 1;
+    el.style.transform = `translate3d(${x}px, ${y}px, 0) translate(-50%, -50%) scale(${pulse})`;
     if (el.classList.contains("falling") !== f.falling) {
       el.classList.toggle("falling", f.falling);
     }
+    el.classList.toggle("big-flag", sizeMult >= 1.4);
+    el.classList.toggle("catcher", Boolean(hunterCode && f.code === hunterCode));
 
     const battling =
-      (game.finalStage === "swiss" || game.finalStage === "battle") &&
+      (game.phase === "main" ||
+        game.phase === "invasion" ||
+        game.finalStage === "swiss" ||
+        game.finalStage === "battle" ||
+        game.finalStage === "main" ||
+        game.finalStage === "invasion") &&
       f.alive &&
       !f.falling;
     el.classList.toggle("battling", battling);
@@ -225,6 +235,8 @@ function syncArena() {
     }
   }
 
+  syncArenaHazards(w);
+
   if (fighterEls.size !== visibleIds.size) {
     for (const [id, el] of fighterEls) {
       if (!visibleIds.has(id) && !el.classList.contains("eliminating")) {
@@ -243,6 +255,59 @@ function isSprintPhase() {
   );
 }
 
+function isSpawnVotePhase() {
+  return (
+    isSprintPhase() || game.phase === "main" || game.phase === "invasion"
+  );
+}
+
+/** Event FX + alien ships overlaid on the arena. */
+function syncArenaHazards(arenaPx) {
+  let layer = document.getElementById("arena-hazards");
+  if (!layer) {
+    layer = document.createElement("div");
+    layer.id = "arena-hazards";
+    layer.className = "arena-hazards";
+    layer.setAttribute("aria-hidden", "true");
+    els.arena.appendChild(layer);
+  }
+
+  const ev = game.arenaEvent;
+  const aliens = Array.isArray(game.aliens) ? game.aliens : [];
+  const parts = [];
+
+  if (ev?.type === "saw") {
+    const deg = ((ev.angle || 0) * 180) / Math.PI;
+    parts.push(
+      `<div class="hazard-saw" style="--saw-rot:${deg.toFixed(1)}deg"></div>`
+    );
+  }
+  if (ev?.type === "blackhole") {
+    parts.push(`<div class="hazard-blackhole"></div>`);
+  }
+  if (ev?.type === "catch") {
+    parts.push(
+      `<div class="hazard-catch-banner">${ev.label || "CATCH"}</div>`
+    );
+  }
+  if (game.phase === "invasion" || aliens.length) {
+    for (let i = 0; i < aliens.length; i++) {
+      const a = aliens[i];
+      const x = (a.x || 0.5) * arenaPx;
+      const y = (a.y || 0.5) * arenaPx;
+      parts.push(
+        `<div class="hazard-alien" style="transform:translate3d(${x}px,${y}px,0) translate(-50%,-50%)"><i></i></div>`
+      );
+    }
+  }
+  const html = parts.join("");
+  if (layer.dataset.html !== html) {
+    layer.dataset.html = html;
+    layer.innerHTML = html;
+  }
+  layer.hidden = !parts.length;
+}
+
 /** Qualifying / Final left board alternates with championship Top 10 (not Sprint). */
 const BOARD_VIEW_LIVE = "live";
 const BOARD_VIEW_POINTS = "points";
@@ -259,8 +324,10 @@ let championshipRefreshTimer = 0;
 function shouldRotateBoardViews() {
   if (isSprintPhase()) return false;
   if (game.phase === "idle") return false;
-  // Qualifying + Final (incl. holds / between rounds / winner hold).
+  // Main / Invasion / legacy Qual+Final — alternate with championship Top 10.
   return (
+    game.phase === "main" ||
+    game.phase === "invasion" ||
     game.phase === "qualifying" ||
     game.phase === "qualifying_hold" ||
     game.phase === "qualifying_complete" ||
@@ -378,10 +445,20 @@ function renderBoard() {
     els.boardLabel.textContent = "CHAMPIONSHIP";
     els.boardMeta.textContent = "Top 10 · season points";
   } else if (sprintBoard) {
-    els.boardLabel.textContent = "SPRINT WINS";
+    els.boardLabel.textContent = "OPENING WINS";
     els.boardMeta.textContent = flags.length
-      ? `${flags.length} win${flags.length === 1 ? "" : "s"} · no points`
-      : "Type a country to spawn";
+      ? `${flags.length} win${flags.length === 1 ? "" : "s"} · unscored`
+      : "Type a country to spawn (= vote)";
+  } else if (game.phase === "main") {
+    els.boardLabel.textContent = "ELIMINATIONS";
+    els.boardMeta.textContent = flags.length
+      ? `${flags.length} recent · last death ranks`
+      : "HP combat · random events";
+  } else if (game.phase === "invasion") {
+    els.boardLabel.textContent = "INVASION";
+    els.boardMeta.textContent = flags.length
+      ? `${flags.length} fallen · last alive wins`
+      : "Aliens attacking · hole sealed";
   } else if (game.streamMode === "final") {
     if (game.phase === "finished" && game.winner) {
       els.boardLabel.textContent = "CHAMPION";
@@ -433,7 +510,7 @@ function renderBoard() {
     const empty = document.createElement("div");
     empty.className = "board-empty";
     empty.textContent = sprintBoard
-      ? "No sprint wins yet — last flag standing wins the round"
+      ? "No opening wins yet — last flag standing wins the round"
       : game.phase === "qualifying" ||
           game.phase === "between_rounds" ||
           game.phase === "qualifying_hold"
@@ -558,10 +635,27 @@ function renderHud() {
   }
 
   if (els.roundMeta) {
-    if (game.phase === "idle") els.roundMeta.textContent = "Sprint → Qualifying → Final";
+    if (game.phase === "idle")
+      els.roundMeta.textContent = "Opening → Main → Alien Invasion";
     else if (isSprintPhase())
       els.roundMeta.textContent =
-        "Sprint · smaller hole · type a country to spawn · wins unscored";
+        "Opening · spawn = vote · big flag every 5 votes · wins unscored";
+    else if (game.phase === "main") {
+      const ev = game.arenaEvent;
+      const nextMs =
+        typeof game.nextEventRemainingMs === "function"
+          ? game.nextEventRemainingMs()
+          : 0;
+      const evMs =
+        typeof game.eventRemainingMs === "function"
+          ? game.eventRemainingMs()
+          : 0;
+      els.roundMeta.textContent = ev
+        ? `EVENT · ${ev.label || ev.type} · ${formatMs(evMs)} left`
+        : `Next event in ${formatMs(nextMs)} · HP + attacks`;
+    } else if (game.phase === "invasion")
+      els.roundMeta.textContent =
+        "Alien invasion · hole sealed · last flag standing wins";
     else if (game.phase === "qualifying_hold")
       els.roundMeta.textContent = "All qualified · waiting on clock";
     else if (game.phase === "qualifying_complete")
@@ -581,8 +675,22 @@ function renderHud() {
   }
 
   if (isSprintPhase()) {
-    els.phaseText.textContent = "Sprint";
+    els.phaseText.textContent = "Opening";
     els.timer.textContent = formatMs(game.sprintRemainingMs());
+    els.timer.hidden = false;
+  } else if (game.phase === "main") {
+    els.phaseText.textContent = game.arenaEvent
+      ? `Event · ${game.arenaEvent.type}`
+      : "Main";
+    els.timer.textContent = formatMs(
+      typeof game.mainRemainingMs === "function"
+        ? game.mainRemainingMs()
+        : 0
+    );
+    els.timer.hidden = false;
+  } else if (game.phase === "invasion") {
+    els.phaseText.textContent = "Invasion";
+    els.timer.textContent = `${fighting} LEFT`;
     els.timer.hidden = false;
   } else if (game.phase === "qualifying_complete") {
     els.phaseText.textContent = "Finalists";
@@ -648,6 +756,8 @@ function renderHud() {
 
   const busy =
     game.phase === "sprint" ||
+    game.phase === "main" ||
+    game.phase === "invasion" ||
     game.phase === "qualifying" ||
     game.phase === "qualifying_hold" ||
     game.phase === "qualifying_complete" ||
@@ -738,13 +848,14 @@ function renderStreamLinks() {
 
 function shouldShowStreamPoll() {
   if (!game.stream?.id) return false;
-  // Sprint + Qualifying through Final (closes after champion).
   if (game.phase === "idle") return false;
   if (game.phase === "finished" && !game.winner && game.streamMode !== "final") {
     return true;
   }
   return (
     game.phase === "sprint" ||
+    game.phase === "main" ||
+    game.phase === "invasion" ||
     game.phase === "qualifying" ||
     game.phase === "between_rounds" ||
     game.phase === "qualifying_hold" ||
@@ -755,35 +866,41 @@ function shouldShowStreamPoll() {
 }
 
 function applySprintHudCopy() {
-  const sprint = isSprintPhase();
+  const spawn = isSpawnVotePhase();
   if (els.streamRecentVotesHead) {
-    els.streamRecentVotesHead.textContent = sprint ? "RECENT SPAWNS" : "RECENT VOTES";
+    els.streamRecentVotesHead.textContent = spawn ? "RECENT SPAWNS" : "RECENT VOTES";
   }
   if (els.streamRecentVotesHint) {
-    els.streamRecentVotesHint.textContent = sprint
-      ? "TYPE A COUNTRY TO SPAWN"
+    els.streamRecentVotesHint.textContent = spawn
+      ? "TYPE A COUNTRY TO SPAWN (= VOTE)"
       : "TYPE A COUNTRY OR !VOTE";
   }
   if (els.streamShoutoutHead) {
-    els.streamShoutoutHead.textContent = sprint ? "SPAWN ZONE" : "SHOUTOUT ZONE";
+    els.streamShoutoutHead.textContent = spawn ? "SPAWN ZONE" : "SHOUTOUT ZONE";
   }
   if (els.streamShoutoutHint) {
-    els.streamShoutoutHint.textContent = sprint
-      ? "TYPE YOUR COUNTRY TO SPAWN!"
+    els.streamShoutoutHint.textContent = spawn
+      ? "5 VOTES = BIG FLAG!"
       : "TYPE YOUR COUNTRY TO GET FEATURED!";
   }
 }
 
-/** Chat votes during Sprint also revive/spawn that country in the arena. */
+/** Chat votes spawn/revive during Opening + Main + Invasion. */
 let sprintSpawnEndsAt = 0;
 let sprintLastVoteAt = 0;
 
 function applySprintSpawnsFromPoll(poll) {
-  if (game.phase !== "sprint" || typeof game.spawnSprintCountry !== "function") {
+  if (!isSpawnVotePhase() || typeof game.spawnSprintCountry !== "function") {
     return;
   }
-  if (game.sprintEndsAt !== sprintSpawnEndsAt) {
-    sprintSpawnEndsAt = game.sprintEndsAt;
+  const phaseKey =
+    game.phase === "sprint"
+      ? game.sprintEndsAt
+      : game.phase === "main"
+        ? game.mainEndsAt
+        : 1;
+  if (phaseKey !== sprintSpawnEndsAt) {
+    sprintSpawnEndsAt = phaseKey;
     sprintLastVoteAt = 0;
   }
   const recent = Array.isArray(poll?.recentVotes) ? poll.recentVotes : [];
@@ -817,8 +934,8 @@ function renderStreamPoll(poll) {
         img: q.img,
       }));
 
-  // During Sprint: show spawn panel, hide Final poll bars.
-  if (isSprintPhase()) {
+  // Opening / Main / Invasion: spawn panel; hide dense poll bars.
+  if (isSpawnVotePhase()) {
     els.streamPoll.hidden = true;
     renderRecentVotes(poll || { recentVotes: [] });
     return;
@@ -873,14 +990,14 @@ function renderRecentVotes(poll) {
     return;
   }
   applySprintHudCopy();
-  const sprint = isSprintPhase();
-  const recent = sprint
+  const spawn = isSpawnVotePhase();
+  const recent = spawn
     ? (Array.isArray(game.recentSpawns) ? game.recentSpawns.slice(0, 4) : [])
     : Array.isArray(poll?.recentVotes)
       ? poll.recentVotes.slice(0, 4)
       : [];
   els.streamRecentVotes.hidden = false;
-  const key = `${sprint ? "s" : "v"}:` + (recent.length
+  const key = `${spawn ? "s" : "v"}:` + (recent.length
     ? recent.map((r) => `${r.voter}:${r.code}:${r.at}`).join("|")
     : "__empty__");
   if (key !== lastRecentKey) {
@@ -905,10 +1022,10 @@ function renderRecentVotes(poll) {
 }
 
 function updateShoutoutPool(poll) {
-  const sprint = isSprintPhase();
+  const spawn = isSpawnVotePhase();
   const list = [];
-  // Sprint: prefer spawners from recentSpawns (chat typed a country).
-  if (sprint && Array.isArray(game.recentSpawns) && game.recentSpawns.length) {
+  // Spawn phases: prefer spawners from recentSpawns.
+  if (spawn && Array.isArray(game.recentSpawns) && game.recentSpawns.length) {
     const map = new Map();
     for (const r of game.recentSpawns) {
       const id = r.voterId || r.voter;
@@ -990,13 +1107,13 @@ function renderShoutoutCard(forceNew) {
     if (!pick) {
       shoutoutShownId = "";
       els.streamShoutoutCard.innerHTML = `<div class="stream-shoutout-empty">${
-        isSprintPhase() ? "Spawn to get featured" : "Vote to get featured"
+        isSpawnVotePhase() ? "Spawn to get featured" : "Vote to get featured"
       }</div>`;
       return;
     }
     shoutoutShownId = pick.id;
     shoutoutUntil = now + 7000;
-    const unit = isSprintPhase() ? "spawn" : "vote";
+    const unit = isSpawnVotePhase() ? "spawn" : "vote";
     const initial = (pick.name || "?").trim().charAt(0).toUpperCase() || "?";
     const avatarHtml = pick.avatar
       ? `<img class="stream-shoutout-avatar" src="${escapeAttr(pick.avatar)}" alt="" />`
@@ -1020,7 +1137,7 @@ function renderShoutoutCard(forceNew) {
   if (cur) {
     const countEl = els.streamShoutoutCard.querySelector(".stream-shoutout-count");
     if (countEl) {
-      const unit = isSprintPhase() ? "spawn" : "vote";
+      const unit = isSpawnVotePhase() ? "spawn" : "vote";
       countEl.textContent = `${cur.count} ${unit}${cur.count === 1 ? "" : "s"} this stream`;
     }
   }

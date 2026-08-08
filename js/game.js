@@ -18,20 +18,20 @@ import { parseVoteMessage } from "./vote-message.js";
 import { averageQualifyingRating } from "./rankings-stats.js";
 
 /**
- * @typedef {"idle" | "sprint" | "qualifying" | "qualifying_hold" | "between_rounds" | "final" | "qualifying_complete" | "finished"} Phase
+ * @typedef {"idle" | "sprint" | "main" | "invasion" | "qualifying" | "qualifying_hold" | "between_rounds" | "final" | "qualifying_complete" | "finished"} Phase
  * @typedef {"qualifying" | "final"} StreamMode
- * @typedef {"hole" | "swiss" | "battle" | null} FinalStage
- * @typedef {"full" | "hole" | "swiss" | "final4" | "sprint" | null} TestStreamKind
+ * @typedef {"hole" | "swiss" | "battle" | "main" | "invasion" | null} FinalStage
+ * @typedef {"full" | "opening" | "sprint" | "main" | "invasion" | "hole" | "swiss" | "final4" | null} TestStreamKind
+ * @typedef {"saw" | "blackhole" | "catch" | null} ArenaEventType
  */
 
 const params = new URLSearchParams(location.search);
 
-/** Easy/teststream: full = Qual→Final (same as go-live). Stage shortcuts: hole|swiss|final4. */
+/** Easy/teststream: full = Opening → Main → Invasion. Stage shortcuts available. */
 export function normalizeTestStream(raw) {
   const v = String(raw ?? "")
     .trim()
     .toLowerCase();
-  // Always treat bare/default teststream as the full unified battle.
   if (
     v === "" ||
     v === "1" ||
@@ -44,13 +44,16 @@ export function normalizeTestStream(raw) {
   ) {
     return "full";
   }
-  if (v === "sprint") return "sprint";
+  if (v === "sprint" || v === "opening" || v === "spawn" || v === "phase1") {
+    return "opening";
+  }
+  if (v === "main" || v === "phase2" || v === "events") return "main";
+  if (v === "invasion" || v === "alien" || v === "phase3" || v === "end") {
+    return "invasion";
+  }
   if (v === "hole" || v === "final" || v === "final1" || v === "part1") return "hole";
   if (v === "swiss" || v === "part2") return "swiss";
-  if (v === "final4" || v === "last" || v === "part3") {
-    return "final4";
-  }
-  // Unknown values still run the full Qual → Final battle.
+  if (v === "final4" || v === "last" || v === "part3") return "final4";
   return "full";
 }
 
@@ -73,9 +76,24 @@ const STREAM_MODE =
 
 export const CONFIG = {
   qualifyingMs: 30 * 60 * 1000,
-  /** Pre-battle Sprint (chat spawn + hole) — wins do not score season points. */
+  /** Opening (Sprint-like): all flags, chat spawn/vote, smaller hole. */
   sprintMs: 15 * 60 * 1000,
-  /** Sprint hole aperture (radians) — smaller than Qualifying/Final. */
+  /** Main arena: HP + random events (50–60 minutes). */
+  mainMsMin: 50 * 60 * 1000,
+  mainMsMax: 60 * 60 * 1000,
+  /** Random event duration. */
+  eventDurationMs: 30 * 1000,
+  /** Gap until next event (random in range). */
+  eventGapMinMs: 40 * 1000,
+  eventGapMaxMs: 120 * 1000,
+  /** Every N chat votes/spawns → grow that flag. */
+  votesPerBigFlag: 5,
+  bigFlagScaleStep: 0.55,
+  bigFlagScaleMax: 2.6,
+  /** Alien invasion DPS (HP/sec while near an alien). */
+  alienDps: 18,
+  alienCount: 5,
+  /** Sprint hole aperture (radians) — smaller than Main. */
   sprintHoleWidth: 0.42,
   /** Qualifying rim — must match CSS --rim / SVG circle. */
   arenaRadius: 0.42,
@@ -132,6 +150,11 @@ export const CONFIG = {
 function applyEasyTestConfig() {
   CONFIG.qualifyingMs = 90 * 1000;
   CONFIG.sprintMs = 25 * 1000;
+  CONFIG.mainMsMin = 45 * 1000;
+  CONFIG.mainMsMax = 55 * 1000;
+  CONFIG.eventDurationMs = 8 * 1000;
+  CONFIG.eventGapMinMs = 6 * 1000;
+  CONFIG.eventGapMaxMs = 12 * 1000;
   CONFIG.sprintHoleWidth = 0.5;
   CONFIG.betweenRoundMs = 500;
   CONFIG.holeSpeed = 2.4;
@@ -144,6 +167,7 @@ function applyEasyTestConfig() {
   CONFIG.swissRounds = 5;
   CONFIG.swissSpeedMult = 1.85;
   CONFIG.battleRate = 5;
+  CONFIG.alienDps = 35;
   CONFIG.finalistsRevealMs = 4 * 1000;
   CONFIG.winnerHoldMs = 8 * 1000;
 }
@@ -246,6 +270,14 @@ export class FlagBattleGame {
     this._pendingSprintReset = false;
     this._pendingSprintEnd = false;
     this.sprintEndsAt = 0;
+    this.mainEndsAt = 0;
+    /** @type {{ type: ArenaEventType, endsAt: number, angle?: number, hunterCode?: string, label?: string } | null} */
+    this.arenaEvent = null;
+    this.nextEventAt = 0;
+    /** @type {Array<{x:number,y:number,vx:number,vy:number}>} */
+    this.aliens = [];
+    /** Last-death ranking: code → death index (updated on every death after revive). */
+    this._deathSeq = [];
     /** @type {Array<{code:string,name:string,img:string,at:number,voter?:string}>} */
     this.recentSprintWins = [];
     /** @type {Array<{code:string,name:string,img:string,at:number,voter?:string,avatar?:string}>} */
@@ -304,6 +336,11 @@ export class FlagBattleGame {
     this._pendingSprintReset = false;
     this._pendingSprintEnd = false;
     this.sprintEndsAt = 0;
+    this.mainEndsAt = 0;
+    this.arenaEvent = null;
+    this.nextEventAt = 0;
+    this.aliens = [];
+    this._deathSeq = [];
     this.recentSprintWins = [];
     this.recentSpawns = [];
     this._swissPairQueue = [];
@@ -315,9 +352,7 @@ export class FlagBattleGame {
     this._uiDirty = true;
     this._emit(
       "reset",
-      this.streamMode === "final"
-        ? "Final ready — hole (reset on fall) → Swiss 1v1 → last flag standing."
-        : "Sprint → Qualifying → Final. Type a country to spawn in Sprint."
+      "Opening → Main (events) → Alien Invasion. Type a country to spawn / vote."
     );
     this._flushUi(true);
   }
@@ -327,6 +362,7 @@ export class FlagBattleGame {
     const radius = rand(0.05, this.arenaRadiusNow() * 0.68);
     const speed = rand(CONFIG.maxSpeed * 0.45, CONFIG.maxSpeed);
     const dir = rand(0, Math.PI * 2);
+    const spawnVotes = Number(country.spawnVotes) || 0;
     return {
       ...country,
       id: `${country.code}-${this.round}-${index}`,
@@ -337,6 +373,8 @@ export class FlagBattleGame {
       hp: CONFIG.baseHp,
       maxHp: CONFIG.baseHp,
       points: Number(country.points) || 0,
+      spawnVotes,
+      sizeMult: this._sizeMultForVotes(spawnVotes),
       x: 0.5 + Math.cos(angle) * radius,
       y: 0.5 + Math.sin(angle) * radius,
       vx: Math.cos(dir) * speed,
@@ -346,10 +384,26 @@ export class FlagBattleGame {
     };
   }
 
+  _sizeMultForVotes(votes) {
+    const n = Math.max(0, Number(votes) || 0);
+    const steps = Math.floor(n / Math.max(1, CONFIG.votesPerBigFlag || 5));
+    const step = CONFIG.bigFlagScaleStep ?? 0.55;
+    const max = CONFIG.bigFlagScaleMax ?? 2.6;
+    return Math.min(max, 1 + steps * step);
+  }
+
   arenaRadiusNow() {
-    return this.streamMode === "final" || this.finalStage
-      ? CONFIG.finalArenaRadius
-      : CONFIG.arenaRadius;
+    if (
+      this.phase === "main" ||
+      this.phase === "invasion" ||
+      this.finalStage === "main" ||
+      this.finalStage === "invasion" ||
+      this.streamMode === "final" ||
+      this.finalStage
+    ) {
+      return CONFIG.finalArenaRadius;
+    }
+    return CONFIG.arenaRadius;
   }
 
   /** Cap for current stage — Swiss 1v1 is intentionally faster. */
@@ -362,7 +416,26 @@ export class FlagBattleGame {
   }
 
   _isBattlingStage() {
-    return this.finalStage === "swiss" || this.finalStage === "battle";
+    return (
+      this.phase === "main" ||
+      this.phase === "invasion" ||
+      this.finalStage === "main" ||
+      this.finalStage === "invasion" ||
+      this.finalStage === "swiss" ||
+      this.finalStage === "battle"
+    );
+  }
+
+  /** Record elimination for ranking — last death wins if they revived earlier. */
+  _recordDeath(flag) {
+    if (!flag?.code) return;
+    this._deathSeq = this._deathSeq.filter((d) => d.code !== flag.code);
+    this._deathSeq.push({
+      code: flag.code,
+      name: flag.name,
+      img: flag.img || flagUrl(flag.code, 80),
+      at: Date.now(),
+    });
   }
 
   /**
@@ -404,57 +477,41 @@ export class FlagBattleGame {
       return;
     }
 
-    if (this.streamMode === "final") {
-      await this._adoptScheduledFinalStream();
-      if (!this.stream) {
-        this.stream = {
-          id: newStreamId(),
-          mode: "final",
-          status: "live",
-          startedAt: new Date().toISOString(),
-          endedAt: null,
-          scheduledAt: null,
-          rounds: [],
-          final: null,
-          qualified: [],
-          winner: null,
-          sourceStreamId: null,
-        };
-        await this._loadQualifiersFromHistory();
-      }
-      this.stream.status = "live";
-      if (!this.stream.startedAt) this.stream.startedAt = new Date().toISOString();
-      this.stream.mode = "final";
-      this._publishLive();
-      this._ensureBattlePoll();
-      this._beginFinal();
+    // Unified format: Opening → Main (events) → Alien Invasion.
+    this.stream = {
+      id: newStreamId(),
+      mode: "qualifying",
+      status: "live",
+      startedAt: new Date().toISOString(),
+      endedAt: null,
+      scheduledAt: null,
+      rounds: [],
+      final: null,
+      qualified: [],
+      winner: null,
+      sourceStreamId: null,
+      format: "opening_main_invasion",
+    };
+    this._publishLive();
+    if (params.get("sprint") === "0" || params.get("opening") === "0") {
+      this._startMainArena();
     } else {
-      this.stream = {
-        id: newStreamId(),
-        mode: "qualifying",
-        status: "live",
-        startedAt: new Date().toISOString(),
-        endedAt: null,
-        scheduledAt: null,
-        rounds: [],
-        final: null,
-        qualified: [],
-        winner: null,
-        sourceStreamId: null,
-      };
-      this._publishLive();
-      if (params.get("sprint") === "0") this._startOpenBattle();
-      else this._startSprint();
+      this._startSprint();
     }
     this._startLoop();
     this._flushUi(true);
   }
 
   /** Easy teststream — synthetic field, short timings, zero persistence.
-   * Default (`full`) always runs Qualifying → Final on one page (same as go-live). */
+   * Default (`full`) = Opening → Main → Invasion. */
   _startTestStream(kind) {
     const mode =
-      kind === "full" || kind === "qualifying" || kind === "sprint"
+      kind === "full" ||
+      kind === "qualifying" ||
+      kind === "opening" ||
+      kind === "sprint" ||
+      kind === "main" ||
+      kind === "invasion"
         ? "qualifying"
         : "final";
     this.streamMode = mode;
@@ -471,22 +528,47 @@ export class FlagBattleGame {
       winner: null,
       sourceStreamId: null,
       testStream: kind,
+      format: "opening_main_invasion",
     };
-    const label = kind === "full" ? "full battle (Qual → Final)" : kind;
+    const label =
+      kind === "full"
+        ? "Opening → Main → Invasion"
+        : kind === "opening"
+          ? "opening"
+          : kind;
     this._emit("phase", `TESTSTREAM · ${label} (easy · no save)`);
     this._initTeststreamPoll();
 
-    // Default Easy teststream: Sprint → Qual → Final (same as go-live).
     if (kind === "full" || kind === "qualifying") {
       this._publishLive();
-      if (params.get("sprint") === "0") this._startOpenBattle();
-      else this._startSprint();
+      if (params.get("sprint") === "0" || params.get("opening") === "0") {
+        this._startMainArena();
+      } else {
+        this._startSprint();
+      }
       return;
     }
 
-    if (kind === "sprint") {
+    if (kind === "opening" || kind === "sprint") {
       this._publishLive();
       this._startSprint();
+      return;
+    }
+
+    if (kind === "main") {
+      this._publishLive();
+      this._startMainArena({ showcaseEvent: "saw" });
+      return;
+    }
+
+    if (kind === "invasion") {
+      this._publishLive();
+      this._fillSprintField();
+      for (const f of this.fighters) {
+        f.hp = CONFIG.baseHp;
+        f.maxHp = CONFIG.baseHp;
+      }
+      this._startInvasion();
       return;
     }
 
@@ -704,8 +786,8 @@ export class FlagBattleGame {
   }
 
   /**
-   * Pre-battle Sprint: all flags in a smaller-hole arena.
-   * Chat spawn by typing a country. Last standing = sprint win (no season points).
+   * Opening (Sprint-like): all flags, smaller hole.
+   * Chat spawn = vote; every 5 votes grows a big flag. Round wins unscored.
    */
   _startSprint() {
     this._ensureOpenPoll();
@@ -713,10 +795,13 @@ export class FlagBattleGame {
     this.qualified = [];
     this.eliminated = [];
     this._fallOrder = [];
+    this._deathSeq = [];
     this._pendingSprintReset = false;
     this._pendingSprintEnd = false;
     this.recentSprintWins = [];
     this.recentSpawns = [];
+    this.arenaEvent = null;
+    this.aliens = [];
     this.sprintEndsAt = performance.now() + CONFIG.sprintMs;
     this.phase = "sprint";
     this.finalStage = null;
@@ -725,7 +810,7 @@ export class FlagBattleGame {
     const mins = Math.max(1, Math.round(CONFIG.sprintMs / 60000));
     this._emit(
       "phase",
-      `SPRINT — ${mins}:00 · smaller hole · type a country to spawn · wins don’t score points`
+      `OPENING — ${mins}:00 · type a country to spawn (= vote) · big flag every ${CONFIG.votesPerBigFlag} votes`
     );
     this._publishLive();
     this._uiDirty = true;
@@ -741,11 +826,18 @@ export class FlagBattleGame {
   }
 
   /**
-   * Chat / poll: spawn or revive a country during Sprint.
+   * Chat / poll: spawn or revive a country (Opening + Main + Invasion).
+   * Each call counts as a vote/spawn — every 5 grows a big flag.
    * @returns {boolean}
    */
   spawnSprintCountry(code, { voter = "", avatar = "" } = {}) {
-    if (this.phase !== "sprint") return false;
+    if (
+      this.phase !== "sprint" &&
+      this.phase !== "main" &&
+      this.phase !== "invasion"
+    ) {
+      return false;
+    }
     const c = String(code || "").toLowerCase();
     const country = COUNTRIES.find((x) => x.code === c);
     if (!country) return false;
@@ -764,17 +856,33 @@ export class FlagBattleGame {
     ].slice(0, 8);
 
     let f = this.fighters.find((x) => x.code === country.code);
+    const prevVotes = Number(f?.spawnVotes) || 0;
+    const nextVotes = prevVotes + 1;
+    const grew =
+      Math.floor(nextVotes / CONFIG.votesPerBigFlag) >
+      Math.floor(prevVotes / CONFIG.votesPerBigFlag);
+
     if (f && f.alive && !f.falling) {
+      f.spawnVotes = nextVotes;
+      f.sizeMult = this._sizeMultForVotes(nextVotes);
       f.pulse = 1;
+      if (grew) {
+        this._emit(
+          "phase",
+          `${country.name} grew BIG (${nextVotes} votes)!`
+        );
+      }
       this._uiDirty = true;
       return true;
     }
 
     if (f) {
-      // Revive a fallen flag mid-round.
+      // Revive — clear prior death ranking until they die again.
       f.alive = true;
       f.falling = false;
       f.hp = f.maxHp || CONFIG.baseHp;
+      f.spawnVotes = nextVotes;
+      f.sizeMult = this._sizeMultForVotes(nextVotes);
       const ang = rand(0, Math.PI * 2);
       const rad = rand(0.08, this.arenaRadiusNow() * 0.55);
       f.x = 0.5 + Math.cos(ang) * rad;
@@ -783,11 +891,18 @@ export class FlagBattleGame {
       f.vy = rand(-0.35, 0.35);
       f.pulse = 1;
     } else {
-      f = this._makeFighter(country, this.fighters.length, this.fighters.length + 1);
+      f = this._makeFighter(
+        { ...country, spawnVotes: nextVotes },
+        this.fighters.length,
+        this.fighters.length + 1
+      );
       f.pulse = 1;
       this.fighters.push(f);
     }
-    this._emit("phase", `${entry.voter || "Chat"} spawned ${country.name}`);
+    this._emit(
+      "phase",
+      `${entry.voter || "Chat"} spawned ${country.name}${grew ? " · BIG!" : ""} (${nextVotes} votes)`
+    );
     this._uiDirty = true;
     return true;
   }
@@ -835,15 +950,294 @@ export class FlagBattleGame {
   _endSprint() {
     this._pendingSprintReset = false;
     this._pendingSprintEnd = false;
-    this.fighters = [];
-    this.eliminated = [];
-    this._fallOrder = [];
     this.sprintEndsAt = 0;
     this._emit(
       "phase",
-      `Sprint over — ${this.recentSprintWins.length} win${this.recentSprintWins.length === 1 ? "" : "s"} (unscored). Qualifying next.`
+      `Opening over — ${this.recentSprintWins.length} spawn-round win${this.recentSprintWins.length === 1 ? "" : "s"} (unscored). Main arena next.`
     );
-    this._startOpenBattle();
+    this._startMainArena();
+  }
+
+  /**
+   * Main arena: all countries, HP bars, attacking, random 30s events.
+   * @param {{ showcaseEvent?: ArenaEventType }} [opts]
+   */
+  _startMainArena(opts = {}) {
+    this._ensureOpenPoll();
+    document.body.classList.add("final-mode");
+    document.body.classList.remove("invasion-mode");
+    this.phase = "main";
+    this.finalStage = "main";
+    this.streamMode = "final";
+    this.arenaEvent = null;
+    this.aliens = [];
+    this.eliminated = [];
+    const span =
+      CONFIG.mainMsMin +
+      Math.random() * Math.max(0, CONFIG.mainMsMax - CONFIG.mainMsMin);
+    this.mainEndsAt = performance.now() + span;
+    this.nextEventAt =
+      performance.now() +
+      (opts.showcaseEvent
+        ? 800
+        : rand(CONFIG.eventGapMinMs, CONFIG.eventGapMaxMs));
+
+    // Carry spawn votes / revive field — refill if empty.
+    if (!this.fighters.length) this._fillSprintField();
+    for (const f of this.fighters) {
+      f.alive = true;
+      f.falling = false;
+      f.hp = CONFIG.baseHp;
+      f.maxHp = CONFIG.baseHp;
+      f.spawnVotes = Number(f.spawnVotes) || 0;
+      f.sizeMult = this._sizeMultForVotes(f.spawnVotes);
+    }
+    // Seed a few big flags so the mode reads clearly on stream / screenshots.
+    const seeds = shuffle(this.fighters).slice(0, 6);
+    for (const f of seeds) {
+      f.spawnVotes = Math.max(f.spawnVotes, CONFIG.votesPerBigFlag * (1 + ((Math.random() * 2) | 0)));
+      f.sizeMult = this._sizeMultForVotes(f.spawnVotes);
+    }
+
+    this.holeAngle = rand(0, Math.PI * 2);
+    this.roundStartedAt = performance.now();
+    this.arenaScale = 1;
+    if (this.stream) this.stream.mode = "final";
+    const mins = Math.max(1, Math.round(span / 60000));
+    this._emit(
+      "phase",
+      `MAIN — ~${mins} min · HP + attacks · random events (saw / black hole / catch)`
+    );
+    if (opts.showcaseEvent) {
+      // Showcase: keep a full field + visible event (no instant wipe).
+      this._showcaseMain = true;
+      this._beginArenaEvent(opts.showcaseEvent);
+    } else {
+      this._showcaseMain = false;
+    }
+    this._publishLive();
+    this._uiDirty = true;
+  }
+
+  _scheduleNextEvent(now = performance.now()) {
+    this.nextEventAt =
+      now + rand(CONFIG.eventGapMinMs, CONFIG.eventGapMaxMs);
+  }
+
+  _beginArenaEvent(type) {
+    const kinds = ["saw", "blackhole", "catch"];
+    const pick =
+      type && kinds.includes(type)
+        ? type
+        : kinds[(Math.random() * kinds.length) | 0];
+    const endsAt = performance.now() + CONFIG.eventDurationMs;
+    /** @type {{ type: ArenaEventType, endsAt: number, angle?: number, hunterCode?: string, label?: string }} */
+    const ev = { type: pick, endsAt, angle: rand(0, Math.PI * 2) };
+    if (pick === "catch") {
+      const pool = this.fighters.filter((f) => f.alive && !f.falling);
+      const hunter = pool[(Math.random() * pool.length) | 0];
+      if (hunter) {
+        ev.hunterCode = hunter.code;
+        hunter.pulse = 1;
+        hunter.sizeMult = Math.max(hunter.sizeMult || 1, 1.7);
+      }
+      ev.label = hunter ? `${hunter.name} is the CATCHER` : "CATCH";
+    } else if (pick === "saw") {
+      ev.label = "SAW BLADE";
+    } else {
+      ev.label = "BLACK HOLE";
+    }
+    this.arenaEvent = ev;
+    this._emit("phase", `EVENT — ${ev.label} · 30s`);
+    this._uiDirty = true;
+  }
+
+  _clearArenaEvent() {
+    if (this.arenaEvent?.type === "catch" && this.arenaEvent.hunterCode) {
+      const h = this.fighters.find((f) => f.code === this.arenaEvent.hunterCode);
+      if (h) h.sizeMult = this._sizeMultForVotes(h.spawnVotes || 0);
+    }
+    this.arenaEvent = null;
+    this._scheduleNextEvent();
+    this._uiDirty = true;
+  }
+
+  _tickArenaEvents(dt, now) {
+    if (this.phase !== "main") return;
+    if (this.arenaEvent) {
+      if (now >= this.arenaEvent.endsAt) {
+        this._emit("phase", `Event over — next soon`);
+        this._clearArenaEvent();
+      } else {
+        this._applyActiveEvent(dt);
+      }
+      return;
+    }
+    if (this.nextEventAt && now >= this.nextEventAt) {
+      this._beginArenaEvent();
+    }
+  }
+
+  _applyActiveEvent(dt) {
+    const ev = this.arenaEvent;
+    if (!ev) return;
+    if (ev.type === "saw") {
+      ev.angle = normAngle((ev.angle || 0) + 1.8 * dt);
+      const R = this.arenaRadiusNow() * this.arenaScale;
+      for (const f of this.fighters) {
+        if (!f.alive || f.falling) continue;
+        const ang = Math.atan2(f.y - 0.5, f.x - 0.5);
+        const dist = Math.hypot(f.x - 0.5, f.y - 0.5);
+        if (Math.abs(angleDiff(ang, ev.angle)) < 0.12 && dist > R * 0.2) {
+          this._eventEliminate(f, "saw");
+        }
+      }
+    } else if (ev.type === "blackhole") {
+      for (const f of this.fighters) {
+        if (!f.alive || f.falling) continue;
+        const dx = 0.5 - f.x;
+        const dy = 0.5 - f.y;
+        const dist = Math.hypot(dx, dy) || 0.001;
+        f.vx += (dx / dist) * 1.1 * dt;
+        f.vy += (dy / dist) * 1.1 * dt;
+        if (dist < 0.045) this._eventEliminate(f, "black hole");
+      }
+    } else if (ev.type === "catch" && ev.hunterCode) {
+      const hunter = this.fighters.find(
+        (f) => f.code === ev.hunterCode && f.alive && !f.falling
+      );
+      if (!hunter) return;
+      const hr = this._flagRadiusFor(hunter);
+      for (const f of this.fighters) {
+        if (f === hunter || !f.alive || f.falling) continue;
+        const minD = hr + this._flagRadiusFor(f);
+        if (Math.hypot(f.x - hunter.x, f.y - hunter.y) < minD * 0.95) {
+          this._eventEliminate(f, hunter.name);
+        }
+      }
+    }
+  }
+
+  _eventEliminate(f, byLabel) {
+    if (!f?.alive || f.falling) return;
+    // Showcase / keep Main readable — events deal heavy damage, not always wipe.
+    if (this._showcaseMain) {
+      f.hp = Math.max(1, (f.hp || CONFIG.baseHp) - 35);
+      f.pulse = 1;
+      this._uiDirty = true;
+      return;
+    }
+    f.alive = false;
+    f.hp = 0;
+    this._recordDeath(f);
+    this.eliminated.push(f);
+    this._emit("elim", `${f.name} eliminated by ${byLabel}`);
+    this._uiDirty = true;
+  }
+
+  /** Alien invasion endgame — hole closed, aliens attack, last alive wins. */
+  _startInvasion() {
+    this._ensureOpenPoll();
+    document.body.classList.add("final-mode", "invasion-mode");
+    this.phase = "invasion";
+    this.finalStage = "invasion";
+    this.streamMode = "final";
+    this.arenaEvent = null;
+    this.mainEndsAt = 0;
+    if (!this.fighters.length) this._fillSprintField();
+    for (const f of this.fighters) {
+      if (!f.alive) {
+        // Keep dead out — invasion is last stand of current survivors.
+        continue;
+      }
+      f.falling = false;
+      f.hp = Math.max(25, f.hp || CONFIG.baseHp);
+      f.maxHp = CONFIG.baseHp;
+    }
+    // If somehow nobody alive, revive a pack.
+    if (!this.fighters.some((f) => f.alive)) {
+      for (const f of shuffle(this.fighters).slice(0, 40)) {
+        f.alive = true;
+        f.falling = false;
+        f.hp = CONFIG.baseHp;
+      }
+    }
+    const n = CONFIG.alienCount || 5;
+    this.aliens = Array.from({ length: n }, () => {
+      const ang = rand(0, Math.PI * 2);
+      const rad = rand(0.15, this.arenaRadiusNow() * 0.75);
+      return {
+        x: 0.5 + Math.cos(ang) * rad,
+        y: 0.5 + Math.sin(ang) * rad,
+        vx: rand(-0.55, 0.55),
+        vy: rand(-0.55, 0.55),
+      };
+    });
+    this.roundStartedAt = performance.now();
+    this.arenaScale = 1;
+    if (this.stream) this.stream.mode = "final";
+    this._emit(
+      "phase",
+      "ALIEN INVASION — hole sealed · survive the attack · last flag standing wins"
+    );
+    this._publishLive();
+    this._uiDirty = true;
+  }
+
+  _tickAliens(dt) {
+    const R = this.arenaRadiusNow() * this.arenaScale;
+    const dps = CONFIG.alienDps || 18;
+    for (const a of this.aliens) {
+      // Chase nearest living flag.
+      let best = null;
+      let bestD = Infinity;
+      for (const f of this.fighters) {
+        if (!f.alive || f.falling) continue;
+        const d = Math.hypot(f.x - a.x, f.y - a.y);
+        if (d < bestD) {
+          bestD = d;
+          best = f;
+        }
+      }
+      if (best) {
+        const dx = best.x - a.x;
+        const dy = best.y - a.y;
+        const len = Math.hypot(dx, dy) || 1;
+        a.vx += (dx / len) * 1.4 * dt;
+        a.vy += (dy / len) * 1.4 * dt;
+      }
+      const sp = Math.hypot(a.vx, a.vy);
+      const maxSp = 0.85;
+      if (sp > maxSp) {
+        a.vx = (a.vx / sp) * maxSp;
+        a.vy = (a.vy / sp) * maxSp;
+      }
+      a.x += a.vx * dt;
+      a.y += a.vy * dt;
+      const dist = Math.hypot(a.x - 0.5, a.y - 0.5);
+      if (dist > R - 0.02) {
+        const nx = (a.x - 0.5) / (dist || 1);
+        const ny = (a.y - 0.5) / (dist || 1);
+        a.x = 0.5 + nx * (R - 0.02);
+        a.y = 0.5 + ny * (R - 0.02);
+        a.vx *= -0.6;
+        a.vy *= -0.6;
+      }
+      for (const f of this.fighters) {
+        if (!f.alive || f.falling) continue;
+        if (Math.hypot(f.x - a.x, f.y - a.y) < 0.05) {
+          f.hp = Math.max(0, (f.hp || 0) - dps * dt);
+          f.pulse = 1;
+          if (f.hp <= 0) {
+            f.alive = false;
+            this._recordDeath(f);
+            this.eliminated.push(f);
+            this._emit("elim", `${f.name} eliminated by alien`);
+          }
+          this._uiDirty = true;
+        }
+      }
+    }
   }
 
   /**
@@ -1003,9 +1397,18 @@ export class FlagBattleGame {
       this.phase = "between_rounds";
       this._pendingSprintEnd = true;
       this._betweenUntil = now + Math.max(600, CONFIG.betweenRoundMs * 0.5);
-      this._emit("phase", "Sprint time’s up — Qualifying next…");
+      this._emit("phase", "Opening time’s up — Main arena next…");
       this.onFrame();
       this._flushUi();
+      return;
+    }
+
+    // Main clock → Alien Invasion.
+    if (this.phase === "main" && this.mainEndsAt && now >= this.mainEndsAt) {
+      this._emit("phase", "Main time’s up — ALIEN INVASION!");
+      this._startInvasion();
+      this.onFrame();
+      this._flushUi(true);
       return;
     }
 
@@ -1036,6 +1439,8 @@ export class FlagBattleGame {
 
     if (
       this.phase === "sprint" ||
+      this.phase === "main" ||
+      this.phase === "invasion" ||
       this.phase === "qualifying" ||
       this.phase === "final"
     ) {
@@ -1051,10 +1456,56 @@ export class FlagBattleGame {
       }
 
       const battling =
-        this.phase === "final" &&
-        (this.finalStage === "swiss" || this.finalStage === "battle");
+        this.phase === "main" ||
+        this.phase === "invasion" ||
+        (this.phase === "final" &&
+          (this.finalStage === "swiss" || this.finalStage === "battle"));
 
-      if (battling) {
+      if (this.phase === "main" || this.phase === "invasion") {
+        // HP combat + solid rim; hole open in main, sealed in invasion.
+        this._moveFighters(dt, { physicsRim: true, solidRim: true });
+        this._resolveCollisions({ dealHits: true });
+        if (this.phase === "main") {
+          const elapsed = (now - this.roundStartedAt) / 1000;
+          const t = Math.min(1, elapsed / CONFIG.shrinkDurationSec);
+          this.arenaScale = 1 - (1 - CONFIG.shrinkMinScale) * (t * t) * 0.35;
+          this.holeAngle = normAngle(
+            this.holeAngle + CONFIG.holeSpeed * 0.65 * dt
+          );
+          // Showcase keeps solid rim only so the event reads clearly on stream.
+          if (!this._showcaseMain) this._applyCircleAndHole(t);
+          this._tickArenaEvents(dt, now);
+        } else {
+          this.arenaScale = 1;
+          this._tickAliens(dt);
+        }
+        const standingNow = this.fighters.filter((f) => f.alive && !f.falling);
+        // Only Invasion crowns a champion — Main always runs until its clock.
+        if (this.phase === "invasion") {
+          if (standingNow.length === 1) {
+            this._onLastFlag(standingNow[0]);
+          } else if (standingNow.length === 0) {
+            const last = this._deathSeq[this._deathSeq.length - 1];
+            if (last) {
+              const f = this.fighters.find((x) => x.code === last.code);
+              if (f) {
+                f.alive = true;
+                f.hp = 1;
+                this._onLastFlag(f);
+              }
+            }
+          }
+        } else if (this.phase === "main" && standingNow.length === 0) {
+          // Keep Main populated until the clock → invasion.
+          for (const f of shuffle(this.fighters).slice(0, 40)) {
+            f.alive = true;
+            f.falling = false;
+            f.hp = CONFIG.baseHp;
+            f.pulse = 1;
+          }
+          this._emit("phase", "Field restocked — Main continues");
+        }
+      } else if (battling) {
         this._moveFighters(dt, { physicsRim: true, solidRim: true });
         this._resolveCollisions({ dealHits: true });
         this._checkBattleStage();
@@ -1142,6 +1593,12 @@ export class FlagBattleGame {
     return flagSizeForCount(n).radius;
   }
 
+  _flagRadiusFor(f) {
+    const base = this._flagRadius();
+    const mult = Number(f?.sizeMult) || 1;
+    return base * Math.max(0.85, Math.min(CONFIG.bigFlagScaleMax || 2.6, mult));
+  }
+
   _moveFighters(dt, { physicsRim, solidRim = false }) {
     const battling = this._isBattlingStage();
     const outward = physicsRim
@@ -1179,7 +1636,7 @@ export class FlagBattleGame {
       if (f.hitCd > 0) f.hitCd = Math.max(0, f.hitCd - dt);
 
       if (solidRim) {
-        const fr = this._flagRadius();
+        const fr = this._flagRadiusFor(f);
         const dist = Math.hypot(f.x - 0.5, f.y - 0.5);
         const limit = R - fr;
         if (dist > limit) {
@@ -1217,9 +1674,8 @@ export class FlagBattleGame {
     const n = active.length;
     if (n < 2) return;
 
-    const minDist = this._flagRadius() * 2.05;
-    const minSq = minDist * minDist;
-    const cell = Math.max(minDist, 0.04);
+    const baseR = this._flagRadius();
+    const cell = Math.max(baseR * 2.05, 0.04);
     const inv = 1 / cell;
     if (!this._colGrid) this._colGrid = new Map();
     const grid = this._colGrid;
@@ -1227,6 +1683,7 @@ export class FlagBattleGame {
 
     for (let i = 0; i < n; i++) {
       const f = active[i];
+      f._r = this._flagRadiusFor(f);
       const cx = (f.x * inv) | 0;
       const cy = (f.y * inv) | 0;
       f._cx = cx;
@@ -1258,6 +1715,8 @@ export class FlagBattleGame {
             const dx = B.x - A.x;
             const dy = B.y - A.y;
             const distSq = dx * dx + dy * dy;
+            const minDist = (A._r + B._r) * 1.02;
+            const minSq = minDist * minDist;
             if (distSq >= minSq || distSq === 0) continue;
             const dist = Math.sqrt(distSq);
             const nx = dx / dist;
@@ -1373,9 +1832,16 @@ export class FlagBattleGame {
 
   /** Hole half-width in radians. Final hole stage: shut for holeClosedSec, then open. */
   _holeHalfWidth(roundProgress = 0) {
+    if (this.phase === "invasion" || this.finalStage === "invasion") {
+      return 0; // sealed during alien invasion
+    }
     if (this.phase === "sprint") {
       const w = CONFIG.sprintHoleWidth ?? CONFIG.holeWidth * 0.5;
       return (w * (1 + roundProgress * 0.45)) / 2;
+    }
+    if (this.phase === "main" || this.finalStage === "main") {
+      const w = CONFIG.holeWidth * 0.75;
+      return (w * (1 + roundProgress * 0.35)) / 2;
     }
     if (this.phase === "final" && this.finalStage === "hole") {
       const elapsed = this.roundStartedAt
@@ -1399,6 +1865,9 @@ export class FlagBattleGame {
     f.hp = 0;
     this.eliminated.push(f);
     this._fallOrder.push({ code: f.code, name: f.name, img: f.img });
+    if (this.phase === "main" || this.phase === "invasion") {
+      this._recordDeath(f);
+    }
     this._emit("elim", `${f.name} fell through the hole!`);
     this._uiDirty = true;
 
@@ -1474,14 +1943,22 @@ export class FlagBattleGame {
     if (!loser.alive) return;
     loser.alive = false;
     loser.hp = 0;
-    // Swiss match losses are not permanent ranking elims (players stay in pool).
-    // Final 4: record elimination sequence for Final ranking.
-    if (this.finalStage === "battle") {
-      this._battleElimOrder.push({
-        code: loser.code,
-        name: loser.name,
-        img: loser.img,
-      });
+    // Main / Invasion / Final 4: ranking uses last-death sequence (revives reset).
+    if (
+      this.phase === "main" ||
+      this.phase === "invasion" ||
+      this.finalStage === "main" ||
+      this.finalStage === "invasion" ||
+      this.finalStage === "battle"
+    ) {
+      this._recordDeath(loser);
+      if (this.finalStage === "battle") {
+        this._battleElimOrder.push({
+          code: loser.code,
+          name: loser.name,
+          img: loser.img,
+        });
+      }
       this.eliminated.push(loser);
     } else if (this.finalStage === "swiss") {
       /* match-only — no ranking push */
@@ -1860,13 +2337,8 @@ export class FlagBattleGame {
   _buildFinalRanking(winner) {
     const ranking = [];
     const seen = new Set();
-    const qualSet = new Set(
-      (this.qualified || []).map((q) => String(q.code || "").toLowerCase())
-    );
     const push = (row) => {
       if (!row?.code || seen.has(row.code)) return;
-      // Final ranking is finalists only — never Qualifying fallouts / all countries.
-      if (qualSet.size && !qualSet.has(String(row.code).toLowerCase())) return;
       if (winner && row.code === winner.code && ranking.length) return;
       seen.add(row.code);
       ranking.push({
@@ -1885,30 +2357,20 @@ export class FlagBattleGame {
       });
     }
 
-    // Final 4: last eliminated → rank 2, first eliminated → worst Final-4 place.
-    for (const row of [...this._battleElimOrder].reverse()) {
-      push(row);
+    // Primary: reverse last-death sequence (revives overwrite prior deaths).
+    if (this._deathSeq?.length) {
+      for (const row of [...this._deathSeq].reverse()) push(row);
+    } else {
+      // Legacy fallbacks for old Final formats.
+      for (const row of [...this._battleElimOrder].reverse()) push(row);
+      for (const row of [...this._fallOrder].reverse()) push(row);
     }
 
-    // Swiss cuts: better average Qualifying place → better Final place.
-    const stream = this.stream;
-    const swissCut = [...(this._swissCut || [])].sort((a, b) => {
-      const av = averageQualifyingRating(stream, a.code);
-      const bv = averageQualifyingRating(stream, b.code);
-      if (av !== bv) return av - bv;
-      return String(a.name || "").localeCompare(String(b.name || ""));
-    });
-    for (const row of swissCut) push(row);
-
-    // Hole stage (before Swiss): reverse fall order — unchanged logic.
-    for (const row of [...this._fallOrder].reverse()) {
-      push(row);
+    // Survivors / remaining fighters not yet in the list.
+    for (const f of this.fighters) {
+      if (f.alive) push(f);
     }
-
-    // Any remaining qualified finalists (edge cases) append by name.
-    for (const q of this.qualified || []) {
-      push(q);
-    }
+    for (const q of this.qualified || []) push(q);
 
     return ranking;
   }
@@ -1939,10 +2401,19 @@ export class FlagBattleGame {
       this._qualify(flag);
       return;
     }
-    if (this.phase === "final" || this.finalStage === "battle") {
+    if (
+      this.phase === "main" ||
+      this.phase === "invasion" ||
+      this.phase === "final" ||
+      this.finalStage === "battle" ||
+      this.finalStage === "main" ||
+      this.finalStage === "invasion"
+    ) {
       this.winner = flag;
       this.phase = "finished";
       this.finalStage = null;
+      this.aliens = [];
+      this.arenaEvent = null;
       // Keep the loop running so the winner banner stays live for the hold.
       this._winnerHoldDone = false;
       this._winnerHoldUntil =
@@ -1954,11 +2425,10 @@ export class FlagBattleGame {
           ranking: this._buildFinalRanking(flag),
           winner: { code: flag.code, name: flag.name, img: flag.img },
           at: new Date().toISOString(),
-          rules: "hole_swiss_battle",
+          rules: "opening_main_invasion",
           rankingRules: {
-            hole: "reverse_fall_order",
-            swiss: "average_qualifying_place",
-            final4: "elimination_sequence",
+            primary: "last_death_elimination_sequence",
+            note: "Revives clear prior death; final place uses last death order",
           },
           pollPlaces: null,
         };
@@ -2134,6 +2604,16 @@ export class FlagBattleGame {
       winnerHoldRemainingMs: this.winnerHoldRemainingMs(),
       qualifyingRemainingMs: this.qualifyingRemainingMs(),
       sprintRemainingMs: this.sprintRemainingMs(),
+      mainRemainingMs: this.mainRemainingMs(),
+      arenaEvent: this.arenaEvent
+        ? {
+            type: this.arenaEvent.type,
+            label: this.arenaEvent.label,
+            endsAt: this.arenaEvent.endsAt,
+            hunterCode: this.arenaEvent.hunterCode || null,
+          }
+        : null,
+      nextEventAt: this.nextEventAt || 0,
       sprintActive:
         this.phase === "sprint" ||
         this._pendingSprintReset ||
@@ -2187,18 +2667,41 @@ export class FlagBattleGame {
     return 0;
   }
 
+  mainRemainingMs(now = performance.now()) {
+    if (this.phase !== "main") return 0;
+    if (!this.mainEndsAt) return CONFIG.mainMsMin;
+    return Math.max(0, this.mainEndsAt - now);
+  }
+
+  eventRemainingMs(now = performance.now()) {
+    if (!this.arenaEvent?.endsAt) return 0;
+    return Math.max(0, this.arenaEvent.endsAt - now);
+  }
+
+  nextEventRemainingMs(now = performance.now()) {
+    if (this.phase !== "main" || this.arenaEvent) return 0;
+    if (!this.nextEventAt) return 0;
+    return Math.max(0, this.nextEventAt - now);
+  }
+
   standing() {
     return this.fighters.filter((f) => f.alive && !f.falling);
   }
 
   boardFlags() {
-    // Sprint: left board = recent sprint wins (not season points).
+    // Opening: recent spawn-round wins.
     if (
       this.phase === "sprint" ||
       (this.phase === "between_rounds" &&
         (this._pendingSprintReset || this._pendingSprintEnd))
     ) {
       return this.recentSprintWins || [];
+    }
+    // Main / Invasion: elimination board (most recent deaths first).
+    if (this.phase === "main" || this.phase === "invasion") {
+      const deaths = [...(this._deathSeq || [])].reverse().slice(0, 24);
+      if (deaths.length) return deaths;
+      return this.fighters.filter((f) => f.alive).slice(0, 16);
     }
     // Swiss: top board shows the current Final-4 cut line (top 4 by score).
     if (this._swissBoardActive()) {
@@ -2264,7 +2767,11 @@ export class FlagBattleGame {
     const battling =
       this.finalStage === "swiss" || this.finalStage === "battle";
     let width = 0;
-    if (
+    if (this.phase === "invasion" || this.finalStage === "invasion") {
+      width = 0;
+    } else if (this.phase === "main" || this.finalStage === "main") {
+      width = this._holeHalfWidth(t) * 2;
+    } else if (
       !battling &&
       (this.phase === "sprint" ||
         this.phase === "qualifying" ||

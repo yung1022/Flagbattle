@@ -84,10 +84,9 @@ function init() {
   arena.href = new URL("../?stream=1&autostart=1&mobile=1", location.href).href;
   const tests = [
     ["btn-test-full", "1"],
-    ["btn-test-sprint", "sprint"],
-    ["btn-test-hole", "hole"],
-    ["btn-test-swiss", "swiss"],
-    ["btn-test-final4", "final4"],
+    ["btn-test-opening", "opening"],
+    ["btn-test-main", "main"],
+    ["btn-test-invasion", "invasion"],
   ];
   for (const [id, kind] of tests) {
     const el = $(id);

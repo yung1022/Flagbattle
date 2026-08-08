@@ -6,14 +6,14 @@ Vertical **9:16** all-country flag battle for YouTube Shorts livestreams.
 
 ## Rules
 
-Sprint, Qualifying, and Final run in **one livestream** (no intermission).
+Opening, Main, and Alien Invasion run in **one livestream**.
 
 ### Unified livestream
-1. **Sprint (15:00)** — all flags, smaller hole. Type a country in chat to spawn/revive it. Last flag standing wins the sprint round; wins are **not** season points. Left board = recent sprint wins; recent-vote / shoutout panels show recent spawns.
-2. **Qualifying clock (full 30:00)** — every non-qualified country each round; last flag qualifies. Poll stays open.
-3. Brief **finalists reveal**, then **Final — Last Flag Standing** among qualifiers (hole → Swiss 1v1 → Final 4).
-4. Vote anytime after Sprint: type a country or `!vote XX` in chat / web poll.
-5. **Hole rule:** when a country falls through the hole, it is **eliminated** and the round **resets** with the remaining countries, until Swiss / Final 4.
+1. **Opening (15:00)** — all flags, smaller hole (Sprint-like). Typing a country **spawns = votes**. Every **5 votes** grows a big flag. Round wins are unscored.
+2. **Main (50–60 min)** — HP bars + collision attacks. Random events every 40s–2min (each lasts 30s): **saw**, **black hole**, **catch**. Chat can still spawn/revive.
+3. **Alien Invasion** — hole sealed; aliens attack flags; **last flag standing wins**.
+4. **Ranking** = elimination sequence by **last death** (revives clear a prior death).
+5. Vote/spawn anytime: type a country or `!vote XX` in chat / web poll.
 
 ## Viewer pages (GitHub Pages)
 
