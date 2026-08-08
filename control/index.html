@@ -64,7 +64,7 @@
         <h2 class="subhead">Testing streams</h2>
         <p class="hint">
           Easy dry-run — same as go-live:
-          <strong>Sprint → Qualifying → Final</strong> in one stream. Nothing is
+          <strong>Opening → Main → Invasion</strong> in one stream. Nothing is
           saved. Opens with <code>?teststream=1</code> and short timings.
         </p>
         <div class="actions test-actions">
@@ -72,24 +72,21 @@
             class="btn primary"
             id="btn-test-full"
             href="../?stream=1&autostart=1&mobile=1&teststream=1"
-            >Test full battle (Sprint → Qual → Final)</a
+            >Test full battle (Opening → Main → Invasion)</a
           >
         </div>
         <p class="note">
-          Stage-only shortcuts (optional):
-          <a id="btn-test-sprint" href="../?stream=1&autostart=1&mobile=1&teststream=sprint"
-            >sprint</a
+          Stage shortcuts:
+          <a id="btn-test-opening" href="../?stream=1&autostart=1&mobile=1&teststream=opening"
+            >opening</a
           >,
-          <a id="btn-test-hole" href="../?stream=1&autostart=1&mobile=1&teststream=hole"
-            >hole</a
+          <a id="btn-test-main" href="../?stream=1&autostart=1&mobile=1&teststream=main"
+            >main</a
           >,
-          <a id="btn-test-swiss" href="../?stream=1&autostart=1&mobile=1&teststream=swiss"
-            >swiss</a
-          >,
-          <a id="btn-test-final4" href="../?stream=1&autostart=1&mobile=1&teststream=final4"
-            >final4</a
+          <a id="btn-test-invasion" href="../?stream=1&autostart=1&mobile=1&teststream=invasion"
+            >invasion</a
           >
-          · skip Sprint with <code>&amp;sprint=0</code>
+          · skip Opening with <code>&amp;opening=0</code>
         </p>
       </section>
 
@@ -115,10 +112,9 @@
           />
         </label>
         <p class="note">
-          Every go-live is a <strong>full battle</strong> (Sprint → Qualifying →
-          Final in one stream). During Sprint, typing a country spawns that flag
-          (wins unscored). After Sprint, bare country names count as votes
-          (<code>CHAT_VOTE=1</code>).
+          Every go-live is <strong>Opening → Main → Invasion</strong>. Typing a
+          country spawns/votes (big flag every 5). Main has HP + random events;
+          Invasion seals the hole and aliens attack (<code>CHAT_VOTE=1</code>).
         </p>
         <label class="field">
           <span>Privacy</span>
