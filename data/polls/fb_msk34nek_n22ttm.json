@@ -981,7 +981,7 @@
     "ag": 0,
     "ar": 0,
     "am": 0,
-    "au": 1,
+    "au": 2,
     "at": 0,
     "az": 0,
     "bs": 0,
@@ -1057,7 +1057,7 @@
     "il": 0,
     "it": 0,
     "jm": 0,
-    "jp": 0,
+    "jp": 1,
     "jo": 0,
     "kz": 0,
     "ke": 0,
@@ -1169,19 +1169,19 @@
     "zw": 0
   },
   "voters": {
-    "yt:UCt6KDg7ftGLz-ftgvH2DtwA": "be",
+    "yt:UCt6KDg7ftGLz-ftgvH2DtwA": "jp",
     "yt:UCUgQVOKIu_DRsNdExym9nsA": "th",
     "yt:UCOEVmGQQZaQZdQmz5PxmFvw": "au"
   },
   "closed": false,
   "closedAt": null,
-  "updatedAt": 1786177724622,
+  "updatedAt": 1786177909294,
   "voterStats": {
     "yt:UCt6KDg7ftGLz-ftgvH2DtwA": {
       "name": "@WeatherGuyCurtis",
       "avatar": "https://yt4.ggpht.com/3PuySRevJq43xYWt3wUGed-cG1o-22JmiCyDVUBHuA19alAzjCXsg0vFxQDaoZEHAH_T2m5i4w=s64-c-k-c0x00ffffff-no-rj",
-      "count": 11,
-      "lastAt": 1786177286898
+      "count": 13,
+      "lastAt": 1786177909294
     },
     "yt:UCUgQVOKIu_DRsNdExym9nsA": {
       "name": "@MsRackool",
@@ -1197,6 +1197,24 @@
     }
   },
   "recentVotes": [
+    {
+      "voter": "@WeatherGuyCurtis",
+      "voterId": "yt:UCt6KDg7ftGLz-ftgvH2DtwA",
+      "code": "jp",
+      "name": "Japan",
+      "img": "https://flagcdn.com/w40/jp.png",
+      "avatar": "https://yt4.ggpht.com/3PuySRevJq43xYWt3wUGed-cG1o-22JmiCyDVUBHuA19alAzjCXsg0vFxQDaoZEHAH_T2m5i4w=s64-c-k-c0x00ffffff-no-rj",
+      "at": 1786177909294
+    },
+    {
+      "voter": "@WeatherGuyCurtis",
+      "voterId": "yt:UCt6KDg7ftGLz-ftgvH2DtwA",
+      "code": "au",
+      "name": "Australia",
+      "img": "https://flagcdn.com/w40/au.png",
+      "avatar": "https://yt4.ggpht.com/3PuySRevJq43xYWt3wUGed-cG1o-22JmiCyDVUBHuA19alAzjCXsg0vFxQDaoZEHAH_T2m5i4w=s64-c-k-c0x00ffffff-no-rj",
+      "at": 1786177867536
+    },
     {
       "voter": "@Thesoccergoats67",
       "voterId": "yt:UCOEVmGQQZaQZdQmz5PxmFvw",
@@ -1223,24 +1241,6 @@
       "img": "https://flagcdn.com/w40/be.png",
       "avatar": "https://yt4.ggpht.com/3PuySRevJq43xYWt3wUGed-cG1o-22JmiCyDVUBHuA19alAzjCXsg0vFxQDaoZEHAH_T2m5i4w=s64-c-k-c0x00ffffff-no-rj",
       "at": 1786177286898
-    },
-    {
-      "voter": "@WeatherGuyCurtis",
-      "voterId": "yt:UCt6KDg7ftGLz-ftgvH2DtwA",
-      "code": "nl",
-      "name": "Netherlands",
-      "img": "https://flagcdn.com/w40/nl.png",
-      "avatar": "https://yt4.ggpht.com/3PuySRevJq43xYWt3wUGed-cG1o-22JmiCyDVUBHuA19alAzjCXsg0vFxQDaoZEHAH_T2m5i4w=s64-c-k-c0x00ffffff-no-rj",
-      "at": 1786177264934
-    },
-    {
-      "voter": "@WeatherGuyCurtis",
-      "voterId": "yt:UCt6KDg7ftGLz-ftgvH2DtwA",
-      "code": "nl",
-      "name": "Netherlands",
-      "img": "https://flagcdn.com/w40/nl.png",
-      "avatar": "https://yt4.ggpht.com/3PuySRevJq43xYWt3wUGed-cG1o-22JmiCyDVUBHuA19alAzjCXsg0vFxQDaoZEHAH_T2m5i4w=s64-c-k-c0x00ffffff-no-rj",
-      "at": 1786177243322
     }
   ]
 }
