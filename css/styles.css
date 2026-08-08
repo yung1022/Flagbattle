@@ -175,6 +175,10 @@ body {
   animation: marquee 36s linear infinite;
 }
 
+.board-track.marquee.marquee-once .board-row {
+  animation: marquee var(--board-scroll-s, 36s) linear 1 forwards;
+}
+
 .board-row {
   display: flex;
   gap: 8px;
@@ -1153,6 +1157,11 @@ body.stream-mode .board-track.marquee {
 body.stream-mode .board-track.marquee .board-row {
   animation: marqueeY var(--board-scroll-s, 22s) linear infinite;
   flex-shrink: 0;
+}
+
+/* Qualifying/Final rotation: one scroll to the bottom, then swap boards. */
+body.stream-mode .board-track.marquee.marquee-once .board-row {
+  animation: marqueeY var(--board-scroll-s, 22s) linear 1 forwards;
 }
 
 body.stream-mode .board-row {
