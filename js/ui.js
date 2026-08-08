@@ -32,8 +32,10 @@ const els = {
   winnerFlag: document.getElementById("winner-flag"),
   winnerName: document.getElementById("winner-name"),
   rankReveal: document.getElementById("rank-reveal"),
+  rankRevealKicker: document.querySelector("#rank-reveal .rank-reveal-kicker"),
   rankRevealFlag: document.getElementById("rank-reveal-flag"),
   rankRevealName: document.getElementById("rank-reveal-name"),
+  rankRevealWin: document.querySelector("#rank-reveal .rank-reveal-win"),
   rankRevealChange: document.getElementById("rank-reveal-change"),
   rankRevealFrom: document.getElementById("rank-reveal-from"),
   rankRevealTo: document.getElementById("rank-reveal-to"),
@@ -503,12 +505,12 @@ function renderBoard() {
     els.boardLabel.textContent = "MAIN POINTS";
     els.boardMeta.textContent = flags.length
       ? `${flags.length} scoring · last standing = +1`
-      : "Last standing earns a point · clock → Invasion";
+      : "Last standing earns a point · most points wins";
   } else if (game.phase === "invasion") {
     els.boardLabel.textContent = "INVASION";
     els.boardMeta.textContent = flags.length
-      ? `${flags.length} fallen · last standing = champion`
-      : "Aliens attacking · last standing wins";
+      ? `${flags.length} fallen · most Main points wins`
+      : "Pressure round · most Main points wins";
   } else if (game.streamMode === "final") {
     if (game.phase === "finished" && game.winner) {
       els.boardLabel.textContent = "CHAMPION";
@@ -700,21 +702,34 @@ function renderHud() {
       els.roundMeta.textContent =
         "Opening · spawn = vote · big flag every 5 votes · wins unscored";
     else if (isMainPhase() || game.phase === "main") {
-      const ev = game.arenaEvent;
-      const nextMs =
-        typeof game.nextEventRemainingMs === "function"
-          ? game.nextEventRemainingMs()
-          : 0;
-      const evMs =
-        typeof game.eventRemainingMs === "function"
-          ? game.eventRemainingMs()
-          : 0;
-      els.roundMeta.textContent = ev
-        ? `EVENT · ${ev.label || ev.type} · ${formatMs(evMs)} left`
-        : `Last standing = +1 point · next event ${formatMs(nextMs)} · clock → Invasion`;
+      const revealingMainPoint =
+        game.rankReveal?.kind === "main_point" &&
+        game._winRevealUntil &&
+        performance.now() < game._winRevealUntil;
+      if (revealingMainPoint) {
+        const rr = game.rankReveal;
+        const rankLine =
+          rr.fromRank != null
+            ? `#${rr.fromRank} → #${rr.toRank}`
+            : `→ #${rr.toRank ?? 1}`;
+        els.roundMeta.textContent = `+1 Main point · ${rankLine} · full rank reveal`;
+      } else {
+        const ev = game.arenaEvent;
+        const nextMs =
+          typeof game.nextEventRemainingMs === "function"
+            ? game.nextEventRemainingMs()
+            : 0;
+        const evMs =
+          typeof game.eventRemainingMs === "function"
+            ? game.eventRemainingMs()
+            : 0;
+        els.roundMeta.textContent = ev
+          ? `EVENT · ${ev.label || ev.type} · ${formatMs(evMs)} left`
+          : `Last standing = +1 point · next event ${formatMs(nextMs)} · most points wins`;
+      }
     } else if (game.phase === "invasion")
       els.roundMeta.textContent =
-        "Alien invasion · hole sealed · last standing = champion";
+        "Alien invasion · hole sealed · most Main points wins";
     else if (game.phase === "qualifying_hold")
       els.roundMeta.textContent = "All qualified · waiting on clock";
     else if (game.phase === "qualifying_complete")
@@ -749,7 +764,11 @@ function renderHud() {
     els.timer.hidden = false;
   } else if (game.phase === "invasion") {
     els.phaseText.textContent = "Invasion";
-    els.timer.textContent = `${fighting} LEFT`;
+    const invMs =
+      typeof game.invasionRemainingMs === "function"
+        ? game.invasionRemainingMs()
+        : 0;
+    els.timer.textContent = invMs > 0 ? formatMs(invMs) : `${fighting} LEFT`;
     els.timer.hidden = false;
   } else if (game.phase === "qualifying_complete") {
     els.phaseText.textContent = "Finalists";
@@ -847,11 +866,24 @@ function renderRankReveal() {
   const el = els.rankReveal;
   if (!el) return;
   const rr = game.rankReveal;
-  const show = Boolean(rr && game.phase === "finished" && game._winRevealUntil);
+  const live =
+    Boolean(rr && game._winRevealUntil) &&
+    performance.now() < game._winRevealUntil;
+  // Full-screen reveal on every Main last-standing point AND season champion.
+  const show = live;
   el.hidden = !show;
   el.classList.toggle("show", show);
   if (!show || !rr) return;
 
+  const isMainPoint = rr.kind === "main_point";
+  if (els.rankRevealKicker) {
+    els.rankRevealKicker.textContent = isMainPoint
+      ? "MAIN POINTS"
+      : "CHAMPIONSHIP";
+  }
+  if (els.rankRevealWin) {
+    els.rankRevealWin.textContent = isMainPoint ? "+1 POINT" : "+1 WIN";
+  }
   if (els.rankRevealFlag) {
     els.rankRevealFlag.src = rr.img || game.winner?.img || "";
     els.rankRevealFlag.alt = rr.name || "";
@@ -876,13 +908,34 @@ function renderRankReveal() {
   }
   if (els.rankRevealMeta) {
     const pts = Number(rr.points) || 0;
-    if (rr.firstWin) {
-      els.rankRevealMeta.textContent = `First win · ${pts} pt${pts === 1 ? "" : "s"}`;
+    if (isMainPoint) {
+      if (rr.firstWin) {
+        els.rankRevealMeta.textContent = `First Main point · ${pts} pt${
+          pts === 1 ? "" : "s"
+        }`;
+      } else if (rr.delta != null && rr.delta !== 0) {
+        const dir = rr.delta > 0 ? "up" : "down";
+        els.rankRevealMeta.textContent = `${Math.abs(rr.delta)} ${dir} · ${pts} pt${
+          pts === 1 ? "" : "s"
+        }`;
+      } else {
+        els.rankRevealMeta.textContent = `${pts} pt${
+          pts === 1 ? "" : "s"
+        } · same place`;
+      }
+    } else if (rr.firstWin) {
+      els.rankRevealMeta.textContent = `First win · ${pts} win${
+        pts === 1 ? "" : "s"
+      }`;
     } else if (rr.delta != null && rr.delta !== 0) {
       const dir = rr.delta > 0 ? "up" : "down";
-      els.rankRevealMeta.textContent = `${Math.abs(rr.delta)} ${dir} · ${pts} win${pts === 1 ? "" : "s"}`;
+      els.rankRevealMeta.textContent = `${Math.abs(rr.delta)} ${dir} · ${pts} win${
+        pts === 1 ? "" : "s"
+      }`;
     } else {
-      els.rankRevealMeta.textContent = `${pts} win${pts === 1 ? "" : "s"} · same place`;
+      els.rankRevealMeta.textContent = `${pts} win${
+        pts === 1 ? "" : "s"
+      } · same place`;
     }
   }
 }

@@ -595,6 +595,85 @@ function buildPointsLeaderboardBare(streams, countries) {
 }
 
 /**
+ * Live Main-points rank change after awarding +1 last-standing point.
+ * @param {Map<string, number>|Record<string, number>} beforePoints
+ * @param {Map<string, number>|Record<string, number>} beforeFirstAt ms timestamps
+ * @param {Map<string, number>|Record<string, number>} afterPoints
+ * @param {Map<string, number>|Record<string, number>} afterFirstAt
+ * @param {{code:string,name:string,img?:string}} scorer
+ * @param {Array<{code:string,name:string}>} [countries]
+ */
+export function computeMainPointRankReveal(
+  beforePoints,
+  beforeFirstAt,
+  afterPoints,
+  afterFirstAt,
+  scorer,
+  countries = []
+) {
+  const code = String(scorer?.code || "").toLowerCase();
+  const nameOf = (c) => {
+    const hit = (countries || []).find(
+      (x) => String(x.code || "").toLowerCase() === c
+    );
+    return hit?.name || c.toUpperCase();
+  };
+  const toMap = (src) => {
+    if (!src) return new Map();
+    if (src instanceof Map) return src;
+    return new Map(
+      Object.entries(src).map(([k, v]) => [String(k).toLowerCase(), v])
+    );
+  };
+  const board = (pointsSrc, firstSrc) => {
+    const points = toMap(pointsSrc);
+    const firstAt = toMap(firstSrc);
+    const rows = [];
+    for (const [c, p] of points) {
+      const n = Number(p) || 0;
+      if (n <= 0) continue;
+      rows.push({
+        code: c,
+        name: nameOf(c),
+        points: n,
+        firstAt: Number(firstAt.get(c)) || 0,
+      });
+    }
+    rows.sort(
+      (a, b) =>
+        b.points - a.points ||
+        (a.firstAt || 0) - (b.firstAt || 0) ||
+        a.name.localeCompare(b.name)
+    );
+    return rows.map((r, i) => ({ ...r, rank: i + 1 }));
+  };
+
+  const prevBoard = board(beforePoints, beforeFirstAt);
+  const nextBoard = board(afterPoints, afterFirstAt);
+  const prevRow = prevBoard.find((r) => r.code === code);
+  const nextRow = nextBoard.find((r) => r.code === code);
+  const prevPoints = Number(prevRow?.points) || 0;
+  const points = Number(nextRow?.points) || prevPoints + 1;
+  const fromRank = prevPoints > 0 ? (prevRow?.rank ?? null) : null;
+  const toRank = nextRow?.rank ?? 1;
+  const delta =
+    fromRank != null && Number.isFinite(toRank) ? fromRank - toRank : null;
+
+  return {
+    kind: "main_point",
+    code: scorer.code,
+    name: scorer.name,
+    img: scorer.img || `https://flagcdn.com/w160/${scorer.code}.png`,
+    fromRank,
+    toRank,
+    points,
+    prevPoints,
+    delta,
+    firstWin: prevPoints === 0,
+  };
+}
+
+/**
  * Compute championship rank change for a country after awarding +1 win.
  * @param {Array} priorStreams streams BEFORE this win is recorded
  * @param {Array} countries
@@ -658,6 +737,7 @@ export function computeWinRankReveal(
     fromRank != null && Number.isFinite(toRank) ? fromRank - toRank : null;
 
   return {
+    kind: "season_win",
     code: winner.code,
     name: winner.name,
     img: winner.img || `https://flagcdn.com/w160/${winner.code}.png`,
