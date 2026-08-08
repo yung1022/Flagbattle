@@ -17,9 +17,8 @@ import {
   createLiveBroadcast,
   goLive,
   completeBroadcast,
-  setVideoThumbnail,
+  ensureVideoThumbnail,
   postLiveChatMessage,
-  resolveThumbnailFile,
   applyVideoDiscovery,
   DEFAULT_LIVE_TAGS,
   DEFAULT_LIVE_KEYWORDS,
@@ -33,7 +32,8 @@ loadEnv();
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(__dirname, "../..");
-const THUMB = path.join(ROOT, "assets/thumbnail.png");
+// Prefer the compressed YouTube JPEG (<2MB); resolver also falls back to PNG.
+const THUMB = path.join(ROOT, "assets/thumbnail-yt.jpg");
 const PUBLIC_SITE_DEFAULT = "https://yung1022.github.io/Flagbattle";
 let pulseSink = null;
 
@@ -128,11 +128,14 @@ async function main() {
   await sleep(12_000);
   await goLive(youtubeClient, broadcastId);
 
-  // Retry thumbnail after live (some channels reject pre-live sets).
-  const thumb = live.thumbnailPath || (await resolveThumbnailFile(THUMB));
-  if (thumb) {
-    await setVideoThumbnail(youtubeClient, broadcastId, thumb);
-  }
+  // Only retry thumbnail if the pre-live set failed (double-upload was
+  // hitting YouTube's "too many thumbnails recently" quota).
+  await ensureVideoThumbnail(youtubeClient, broadcastId, THUMB, {
+    alreadySet: Boolean(live.thumbnailSet),
+    retries: 3,
+    baseDelayMs: 45_000,
+    initialDelayMs: live.thumbnailSet ? 0 : 30_000,
+  });
 
   // Re-apply tags/keywords after live — more reliable than pre-live only.
   try {
