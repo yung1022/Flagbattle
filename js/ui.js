@@ -737,7 +737,7 @@ function renderHud() {
     els.phaseText.textContent = "Opening";
     els.timer.textContent = formatMs(game.sprintRemainingMs());
     els.timer.hidden = false;
-  } else if (game.phase === "main") {
+  } else if (isMainPhase() || game.phase === "main") {
     els.phaseText.textContent = game.arenaEvent
       ? `Event · ${game.arenaEvent.type}`
       : "Main";
