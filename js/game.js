@@ -278,6 +278,7 @@ export class FlagBattleGame {
     this._finalElimLock = false;
     this._pendingSprintReset = false;
     this._pendingSprintEnd = false;
+    this._pendingMainReset = false;
     this.sprintEndsAt = 0;
     this.mainEndsAt = 0;
     /** @type {{ type: ArenaEventType, endsAt: number, angle?: number, hunterCode?: string, label?: string } | null} */
@@ -289,6 +290,14 @@ export class FlagBattleGame {
     this._deathSeq = [];
     /** @type {Array<{code:string,name:string,img:string,at:number,voter?:string}>} */
     this.recentSprintWins = [];
+    /** Main last-standing points (in-stream; used for final ranking). */
+    /** @type {Map<string, number>} */
+    this.mainRoundPoints = new Map();
+    /** First time each country earned a Main point (earlier = better tiebreak). */
+    /** @type {Map<string, number>} */
+    this.mainPointAt = new Map();
+    /** @type {Array<{code:string,name:string,img:string,at:number,points:number}>} */
+    this.recentMainWins = [];
     /** @type {Array<{code:string,name:string,img:string,at:number,voter?:string,avatar?:string}>} */
     this.recentSpawns = [];
     this._swissPairQueue = [];
@@ -347,6 +356,7 @@ export class FlagBattleGame {
     this._finalElimLock = false;
     this._pendingSprintReset = false;
     this._pendingSprintEnd = false;
+    this._pendingMainReset = false;
     this.sprintEndsAt = 0;
     this.mainEndsAt = 0;
     this.arenaEvent = null;
@@ -354,6 +364,9 @@ export class FlagBattleGame {
     this.aliens = [];
     this._deathSeq = [];
     this.recentSprintWins = [];
+    this.mainRoundPoints = new Map();
+    this.mainPointAt = new Map();
+    this.recentMainWins = [];
     this.recentSpawns = [];
     this._swissPairQueue = [];
     this._swissMatchOver = false;
@@ -845,10 +858,13 @@ export class FlagBattleGame {
    * @returns {boolean}
    */
   spawnSprintCountry(code, { voter = "", avatar = "" } = {}) {
+    const mainBetween =
+      this.phase === "between_rounds" && this._pendingMainReset;
     if (
       this.phase !== "sprint" &&
       this.phase !== "main" &&
-      this.phase !== "invasion"
+      this.phase !== "invasion" &&
+      !mainBetween
     ) {
       return false;
     }
@@ -980,6 +996,8 @@ export class FlagBattleGame {
 
   /**
    * Main arena: all countries, HP bars, attacking, random 30s events.
+   * Last standing earns a point and the round resets; the ~50 min clock
+   * only starts Alien Invasion (endgame). Points rank the final board.
    * @param {{ showcaseEvent?: ArenaEventType }} [opts]
    */
   _startMainArena(opts = {}) {
@@ -992,6 +1010,11 @@ export class FlagBattleGame {
     this.arenaEvent = null;
     this.aliens = [];
     this.eliminated = [];
+    this._deathSeq = [];
+    this._pendingMainReset = false;
+    this.mainRoundPoints = new Map();
+    this.mainPointAt = new Map();
+    this.recentMainWins = [];
     const span =
       CONFIG.mainMsMin +
       Math.random() * Math.max(0, CONFIG.mainMsMax - CONFIG.mainMsMin);
@@ -1022,11 +1045,16 @@ export class FlagBattleGame {
     this.holeAngle = rand(0, Math.PI * 2);
     this.roundStartedAt = performance.now();
     this.arenaScale = 1;
-    if (this.stream) this.stream.mode = "final";
+    if (this.stream) {
+      this.stream.mode = "final";
+      this.stream.mainRoundPoints = {};
+      this.stream.mainPointAt = {};
+      this.stream.recentMainWins = [];
+    }
     const mins = Math.max(1, Math.round(span / 60000));
     this._emit(
       "phase",
-      `MAIN — last flag standing wins · ~${mins} min to invasion · events (saw / black hole / catch)`
+      `MAIN — last standing = +1 point · ~${mins} min → Alien Invasion · events live`
     );
     if (opts.showcaseEvent) {
       // Showcase: keep a full field + visible event (no instant wipe).
@@ -1037,6 +1065,139 @@ export class FlagBattleGame {
     }
     this._publishLive();
     this._uiDirty = true;
+  }
+
+  /**
+   * Main round win: +1 point for last standing, then reset the field.
+   * Does NOT end the stream — the Main clock still leads to Invasion.
+   */
+  _mainWin(flag) {
+    if (
+      !flag?.code ||
+      this._pendingMainReset ||
+      this._showcaseMain ||
+      this.phase !== "main"
+    ) {
+      return;
+    }
+    const code = flag.code;
+    const next = (this.mainRoundPoints.get(code) || 0) + 1;
+    this.mainRoundPoints.set(code, next);
+    if (!this.mainPointAt.has(code)) this.mainPointAt.set(code, Date.now());
+
+    const win = {
+      code: flag.code,
+      name: flag.name,
+      img: flag.img || flagUrl(flag.code, 80),
+      at: Date.now(),
+      points: next,
+    };
+    this.recentMainWins = [win, ...this.recentMainWins].slice(0, 16);
+    flag.pulse = 1;
+    playSfx("opening_win");
+    this.phase = "between_rounds";
+    this._pendingMainReset = true;
+    this._betweenUntil =
+      performance.now() + Math.max(900, CONFIG.betweenRoundMs);
+    this._emit(
+      "phase",
+      `MAIN POINT — ${flag.name}! (${next} pt${next === 1 ? "" : "s"}) · resetting…`
+    );
+    this._persistMainPoints();
+    this._publishLive();
+    this._uiDirty = true;
+  }
+
+  _persistMainPoints() {
+    if (!this.stream) return;
+    const points = {};
+    for (const [code, n] of this.mainRoundPoints) points[code] = n;
+    const firstAt = {};
+    for (const [code, at] of this.mainPointAt) {
+      firstAt[code] = new Date(at).toISOString();
+    }
+    this.stream.mainRoundPoints = points;
+    this.stream.mainPointAt = firstAt;
+    this.stream.recentMainWins = (this.recentMainWins || []).slice(0, 16);
+    saveStream(this.stream);
+  }
+
+  /** Refill Main after a point round, or start Invasion if the clock expired. */
+  _resetMainRound() {
+    this._pendingMainReset = false;
+    if (this.mainEndsAt && performance.now() >= this.mainEndsAt) {
+      this._emit("phase", "Main time’s up — ALIEN INVASION!");
+      this._startInvasion();
+      return;
+    }
+
+    // Keep chat vote sizes across Main round resets.
+    const voteMap = new Map(
+      this.fighters.map((f) => [
+        f.code,
+        {
+          spawnVotes: Number(f.spawnVotes) || 0,
+          sizeMult: Number(f.sizeMult) || 1,
+        },
+      ])
+    );
+
+    this.phase = "main";
+    this.finalStage = "main";
+    this.round += 1;
+    this.eliminated = [];
+    this._fallOrder = [];
+    this._deathSeq = [];
+    this.arenaEvent = null;
+    this._fillSprintField();
+    for (const f of this.fighters) {
+      const prev = voteMap.get(f.code);
+      if (prev) {
+        f.spawnVotes = prev.spawnVotes;
+        f.sizeMult = this._sizeMultForVotes(prev.spawnVotes);
+      }
+      f.hp = CONFIG.baseHp;
+      f.maxHp = CONFIG.baseHp;
+      f.alive = true;
+      f.falling = false;
+    }
+    this._scheduleNextEvent();
+    const leaders = this._mainPointLeaders(3)
+      .map((r) => `${r.name} ${r.points}`)
+      .join(" · ");
+    this._emit(
+      "phase",
+      `MAIN round ${this.round + 1} — last standing = +1 point${
+        leaders ? ` · lead: ${leaders}` : ""
+      }`
+    );
+    this._publishLive();
+    this._uiDirty = true;
+  }
+
+  /** Sorted Main point leaders for board / HUD. */
+  _mainPointLeaders(limit = 24) {
+    const rows = [];
+    for (const [code, points] of this.mainRoundPoints) {
+      if (!points) continue;
+      const known =
+        this.fighters.find((f) => f.code === code) ||
+        COUNTRIES.find((c) => c.code === code);
+      rows.push({
+        code,
+        name: known?.name || code.toUpperCase(),
+        img: known?.img || flagUrl(code, 80),
+        points,
+        firstAt: this.mainPointAt.get(code) || 0,
+      });
+    }
+    rows.sort(
+      (a, b) =>
+        b.points - a.points ||
+        (a.firstAt || 0) - (b.firstAt || 0) ||
+        a.name.localeCompare(b.name)
+    );
+    return limit ? rows.slice(0, limit) : rows;
   }
 
   _scheduleNextEvent(now = performance.now()) {
@@ -1194,6 +1355,9 @@ export class FlagBattleGame {
     this.streamMode = "final";
     this.arenaEvent = null;
     this.mainEndsAt = 0;
+    this._pendingMainReset = false;
+    this._deathSeq = [];
+    this._persistMainPoints();
     if (!this.fighters.length) this._fillSprintField();
     for (const f of this.fighters) {
       if (!f.alive) {
@@ -1422,6 +1586,8 @@ export class FlagBattleGame {
           this._resetSprintRound();
         } else if (this._pendingSprintEnd) {
           this._endSprint();
+        } else if (this._pendingMainReset) {
+          this._resetMainRound();
         } else if (this._pendingQualComplete) {
           this._pendingQualComplete = false;
           this._finishQualifyingStream();
@@ -1463,8 +1629,14 @@ export class FlagBattleGame {
       return;
     }
 
-    // Main clock → Alien Invasion.
-    if (this.phase === "main" && this.mainEndsAt && now >= this.mainEndsAt) {
+    // Main clock → Alien Invasion (endgame). Not a win condition.
+    if (
+      this.mainEndsAt &&
+      now >= this.mainEndsAt &&
+      (this.phase === "main" ||
+        (this.phase === "between_rounds" && this._pendingMainReset))
+    ) {
+      this._pendingMainReset = false;
       this._emit("phase", "Main time’s up — ALIEN INVASION!");
       this._startInvasion();
       this.onFrame();
@@ -1540,13 +1712,8 @@ export class FlagBattleGame {
           this._tickAliens(dt);
         }
         const standingNow = this.fighters.filter((f) => f.alive && !f.falling);
-        // Last flag standing wins the game (Main or Invasion) — not the clock.
-        // Showcase Main keeps a full field for event demos.
-        if (
-          (this.phase === "invasion" ||
-            (this.phase === "main" && !this._showcaseMain)) &&
-          standingNow.length <= 1
-        ) {
+        if (this.phase === "invasion" && standingNow.length <= 1) {
+          // Invasion endgame: last standing is the stream champion.
           if (standingNow.length === 1) {
             this._onLastFlag(standingNow[0]);
           } else {
@@ -1558,6 +1725,21 @@ export class FlagBattleGame {
                 f.hp = 1;
                 this._onLastFlag(f);
               }
+            }
+          }
+        } else if (
+          this.phase === "main" &&
+          !this._showcaseMain &&
+          standingNow.length <= 1
+        ) {
+          // Main: last standing earns a point; clock still runs to Invasion.
+          if (standingNow.length === 1) {
+            this._mainWin(standingNow[0]);
+          } else {
+            const last = this._deathSeq[this._deathSeq.length - 1];
+            if (last) {
+              const f = this.fighters.find((x) => x.code === last.code);
+              if (f) this._mainWin(f);
             }
           }
         }
@@ -2390,15 +2572,15 @@ export class FlagBattleGame {
   }
 
   /**
-   * Final battle sheet ranking:
-   * 1) Final 4 — winner, then reverse elimination sequence
-   * 2) Swiss cuts — average place across Qualifying rounds (lower avg = better)
-   * 3) Hole (before Swiss) — same as Qualifying: reverse fall order
+   * Final ranking for the stream:
+   * 1) Invasion champion (#1)
+   * 2) Main last-standing points (desc; earlier first point wins ties)
+   * 3) Invasion death order / survivors as fallback
    */
   _buildFinalRanking(winner) {
     const ranking = [];
     const seen = new Set();
-    const push = (row) => {
+    const push = (row, extra = {}) => {
       if (!row?.code || seen.has(row.code)) return;
       if (winner && row.code === winner.code && ranking.length) return;
       seen.add(row.code);
@@ -2407,27 +2589,35 @@ export class FlagBattleGame {
         code: row.code,
         name: row.name,
         img: row.img,
+        ...extra,
       });
     };
 
     if (winner) {
-      push({
-        code: winner.code,
-        name: winner.name,
-        img: winner.img,
-      });
+      const wPts = this.mainRoundPoints.get(winner.code) || 0;
+      push(
+        {
+          code: winner.code,
+          name: winner.name,
+          img: winner.img,
+        },
+        wPts ? { mainPoints: wPts } : {}
+      );
     }
 
-    // Primary: reverse last-death sequence (revives overwrite prior deaths).
+    // Main points decide the rest of the final board.
+    for (const row of this._mainPointLeaders(0)) {
+      push(row, { mainPoints: row.points });
+    }
+
+    // Invasion death order for anyone without Main points.
     if (this._deathSeq?.length) {
       for (const row of [...this._deathSeq].reverse()) push(row);
     } else {
-      // Legacy fallbacks for old Final formats.
       for (const row of [...this._battleElimOrder].reverse()) push(row);
       for (const row of [...this._fallOrder].reverse()) push(row);
     }
 
-    // Survivors / remaining fighters not yet in the list.
     for (const f of this.fighters) {
       if (f.alive) push(f);
     }
@@ -2519,9 +2709,10 @@ export class FlagBattleGame {
           scoring: "wins_v1",
           rules: "opening_main_invasion",
           rankingRules: {
-            primary: "last_death_elimination_sequence",
-            note: "Revives clear prior death; final place uses last death order",
+            primary: "main_round_points",
+            note: "Invasion champion #1; others by Main last-standing points (earlier first point wins ties)",
           },
+          mainRoundPoints: Object.fromEntries(this.mainRoundPoints || []),
           pollPlaces: null,
         };
         this.stream.winner = this.stream.final.winner;
@@ -2725,6 +2916,8 @@ export class FlagBattleGame {
         this.phase === "sprint" ||
         this._pendingSprintReset ||
         this._pendingSprintEnd,
+      mainRoundPoints: Object.fromEntries(this.mainRoundPoints || []),
+      recentMainWins: (this.recentMainWins || []).slice(0, 12),
       finalLiveAt: this.finalLiveAt || extra.finalLiveAt || null,
       updatedAt: Date.now(),
       ...extra,
@@ -2775,9 +2968,15 @@ export class FlagBattleGame {
   }
 
   mainRemainingMs(now = performance.now()) {
-    if (this.phase !== "main") return 0;
-    if (!this.mainEndsAt) return CONFIG.mainMsMin;
-    return Math.max(0, this.mainEndsAt - now);
+    if (this.phase === "main") {
+      if (!this.mainEndsAt) return CONFIG.mainMsMin;
+      return Math.max(0, this.mainEndsAt - now);
+    }
+    if (this.phase === "between_rounds" && this._pendingMainReset) {
+      if (!this.mainEndsAt) return 0;
+      return Math.max(0, this.mainEndsAt - now);
+    }
+    return 0;
   }
 
   eventRemainingMs(now = performance.now()) {
@@ -2804,8 +3003,17 @@ export class FlagBattleGame {
     ) {
       return this.recentSprintWins || [];
     }
-    // Main / Invasion: elimination board (most recent deaths first).
-    if (this.phase === "main" || this.phase === "invasion") {
+    // Main: last-standing point leaders (points decide final ranking).
+    if (
+      this.phase === "main" ||
+      (this.phase === "between_rounds" && this._pendingMainReset)
+    ) {
+      const leaders = this._mainPointLeaders(24);
+      if (leaders.length) return leaders;
+      return this.recentMainWins || [];
+    }
+    // Invasion: elimination board (most recent deaths first).
+    if (this.phase === "invasion") {
       const deaths = [...(this._deathSeq || [])].reverse().slice(0, 24);
       if (deaths.length) return deaths;
       return this.fighters.filter((f) => f.alive).slice(0, 16);
