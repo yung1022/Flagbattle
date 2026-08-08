@@ -1052,7 +1052,7 @@
     "in": 0,
     "id": 0,
     "ir": 0,
-    "iq": 6,
+    "iq": 7,
     "ie": 0,
     "il": 0,
     "it": 0,
@@ -1170,11 +1170,12 @@
   },
   "voters": {
     "yt:UC3ZJ4I5BFkE051P7vz17lwg": "iq",
-    "yt:UCbqvVBXOIzUDOcPDZeUVMsQ": "iq"
+    "yt:UCbqvVBXOIzUDOcPDZeUVMsQ": "iq",
+    "yt:UCcK12hie2d1Exc6rdTG7Vnw": "iq"
   },
   "closed": false,
   "closedAt": null,
-  "updatedAt": 1786183858495,
+  "updatedAt": 1786186305826,
   "voterStats": {
     "yt:UC3ZJ4I5BFkE051P7vz17lwg": {
       "name": "@Fotbolledits-n1g",
@@ -1187,9 +1188,24 @@
       "avatar": "https://yt4.ggpht.com/ytc/AIdro_mzksONrz3OSuVyyUUITS-9yLU_QutU4tCOAyRp5DM_vrG8UFaU5FJrp_beNznUEi3uUg=s64-c-k-c0x00ffffff-no-rj",
       "count": 1,
       "lastAt": 1786183858495
+    },
+    "yt:UCcK12hie2d1Exc6rdTG7Vnw": {
+      "name": "@seychellebaraquiel2576",
+      "avatar": "https://yt4.ggpht.com/ytc/AIdro_mwi0jj_TJNtJYmt2F4VSWQC0WjcLur-Cx8HqQSHNzi3aEH=s64-c-k-c0x00ffffff-no-rj",
+      "count": 1,
+      "lastAt": 1786186305826
     }
   },
   "recentVotes": [
+    {
+      "voter": "@seychellebaraquiel2576",
+      "voterId": "yt:UCcK12hie2d1Exc6rdTG7Vnw",
+      "code": "iq",
+      "name": "Iraq",
+      "img": "https://flagcdn.com/w40/iq.png",
+      "avatar": "https://yt4.ggpht.com/ytc/AIdro_mwi0jj_TJNtJYmt2F4VSWQC0WjcLur-Cx8HqQSHNzi3aEH=s64-c-k-c0x00ffffff-no-rj",
+      "at": 1786186305826
+    },
     {
       "voter": "@WaranMustafa",
       "voterId": "yt:UCbqvVBXOIzUDOcPDZeUVMsQ",
@@ -1225,15 +1241,6 @@
       "img": "https://flagcdn.com/w40/iq.png",
       "avatar": "https://yt4.ggpht.com/_RJA-VuMi-Vo6dZVgBNZjFqsJgFpoZVu3X3Mo7gQu4zEo01fa3qqJrnmNDYa079cLN95DS4t=s64-c-k-c0x00ffffff-no-rj",
       "at": 1786183570428
-    },
-    {
-      "voter": "@Fotbolledits-n1g",
-      "voterId": "yt:UC3ZJ4I5BFkE051P7vz17lwg",
-      "code": "iq",
-      "name": "Iraq",
-      "img": "https://flagcdn.com/w40/iq.png",
-      "avatar": "https://yt4.ggpht.com/_RJA-VuMi-Vo6dZVgBNZjFqsJgFpoZVu3X3Mo7gQu4zEo01fa3qqJrnmNDYa079cLN95DS4t=s64-c-k-c0x00ffffff-no-rj",
-      "at": 1786183569398
     }
   ]
 }
