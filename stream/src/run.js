@@ -668,7 +668,14 @@ function startFfmpeg(displayNum, rtmpUrl, w, h, fps) {
     process.env.PULSE_SOURCE ||
     (process.env.PULSE_SINK ? `${process.env.PULSE_SINK}.monitor` : "");
 
-  // Video from X11; audio from Pulse (TTS/SFX) or silent bed.
+  // Soft lavfi pad — guaranteed stream music even if Chrome Web Audio is silent.
+  const ambientInput =
+    "aevalsrc=exprs=" +
+    "0.055*sin(2*PI*110*t)+0.035*sin(2*PI*164.81*t)+0.022*sin(2*PI*220*t)+" +
+    "0.012*sin(2*PI*329.63*t)" +
+    ":s=44100:c=stereo,lowpass=f=900,volume=0.9";
+
+  // Video from X11; audio = Pulse (Chrome SFX/TTS) + always-on lavfi ambient bed.
   const args = [
     "-y",
     "-thread_queue_size",
@@ -686,15 +693,27 @@ function startFfmpeg(displayNum, rtmpUrl, w, h, fps) {
   ];
 
   if (usePulse && pulseSource) {
-    // Capture Chrome/espeak from the null-sink monitor. Don't amix with
-    // anullsrc at equal weight — that halves ambient volume to near-silence.
     args.push(
       "-thread_queue_size",
       "512",
       "-f",
       "pulse",
       "-i",
-      pulseSource
+      pulseSource,
+      "-f",
+      "lavfi",
+      "-thread_queue_size",
+      "512",
+      "-i",
+      ambientInput,
+      "-filter_complex",
+      "[1:a]aresample=async=1:first_pts=0,volume=1.55[pulse];" +
+        "[2:a]volume=0.55[bed];" +
+        "[pulse][bed]amix=inputs=2:duration=first:dropout_transition=2:normalize=0[aout]",
+      "-map",
+      "0:v",
+      "-map",
+      "[aout]"
     );
   } else {
     args.push(
@@ -703,15 +722,15 @@ function startFfmpeg(displayNum, rtmpUrl, w, h, fps) {
       "-thread_queue_size",
       "512",
       "-i",
-      "anullsrc=channel_layout=stereo:sample_rate=44100"
+      ambientInput,
+      "-map",
+      "0:v",
+      "-map",
+      "1:a"
     );
   }
 
   args.push(
-    "-map",
-    "0:v",
-    "-map",
-    "1:a",
     "-c:v",
     "libx264",
     "-preset",
@@ -742,9 +761,6 @@ function startFfmpeg(displayNum, rtmpUrl, w, h, fps) {
     "160k",
     "-ar",
     "44100",
-    ...(usePulse && pulseSource
-      ? ["-af", "aresample=async=1:first_pts=0,volume=1.6"]
-      : []),
     "-shortest",
     "-f",
     "flv",
@@ -752,7 +768,9 @@ function startFfmpeg(displayNum, rtmpUrl, w, h, fps) {
   );
 
   console.log(
-    `FFmpeg → YouTube RTMP (${w}x${h}@${fps} ${preset} ${bitrate}${usePulse ? " +pulse" : ""})`
+    `FFmpeg → YouTube RTMP (${w}x${h}@${fps} ${preset} ${bitrate}${
+      usePulse ? " +pulse+ambient" : " +ambient"
+    })`
   );
   const proc = spawn("ffmpeg", args, {
     stdio: ["ignore", "pipe", "pipe"],
