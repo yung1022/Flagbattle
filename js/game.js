@@ -93,13 +93,15 @@ export const CONFIG = {
   /** Alien invasion DPS (HP/sec while near an alien). */
   alienDps: 18,
   alienCount: 5,
-  /** Sprint hole aperture (radians) — smaller than Main. */
-  sprintHoleWidth: 0.42,
+  /** Opening hole aperture (radians) — small; big flags still fit via size pad. */
+  sprintHoleWidth: 0.28,
+  /** Circular saw radius (arena units) + contact pad. */
+  sawRadius: 0.055,
   /** Qualifying rim — must match CSS --rim / SVG circle. */
   arenaRadius: 0.42,
   /** Final hole stage — larger circle; UI chrome is tightened to fit. */
   finalArenaRadius: 0.48,
-  holeWidth: 0.85,
+  holeWidth: 0.52,
   holeSpeed: 1.8,
   /** Final: keep hole shut, then open gradually. */
   holeClosedSec: 5,
@@ -155,10 +157,10 @@ function applyEasyTestConfig() {
   CONFIG.eventDurationMs = 8 * 1000;
   CONFIG.eventGapMinMs = 6 * 1000;
   CONFIG.eventGapMaxMs = 12 * 1000;
-  CONFIG.sprintHoleWidth = 0.5;
+  CONFIG.sprintHoleWidth = 0.32;
   CONFIG.betweenRoundMs = 500;
   CONFIG.holeSpeed = 2.4;
-  CONFIG.holeWidth = 1.0;
+  CONFIG.holeWidth = 0.58;
   CONFIG.maxSpeed = 1.45;
   CONFIG.outwardForce = 0.5;
   CONFIG.shrinkDurationSec = 14;
@@ -850,10 +852,8 @@ export class FlagBattleGame {
       avatar: String(avatar || "").slice(0, 500),
       at: Date.now(),
     };
-    this.recentSpawns = [
-      entry,
-      ...this.recentSpawns.filter((r) => r.code !== country.code),
-    ].slice(0, 8);
+    // Keep every spawn (same flag can appear multiple times on the board).
+    this.recentSpawns = [entry, ...this.recentSpawns].slice(0, 12);
 
     let f = this.fighters.find((x) => x.code === country.code);
     const prevVotes = Number(f?.spawnVotes) || 0;
@@ -1043,7 +1043,14 @@ export class FlagBattleGame {
       }
       ev.label = hunter ? `${hunter.name} is the CATCHER` : "CATCH";
     } else if (pick === "saw") {
-      ev.label = "SAW BLADE";
+      ev.label = "CIRCULAR SAW";
+      const ang = rand(0, Math.PI * 2);
+      const rad = rand(0.1, this.arenaRadiusNow() * 0.55);
+      ev.x = 0.5 + Math.cos(ang) * rad;
+      ev.y = 0.5 + Math.sin(ang) * rad;
+      ev.vx = rand(-0.4, 0.4);
+      ev.vy = rand(-0.4, 0.4);
+      ev.spin = 0;
     } else {
       ev.label = "BLACK HOLE";
     }
@@ -1082,13 +1089,29 @@ export class FlagBattleGame {
     const ev = this.arenaEvent;
     if (!ev) return;
     if (ev.type === "saw") {
-      ev.angle = normAngle((ev.angle || 0) + 1.8 * dt);
+      // Small circular saw that drifts inside the arena.
+      ev.spin = (ev.spin || 0) + 8 * dt;
+      ev.x = (ev.x ?? 0.5) + (ev.vx || 0) * dt;
+      ev.y = (ev.y ?? 0.5) + (ev.vy || 0) * dt;
       const R = this.arenaRadiusNow() * this.arenaScale;
+      const sawR = CONFIG.sawRadius ?? 0.055;
+      const distC = Math.hypot(ev.x - 0.5, ev.y - 0.5);
+      const limit = R - sawR - 0.01;
+      if (distC > limit) {
+        const nx = (ev.x - 0.5) / (distC || 1);
+        const ny = (ev.y - 0.5) / (distC || 1);
+        ev.x = 0.5 + nx * limit;
+        ev.y = 0.5 + ny * limit;
+        const vn = (ev.vx || 0) * nx + (ev.vy || 0) * ny;
+        if (vn > 0) {
+          ev.vx = (ev.vx || 0) - 1.8 * vn * nx;
+          ev.vy = (ev.vy || 0) - 1.8 * vn * ny;
+        }
+      }
       for (const f of this.fighters) {
         if (!f.alive || f.falling) continue;
-        const ang = Math.atan2(f.y - 0.5, f.x - 0.5);
-        const dist = Math.hypot(f.x - 0.5, f.y - 0.5);
-        if (Math.abs(angleDiff(ang, ev.angle)) < 0.12 && dist > R * 0.2) {
+        const hitR = sawR + this._flagRadiusFor(f) * 0.85;
+        if (Math.hypot(f.x - ev.x, f.y - ev.y) < hitR) {
           this._eventEliminate(f, "saw");
         }
       }
@@ -1790,20 +1813,23 @@ export class FlagBattleGame {
   _applyCircleAndHole(roundProgress = 0) {
     const R = this.arenaRadiusNow() * this.arenaScale;
     const halfHole = this._holeHalfWidth(roundProgress);
-    const fr = this._flagRadius();
-    const holeOpen = halfHole > 0.02;
+    const holeOpen = halfHole > 0.015;
 
     for (const f of this.fighters) {
       if (!f.alive || f.falling) continue;
       const dx = f.x - 0.5;
       const dy = f.y - 0.5;
       const dist = Math.hypot(dx, dy);
+      // Per-flag radius so big flags reach the rim (and hole) sooner.
+      const fr = this._flagRadiusFor(f);
       const limit = R - fr;
       if (dist < limit) continue;
 
       const ang = Math.atan2(dy, dx);
+      // Angular pad from flag size — big flags can still fall into a small hole.
+      const angPad = Math.min(0.55, fr * 3.2);
       const inHole =
-        holeOpen && Math.abs(angleDiff(ang, this.holeAngle)) <= halfHole;
+        holeOpen && Math.abs(angleDiff(ang, this.holeAngle)) <= halfHole + angPad;
 
       if (inHole) {
         f.falling = true;
@@ -1836,12 +1862,12 @@ export class FlagBattleGame {
       return 0; // sealed during alien invasion
     }
     if (this.phase === "sprint") {
-      const w = CONFIG.sprintHoleWidth ?? CONFIG.holeWidth * 0.5;
-      return (w * (1 + roundProgress * 0.45)) / 2;
+      const w = CONFIG.sprintHoleWidth ?? CONFIG.holeWidth * 0.45;
+      return (w * (1 + roundProgress * 0.35)) / 2;
     }
     if (this.phase === "main" || this.finalStage === "main") {
-      const w = CONFIG.holeWidth * 0.75;
-      return (w * (1 + roundProgress * 0.35)) / 2;
+      const w = CONFIG.holeWidth * 0.55;
+      return (w * (1 + roundProgress * 0.3)) / 2;
     }
     if (this.phase === "final" && this.finalStage === "hole") {
       const elapsed = this.roundStartedAt
