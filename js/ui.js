@@ -1,6 +1,7 @@
 import { FlagBattleGame, CONFIG, flagSizeForCount, IS_TEST_STREAM, TEST_STREAM } from "./game.js";
 import { COUNTRIES } from "./countries.js";
-import { fetchPoll } from "./store.js";
+import { fetchPoll, fetchStreamsFromApi, listStreams } from "./store.js";
+import { buildPointsLeaderboard } from "./rankings-stats.js";
 import { siteBase as resolveSiteBase } from "./public.js";
 import { announceRoundWinner, unlockAudio, ensureStreamAudio } from "./sfx.js";
 
@@ -242,11 +243,129 @@ function isSprintPhase() {
   );
 }
 
+/** Qualifying / Final left board alternates with championship Top 10 (not Sprint). */
+const BOARD_VIEW_LIVE = "live";
+const BOARD_VIEW_POINTS = "points";
+const BOARD_MAX_SHOW_MS = 30_000;
+const BOARD_STATIC_SHOW_MS = 12_000;
+
+let boardView = BOARD_VIEW_LIVE;
+let boardRotateTimer = 0;
+let boardRotateGen = 0;
+let championshipTop10 = [];
+let championshipTop10Key = "";
+let championshipRefreshTimer = 0;
+
+function shouldRotateBoardViews() {
+  if (isSprintPhase()) return false;
+  if (game.phase === "idle") return false;
+  // Qualifying + Final (incl. holds / between rounds / winner hold).
+  return (
+    game.phase === "qualifying" ||
+    game.phase === "qualifying_hold" ||
+    game.phase === "qualifying_complete" ||
+    game.phase === "between_rounds" ||
+    game.phase === "final" ||
+    game.phase === "finished"
+  );
+}
+
+async function refreshChampionshipTop10() {
+  try {
+    const fromApi = await fetchStreamsFromApi();
+    const streams =
+      Array.isArray(fromApi) && fromApi.length ? fromApi : listStreams();
+    const board = buildPointsLeaderboard(streams || [], COUNTRIES);
+    championshipTop10 = board.slice(0, 10).map((r) => ({
+      code: r.code,
+      name: r.name,
+      img: r.img || `https://flagcdn.com/w80/${r.code}.png`,
+      points: Number(r.points) || 0,
+      rank: Number(r.rank) || 0,
+    }));
+    championshipTop10Key = championshipTop10
+      .map((r) => `${r.code}:${r.points}`)
+      .join(",");
+  } catch (err) {
+    console.warn("[board] championship top 10", err?.message || err);
+  }
+}
+
+function ensureChampionshipTop10Refresh() {
+  if (championshipRefreshTimer) return;
+  refreshChampionshipTop10();
+  championshipRefreshTimer = setInterval(refreshChampionshipTop10, 60_000);
+}
+
+function clearBoardRotateTimer() {
+  if (boardRotateTimer) {
+    clearTimeout(boardRotateTimer);
+    boardRotateTimer = 0;
+  }
+}
+
+function scheduleBoardViewRotation(showMs) {
+  clearBoardRotateTimer();
+  if (!shouldRotateBoardViews()) {
+    if (boardView !== BOARD_VIEW_LIVE) {
+      boardView = BOARD_VIEW_LIVE;
+      lastBoardKey = "";
+    }
+    return;
+  }
+  // Need a points list before flipping away from live content.
+  if (!championshipTop10.length) {
+    ensureChampionshipTop10Refresh();
+    const gen = ++boardRotateGen;
+    boardRotateTimer = setTimeout(() => {
+      if (gen !== boardRotateGen) return;
+      if (!shouldRotateBoardViews()) return;
+      if (championshipTop10.length) {
+        boardView = BOARD_VIEW_POINTS;
+        lastBoardKey = "";
+        renderBoard();
+      } else {
+        scheduleBoardViewRotation(BOARD_STATIC_SHOW_MS);
+      }
+    }, 5000);
+    return;
+  }
+  const gen = ++boardRotateGen;
+  const wait = Math.max(2500, Math.min(BOARD_MAX_SHOW_MS, showMs));
+  boardRotateTimer = setTimeout(() => {
+    if (gen !== boardRotateGen) return;
+    if (!shouldRotateBoardViews()) {
+      boardView = BOARD_VIEW_LIVE;
+      lastBoardKey = "";
+      renderBoard();
+      return;
+    }
+    boardView =
+      boardView === BOARD_VIEW_LIVE ? BOARD_VIEW_POINTS : BOARD_VIEW_LIVE;
+    lastBoardKey = "";
+    renderBoard();
+  }, wait);
+}
+
 function renderBoard() {
-  const flags = game.boardFlags();
   const sprintBoard = isSprintPhase();
+  const rotate = shouldRotateBoardViews();
+  if (sprintBoard || !rotate) {
+    boardView = BOARD_VIEW_LIVE;
+    clearBoardRotateTimer();
+  } else {
+    ensureChampionshipTop10Refresh();
+  }
+
+  if (boardView === BOARD_VIEW_POINTS && !championshipTop10.length) {
+    boardView = BOARD_VIEW_LIVE;
+  }
+  const showingPoints =
+    rotate && boardView === BOARD_VIEW_POINTS && championshipTop10.length > 0;
+  const flags = showingPoints ? championshipTop10 : game.boardFlags();
   const qualBoard =
     !sprintBoard &&
+    !showingPoints &&
     game.streamMode !== "final" &&
     (game.phase === "qualifying" ||
       game.phase === "qualifying_hold" ||
@@ -255,7 +374,10 @@ function renderBoard() {
       game.phase === "between_rounds" ||
       (game.phase === "finished" && !game.winner));
 
-  if (sprintBoard) {
+  if (showingPoints) {
+    els.boardLabel.textContent = "CHAMPIONSHIP";
+    els.boardMeta.textContent = "Top 10 · season points";
+  } else if (sprintBoard) {
     els.boardLabel.textContent = "SPRINT WINS";
     els.boardMeta.textContent = flags.length
       ? `${flags.length} win${flags.length === 1 ? "" : "s"} · no points`
@@ -287,18 +409,24 @@ function renderBoard() {
       : `${flags.length} standing`;
   }
 
-  const key = `${game.phase}:${game.finalStage}:${game.swissRound}:${flags
-    .map((f) => `${f.code}:${f.points ?? ""}`)
-    .join(",")}`;
-  if (key === lastBoardKey) return;
+  const key = showingPoints
+    ? `points:${championshipTop10Key}`
+    : `live:${game.phase}:${game.finalStage}:${game.swissRound}:${flags
+        .map((f) => `${f.code}:${f.points ?? ""}`)
+        .join(",")}`;
+  if (key === lastBoardKey) {
+    if (rotate && !boardRotateTimer) {
+      scheduleBoardViewRotation(BOARD_STATIC_SHOW_MS);
+    }
+    return;
+  }
   lastBoardKey = key;
 
-  els.boardTrack.classList.toggle(
-    "marquee",
-    document.body.classList.contains("stream-mode")
-      ? flags.length > 4
-      : flags.length > 8
-  );
+  const streamMode = document.body.classList.contains("stream-mode");
+  const needScroll = streamMode ? flags.length > 4 : flags.length > 8;
+  els.boardTrack.classList.toggle("marquee", needScroll);
+  // One pass to the bottom while rotating; infinite loop on Sprint / idle.
+  els.boardTrack.classList.toggle("marquee-once", needScroll && rotate);
   els.boardTrack.innerHTML = "";
 
   if (!flags.length) {
@@ -314,6 +442,7 @@ function renderBoard() {
           ? "Press Start — Sprint then Qualifying → Final"
           : "—";
     els.boardTrack.appendChild(empty);
+    if (rotate) scheduleBoardViewRotation(BOARD_STATIC_SHOW_MS);
     return;
   }
 
@@ -330,25 +459,39 @@ function renderBoard() {
     const name = document.createElement("span");
     name.className = "board-chip-name";
     const pts = Number(f.points);
-    name.textContent =
-      Number.isFinite(pts) && (game._swissBoardActive?.() || game.finalStage === "swiss")
-        ? `${f.name} · ${pts}`
-        : f.name;
+    if (showingPoints) {
+      const rank = Number(f.rank) || "";
+      name.textContent = `${rank ? `${rank}. ` : ""}${f.name} · ${pts}`;
+    } else if (
+      Number.isFinite(pts) &&
+      (game._swissBoardActive?.() || game.finalStage === "swiss")
+    ) {
+      name.textContent = `${f.name} · ${pts}`;
+    } else {
+      name.textContent = f.name;
+    }
     chip.appendChild(img);
     chip.appendChild(name);
     row.appendChild(chip);
   }
   els.boardTrack.appendChild(row);
-  const needScroll = els.boardTrack.classList.contains("marquee");
+  let scrollSec = BOARD_STATIC_SHOW_MS / 1000;
   if (needScroll) {
     const clone = row.cloneNode(true);
     clone.setAttribute("aria-hidden", "true");
     els.boardTrack.appendChild(clone);
     // Pace scroll by list length so long boards stay readable.
-    const secs = Math.min(48, Math.max(14, flags.length * 1.6));
-    els.boardTrack.style.setProperty("--board-scroll-s", `${secs}s`);
+    scrollSec = Math.min(48, Math.max(14, flags.length * 1.6));
+    els.boardTrack.style.setProperty("--board-scroll-s", `${scrollSec}s`);
   } else {
     els.boardTrack.style.removeProperty("--board-scroll-s");
+  }
+
+  if (rotate) {
+    // Switch after one scroll to the bottom, capped at 30s.
+    scheduleBoardViewRotation(
+      needScroll ? scrollSec * 1000 : BOARD_STATIC_SHOW_MS
+    );
   }
 }
 
@@ -581,6 +724,8 @@ function clearFighters() {
   lastBoardKey = "";
   lastEventAt = 0;
   lastSize = 0;
+  boardView = BOARD_VIEW_LIVE;
+  clearBoardRotateTimer();
   els.feed.innerHTML = "";
 }
 
@@ -961,6 +1106,7 @@ game.fighters = COUNTRIES.map((c, i) => {
 });
 syncArena();
 renderChrome();
+ensureChampionshipTop10Refresh();
 
 if (params.has("autostart")) {
   unlockAudio();
