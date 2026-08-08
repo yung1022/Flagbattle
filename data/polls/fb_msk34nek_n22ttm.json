@@ -989,7 +989,7 @@
     "bd": 0,
     "bb": 0,
     "by": 0,
-    "be": 0,
+    "be": 1,
     "bz": 0,
     "bj": 0,
     "bt": 0,
@@ -1096,7 +1096,7 @@
     "na": 0,
     "nr": 0,
     "np": 0,
-    "nl": 1,
+    "nl": 3,
     "nz": 0,
     "ni": 0,
     "ne": 0,
@@ -1169,20 +1169,47 @@
     "zw": 0
   },
   "voters": {
-    "yt:UCt6KDg7ftGLz-ftgvH2DtwA": "nl"
+    "yt:UCt6KDg7ftGLz-ftgvH2DtwA": "be"
   },
   "closed": false,
   "closedAt": null,
-  "updatedAt": 1786177120585,
+  "updatedAt": 1786177286898,
   "voterStats": {
     "yt:UCt6KDg7ftGLz-ftgvH2DtwA": {
       "name": "@WeatherGuyCurtis",
       "avatar": "https://yt4.ggpht.com/3PuySRevJq43xYWt3wUGed-cG1o-22JmiCyDVUBHuA19alAzjCXsg0vFxQDaoZEHAH_T2m5i4w=s64-c-k-c0x00ffffff-no-rj",
-      "count": 8,
-      "lastAt": 1786177120585
+      "count": 11,
+      "lastAt": 1786177286898
     }
   },
   "recentVotes": [
+    {
+      "voter": "@WeatherGuyCurtis",
+      "voterId": "yt:UCt6KDg7ftGLz-ftgvH2DtwA",
+      "code": "be",
+      "name": "Belgium",
+      "img": "https://flagcdn.com/w40/be.png",
+      "avatar": "https://yt4.ggpht.com/3PuySRevJq43xYWt3wUGed-cG1o-22JmiCyDVUBHuA19alAzjCXsg0vFxQDaoZEHAH_T2m5i4w=s64-c-k-c0x00ffffff-no-rj",
+      "at": 1786177286898
+    },
+    {
+      "voter": "@WeatherGuyCurtis",
+      "voterId": "yt:UCt6KDg7ftGLz-ftgvH2DtwA",
+      "code": "nl",
+      "name": "Netherlands",
+      "img": "https://flagcdn.com/w40/nl.png",
+      "avatar": "https://yt4.ggpht.com/3PuySRevJq43xYWt3wUGed-cG1o-22JmiCyDVUBHuA19alAzjCXsg0vFxQDaoZEHAH_T2m5i4w=s64-c-k-c0x00ffffff-no-rj",
+      "at": 1786177264934
+    },
+    {
+      "voter": "@WeatherGuyCurtis",
+      "voterId": "yt:UCt6KDg7ftGLz-ftgvH2DtwA",
+      "code": "nl",
+      "name": "Netherlands",
+      "img": "https://flagcdn.com/w40/nl.png",
+      "avatar": "https://yt4.ggpht.com/3PuySRevJq43xYWt3wUGed-cG1o-22JmiCyDVUBHuA19alAzjCXsg0vFxQDaoZEHAH_T2m5i4w=s64-c-k-c0x00ffffff-no-rj",
+      "at": 1786177243322
+    },
     {
       "voter": "@WeatherGuyCurtis",
       "voterId": "yt:UCt6KDg7ftGLz-ftgvH2DtwA",
@@ -1200,33 +1227,6 @@
       "img": "https://flagcdn.com/w40/de.png",
       "avatar": "https://yt4.ggpht.com/3PuySRevJq43xYWt3wUGed-cG1o-22JmiCyDVUBHuA19alAzjCXsg0vFxQDaoZEHAH_T2m5i4w=s64-c-k-c0x00ffffff-no-rj",
       "at": 1786177099419
-    },
-    {
-      "voter": "@WeatherGuyCurtis",
-      "voterId": "yt:UCt6KDg7ftGLz-ftgvH2DtwA",
-      "code": "de",
-      "name": "Germany",
-      "img": "https://flagcdn.com/w40/de.png",
-      "avatar": "https://yt4.ggpht.com/3PuySRevJq43xYWt3wUGed-cG1o-22JmiCyDVUBHuA19alAzjCXsg0vFxQDaoZEHAH_T2m5i4w=s64-c-k-c0x00ffffff-no-rj",
-      "at": 1786177088295
-    },
-    {
-      "voter": "@WeatherGuyCurtis",
-      "voterId": "yt:UCt6KDg7ftGLz-ftgvH2DtwA",
-      "code": "de",
-      "name": "Germany",
-      "img": "https://flagcdn.com/w40/de.png",
-      "avatar": "https://yt4.ggpht.com/3PuySRevJq43xYWt3wUGed-cG1o-22JmiCyDVUBHuA19alAzjCXsg0vFxQDaoZEHAH_T2m5i4w=s64-c-k-c0x00ffffff-no-rj",
-      "at": 1786177066944
-    },
-    {
-      "voter": "@WeatherGuyCurtis",
-      "voterId": "yt:UCt6KDg7ftGLz-ftgvH2DtwA",
-      "code": "de",
-      "name": "Germany",
-      "img": "https://flagcdn.com/w40/de.png",
-      "avatar": "https://yt4.ggpht.com/3PuySRevJq43xYWt3wUGed-cG1o-22JmiCyDVUBHuA19alAzjCXsg0vFxQDaoZEHAH_T2m5i4w=s64-c-k-c0x00ffffff-no-rj",
-      "at": 1786177065670
     }
   ]
 }
