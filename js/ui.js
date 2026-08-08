@@ -293,7 +293,10 @@ function isSprintPhase() {
 
 function isSpawnVotePhase() {
   return (
-    isSprintPhase() || game.phase === "main" || game.phase === "invasion"
+    isSprintPhase() ||
+    isMainPhase() ||
+    game.phase === "main" ||
+    game.phase === "invasion"
   );
 }
 
@@ -358,6 +361,13 @@ let boardRotateGen = 0;
 let championshipTop10 = [];
 let championshipTop10Key = "";
 let championshipRefreshTimer = 0;
+
+function isMainPhase() {
+  return (
+    game.phase === "main" ||
+    (game.phase === "between_rounds" && game._pendingMainReset)
+  );
+}
 
 function shouldRotateBoardViews() {
   if (isSprintPhase()) return false;
@@ -454,6 +464,7 @@ function scheduleBoardViewRotation(showMs) {
 
 function renderBoard() {
   const sprintBoard = isSprintPhase();
+  const mainBoard = isMainPhase();
   const rotate = shouldRotateBoardViews();
   if (sprintBoard || !rotate) {
     boardView = BOARD_VIEW_LIVE;
@@ -470,6 +481,7 @@ function renderBoard() {
   const flags = showingPoints ? championshipTop10 : game.boardFlags();
   const qualBoard =
     !sprintBoard &&
+    !mainBoard &&
     !showingPoints &&
     game.streamMode !== "final" &&
     (game.phase === "qualifying" ||
@@ -487,15 +499,15 @@ function renderBoard() {
     els.boardMeta.textContent = flags.length
       ? `${flags.length} win${flags.length === 1 ? "" : "s"} · unscored`
       : "Type a country to spawn (= vote)";
-  } else if (game.phase === "main") {
-    els.boardLabel.textContent = "ELIMINATIONS";
+  } else if (mainBoard) {
+    els.boardLabel.textContent = "MAIN POINTS";
     els.boardMeta.textContent = flags.length
-      ? `${flags.length} recent · last standing wins`
-      : "Last flag standing wins · events live";
+      ? `${flags.length} scoring · last standing = +1`
+      : "Last standing earns a point · clock → Invasion";
   } else if (game.phase === "invasion") {
     els.boardLabel.textContent = "INVASION";
     els.boardMeta.textContent = flags.length
-      ? `${flags.length} fallen · last standing wins`
+      ? `${flags.length} fallen · last standing = champion`
       : "Aliens attacking · last standing wins";
   } else if (game.streamMode === "final") {
     if (game.phase === "finished" && game.winner) {
@@ -549,13 +561,15 @@ function renderBoard() {
     empty.className = "board-empty";
     empty.textContent = sprintBoard
       ? "No opening wins yet — last flag standing wins the round"
-      : game.phase === "qualifying" ||
-          game.phase === "between_rounds" ||
-          game.phase === "qualifying_hold"
-        ? "Waiting for first qualifier…"
-        : game.phase === "idle"
-          ? "Press Start — Sprint then Qualifying → Final"
-          : "—";
+      : mainBoard
+        ? "No Main points yet — last standing earns +1"
+        : game.phase === "qualifying" ||
+            game.phase === "between_rounds" ||
+            game.phase === "qualifying_hold"
+          ? "Waiting for first qualifier…"
+          : game.phase === "idle"
+            ? "Press Start — Opening → Main → Invasion"
+            : "—";
     els.boardTrack.appendChild(empty);
     if (rotate) scheduleBoardViewRotation(BOARD_STATIC_SHOW_MS);
     return;
@@ -577,6 +591,8 @@ function renderBoard() {
     if (showingPoints) {
       const rank = Number(f.rank) || "";
       name.textContent = `${rank ? `${rank}. ` : ""}${f.name} · ${pts}`;
+    } else if (mainBoard && Number.isFinite(pts) && pts > 0) {
+      name.textContent = `${f.name} · ${pts}`;
     } else if (
       Number.isFinite(pts) &&
       (game._swissBoardActive?.() || game.finalStage === "swiss")
@@ -683,7 +699,7 @@ function renderHud() {
     else if (isSprintPhase())
       els.roundMeta.textContent =
         "Opening · spawn = vote · big flag every 5 votes · wins unscored";
-    else if (game.phase === "main") {
+    else if (isMainPhase() || game.phase === "main") {
       const ev = game.arenaEvent;
       const nextMs =
         typeof game.nextEventRemainingMs === "function"
@@ -695,10 +711,10 @@ function renderHud() {
           : 0;
       els.roundMeta.textContent = ev
         ? `EVENT · ${ev.label || ev.type} · ${formatMs(evMs)} left`
-        : `Next event in ${formatMs(nextMs)} · HP + attacks`;
+        : `Last standing = +1 point · next event ${formatMs(nextMs)} · clock → Invasion`;
     } else if (game.phase === "invasion")
       els.roundMeta.textContent =
-        "Alien invasion · hole sealed · last flag standing wins";
+        "Alien invasion · hole sealed · last standing = champion";
     else if (game.phase === "qualifying_hold")
       els.roundMeta.textContent = "All qualified · waiting on clock";
     else if (game.phase === "qualifying_complete")
