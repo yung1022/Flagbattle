@@ -8,11 +8,11 @@ Vertical **9:16** all-country flag battle for YouTube Shorts livestreams.
 
 Opening, Main, and Alien Invasion run in **one livestream**.
 
-### Unified livestream
+### Unified livestream (~4 hours)
 1. **Opening (15:00)** — all flags, smaller hole (Sprint-like). Typing a country **spawns = votes**. Every **5 votes** grows a big flag. Round wins are unscored.
-2. **Main (50–60 min)** — HP bars + collision attacks. Random events every 40s–2min (each lasts 30s): **saw**, **black hole**, **catch**. Chat can still spawn/revive.
-3. **Alien Invasion** — hole sealed; aliens attack flags; **last flag standing wins**.
-4. **Ranking** = elimination sequence by **last death** (revives clear a prior death).
+2. **Main (~3h30–3h45)** — HP bars + collision attacks. Last standing earns **+1 Main point** and a full-screen rank reveal, then the field resets. Random events every 2–5 min (each lasts 30s): **saw**, **black hole**, **catch**. Chat can still spawn/revive.
+3. **Alien Invasion (~20 min)** — hole sealed; aliens attack flags (pressure round). **Champion = most Main points** (earlier first point wins ties) — not Invasion last standing.
+4. **Season ranking** — stream champion gets **+1 season win**; Main points order fills the final board.
 5. Vote/spawn anytime: type a country or `!vote XX` in chat / web poll.
 
 ## Viewer pages (GitHub Pages)

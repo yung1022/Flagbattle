@@ -19,6 +19,7 @@ import { parseVoteMessage } from "./vote-message.js";
 import {
   averageQualifyingRating,
   computeWinRankReveal,
+  computeMainPointRankReveal,
 } from "./rankings-stats.js";
 import { playSfx } from "./sfx.js";
 
@@ -83,14 +84,19 @@ export const CONFIG = {
   qualifyingMs: 30 * 60 * 1000,
   /** Opening (Sprint-like): all flags, chat spawn/vote, smaller hole. */
   sprintMs: 15 * 60 * 1000,
-  /** Main arena: HP + random events (50–60 minutes). */
-  mainMsMin: 50 * 60 * 1000,
-  mainMsMax: 60 * 60 * 1000,
+  /**
+   * Main arena stretched so a full stream is ~4 hours
+   * (Opening 15m + Main ~3h30–3h45 + Invasion ~15–20m).
+   */
+  mainMsMin: (3 * 60 + 30) * 60 * 1000,
+  mainMsMax: (3 * 60 + 45) * 60 * 1000,
+  /** Invasion endgame length — then crown by most Main points. */
+  invasionMs: 20 * 60 * 1000,
   /** Random event duration. */
   eventDurationMs: 30 * 1000,
-  /** Gap until next event (random in range). */
-  eventGapMinMs: 40 * 1000,
-  eventGapMaxMs: 120 * 1000,
+  /** Gap until next event (random in range) — wider for the long Main. */
+  eventGapMinMs: 2 * 60 * 1000,
+  eventGapMaxMs: 5 * 60 * 1000,
   /** Every N chat votes/spawns → grow that flag. */
   votesPerBigFlag: 5,
   bigFlagScaleStep: 0.55,
@@ -161,6 +167,7 @@ function applyEasyTestConfig() {
   CONFIG.sprintMs = 25 * 1000;
   CONFIG.mainMsMin = 45 * 1000;
   CONFIG.mainMsMax = 55 * 1000;
+  CONFIG.invasionMs = 20 * 1000;
   CONFIG.eventDurationMs = 8 * 1000;
   CONFIG.eventGapMinMs = 6 * 1000;
   CONFIG.eventGapMaxMs = 12 * 1000;
@@ -281,6 +288,7 @@ export class FlagBattleGame {
     this._pendingMainReset = false;
     this.sprintEndsAt = 0;
     this.mainEndsAt = 0;
+    this.invasionEndsAt = 0;
     /** @type {{ type: ArenaEventType, endsAt: number, angle?: number, hunterCode?: string, label?: string } | null} */
     this.arenaEvent = null;
     this.nextEventAt = 0;
@@ -359,6 +367,7 @@ export class FlagBattleGame {
     this._pendingMainReset = false;
     this.sprintEndsAt = 0;
     this.mainEndsAt = 0;
+    this.invasionEndsAt = 0;
     this.arenaEvent = null;
     this.nextEventAt = 0;
     this.aliens = [];
@@ -996,8 +1005,9 @@ export class FlagBattleGame {
 
   /**
    * Main arena: all countries, HP bars, attacking, random 30s events.
-   * Last standing earns a point and the round resets; the ~50 min clock
-   * only starts Alien Invasion (endgame). Points rank the final board.
+   * Last standing earns a point + full rank reveal, then the round resets.
+   * The long Main clock (~3h30–3h45) only starts Alien Invasion (pressure).
+   * Stream champion = most Main points (not Invasion last standing).
    * @param {{ showcaseEvent?: ArenaEventType }} [opts]
    */
   _startMainArena(opts = {}) {
@@ -1068,8 +1078,8 @@ export class FlagBattleGame {
   }
 
   /**
-   * Main round win: +1 point for last standing, then reset the field.
-   * Does NOT end the stream — the Main clock still leads to Invasion.
+   * Main round win: +1 point for last standing, full-screen rank reveal,
+   * then reset the field. The Main clock still leads to Invasion.
    */
   _mainWin(flag) {
     if (
@@ -1081,6 +1091,8 @@ export class FlagBattleGame {
       return;
     }
     const code = flag.code;
+    const beforePoints = new Map(this.mainRoundPoints);
+    const beforeFirstAt = new Map(this.mainPointAt);
     const next = (this.mainRoundPoints.get(code) || 0) + 1;
     this.mainRoundPoints.set(code, next);
     if (!this.mainPointAt.has(code)) this.mainPointAt.set(code, Date.now());
@@ -1095,17 +1107,57 @@ export class FlagBattleGame {
     this.recentMainWins = [win, ...this.recentMainWins].slice(0, 16);
     flag.pulse = 1;
     playSfx("opening_win");
+
+    try {
+      this.rankReveal = computeMainPointRankReveal(
+        beforePoints,
+        beforeFirstAt,
+        this.mainRoundPoints,
+        this.mainPointAt,
+        { code: flag.code, name: flag.name, img: flag.img },
+        COUNTRIES
+      );
+    } catch (err) {
+      console.warn("[main-rank-reveal]", err?.message || err);
+      this.rankReveal = {
+        kind: "main_point",
+        code: flag.code,
+        name: flag.name,
+        img: flag.img,
+        fromRank: null,
+        toRank: 1,
+        points: next,
+        prevPoints: Math.max(0, next - 1),
+        delta: null,
+        firstWin: next === 1,
+      };
+    }
+
+    const now = performance.now();
+    const revealMs = Math.max(1000, CONFIG.winRevealMs || 3000);
+    this._winRevealUntil = now + revealMs;
     this.phase = "between_rounds";
     this._pendingMainReset = true;
+    // Hold the rank screen, then a short beat before the field resets.
     this._betweenUntil =
-      performance.now() + Math.max(900, CONFIG.betweenRoundMs);
+      now + revealMs + Math.max(600, CONFIG.betweenRoundMs);
+    const rr = this.rankReveal;
+    const rankLine =
+      rr?.fromRank != null
+        ? `#${rr.fromRank} → #${rr.toRank}`
+        : `→ #${rr?.toRank ?? 1}`;
+    this._emit(
+      "rank_reveal",
+      `${flag.name} +1 point · ${rankLine} (${next} pt${next === 1 ? "" : "s"})`
+    );
     this._emit(
       "phase",
-      `MAIN POINT — ${flag.name}! (${next} pt${next === 1 ? "" : "s"}) · resetting…`
+      `MAIN POINT — ${flag.name}! ${rankLine} · ${Math.round(revealMs / 1000)}s reveal`
     );
     this._persistMainPoints();
-    this._publishLive();
+    this._publishLive({ rankReveal: this.rankReveal });
     this._uiDirty = true;
+    this._flushUi(true);
   }
 
   _persistMainPoints() {
@@ -1125,6 +1177,8 @@ export class FlagBattleGame {
   /** Refill Main after a point round, or start Invasion if the clock expired. */
   _resetMainRound() {
     this._pendingMainReset = false;
+    this.rankReveal = null;
+    this._winRevealUntil = 0;
     if (this.mainEndsAt && performance.now() >= this.mainEndsAt) {
       this._emit("phase", "Main time’s up — ALIEN INVASION!");
       this._startInvasion();
@@ -1346,7 +1400,7 @@ export class FlagBattleGame {
     this._uiDirty = true;
   }
 
-  /** Alien invasion endgame — hole closed, aliens attack, last alive wins. */
+  /** Alien invasion endgame — pressure round; champion = most Main points. */
   _startInvasion() {
     this._ensureOpenPoll();
     document.body.classList.add("final-mode", "invasion-mode");
@@ -1356,12 +1410,14 @@ export class FlagBattleGame {
     this.arenaEvent = null;
     this.mainEndsAt = 0;
     this._pendingMainReset = false;
+    this.rankReveal = null;
+    this._winRevealUntil = 0;
     this._deathSeq = [];
     this._persistMainPoints();
     if (!this.fighters.length) this._fillSprintField();
     for (const f of this.fighters) {
       if (!f.alive) {
-        // Keep dead out — invasion is last stand of current survivors.
+        // Keep dead out — invasion is a survival gauntlet of current survivors.
         continue;
       }
       f.falling = false;
@@ -1388,12 +1444,19 @@ export class FlagBattleGame {
       };
     });
     this.roundStartedAt = performance.now();
+    this.invasionEndsAt =
+      performance.now() + Math.max(10_000, CONFIG.invasionMs || 20 * 60 * 1000);
     this.arenaScale = 1;
     if (this.stream) this.stream.mode = "final";
     playSfx("invasion");
+    const invMin = Math.max(1, Math.round((CONFIG.invasionMs || 0) / 60000));
+    const lead = this._mainPointLeaders(1)[0];
+    const leadTxt = lead
+      ? ` · points lead: ${lead.name} (${lead.points})`
+      : "";
     this._emit(
       "phase",
-      "ALIEN INVASION — hole sealed · survive the attack · last flag standing wins"
+      `ALIEN INVASION — ${invMin} min · hole sealed · most Main points wins${leadTxt}`
     );
     this._publishLive();
     this._uiDirty = true;
@@ -1581,6 +1644,12 @@ export class FlagBattleGame {
     }
 
     if (this.phase === "between_rounds") {
+      // Clear Main point rank reveal when its pause window ends.
+      if (this.rankReveal && this._winRevealUntil && now >= this._winRevealUntil) {
+        this.rankReveal = null;
+        this._winRevealUntil = 0;
+        this._uiDirty = true;
+      }
       if (now >= this._betweenUntil) {
         if (this._pendingSprintReset) {
           this._resetSprintRound();
@@ -1629,7 +1698,7 @@ export class FlagBattleGame {
       return;
     }
 
-    // Main clock → Alien Invasion (endgame). Not a win condition.
+    // Main clock → Alien Invasion (endgame pressure). Not a win condition.
     if (
       this.mainEndsAt &&
       now >= this.mainEndsAt &&
@@ -1637,8 +1706,22 @@ export class FlagBattleGame {
         (this.phase === "between_rounds" && this._pendingMainReset))
     ) {
       this._pendingMainReset = false;
+      this.rankReveal = null;
+      this._winRevealUntil = 0;
       this._emit("phase", "Main time’s up — ALIEN INVASION!");
       this._startInvasion();
+      this.onFrame();
+      this._flushUi(true);
+      return;
+    }
+
+    // Invasion clock / wipe → crown whoever has the most Main points.
+    if (
+      this.phase === "invasion" &&
+      this.invasionEndsAt &&
+      now >= this.invasionEndsAt
+    ) {
+      this._crownByMainPoints("Invasion time’s up");
       this.onFrame();
       this._flushUi(true);
       return;
@@ -1713,26 +1796,18 @@ export class FlagBattleGame {
         }
         const standingNow = this.fighters.filter((f) => f.alive && !f.falling);
         if (this.phase === "invasion" && standingNow.length <= 1) {
-          // Invasion endgame: last standing is the stream champion.
-          if (standingNow.length === 1) {
-            this._onLastFlag(standingNow[0]);
-          } else {
-            const last = this._deathSeq[this._deathSeq.length - 1];
-            if (last) {
-              const f = this.fighters.find((x) => x.code === last.code);
-              if (f) {
-                f.alive = true;
-                f.hp = 1;
-                this._onLastFlag(f);
-              }
-            }
-          }
+          // End Invasion pressure — champion is still most Main points.
+          this._crownByMainPoints(
+            standingNow.length === 1
+              ? "Invasion field cleared"
+              : "Invasion wipe"
+          );
         } else if (
           this.phase === "main" &&
           !this._showcaseMain &&
           standingNow.length <= 1
         ) {
-          // Main: last standing earns a point; clock still runs to Invasion.
+          // Main: last standing earns a point + rank reveal; clock → Invasion.
           if (standingNow.length === 1) {
             this._mainWin(standingNow[0]);
           } else {
@@ -2573,8 +2648,8 @@ export class FlagBattleGame {
 
   /**
    * Final ranking for the stream:
-   * 1) Invasion champion (#1)
-   * 2) Main last-standing points (desc; earlier first point wins ties)
+   * 1) Most Main points (#1 champion)
+   * 2) Remaining by Main points (earlier first point wins ties)
    * 3) Invasion death order / survivors as fallback
    */
   _buildFinalRanking(winner) {
@@ -2593,6 +2668,11 @@ export class FlagBattleGame {
       });
     };
 
+    // Points order is the win condition — winner should already be #1 leader.
+    for (const row of this._mainPointLeaders(0)) {
+      push(row, { mainPoints: row.points });
+    }
+
     if (winner) {
       const wPts = this.mainRoundPoints.get(winner.code) || 0;
       push(
@@ -2605,12 +2685,6 @@ export class FlagBattleGame {
       );
     }
 
-    // Main points decide the rest of the final board.
-    for (const row of this._mainPointLeaders(0)) {
-      push(row, { mainPoints: row.points });
-    }
-
-    // Invasion death order for anyone without Main points.
     if (this._deathSeq?.length) {
       for (const row of [...this._deathSeq].reverse()) push(row);
     } else {
@@ -2624,6 +2698,49 @@ export class FlagBattleGame {
     for (const q of this.qualified || []) push(q);
 
     return ranking;
+  }
+
+  /**
+   * End the stream crowning whoever has the most Main last-standing points.
+   * Invasion last-standing does NOT decide the champion.
+   */
+  _crownByMainPoints(reason = "") {
+    if (this.phase === "finished" || this._winnerHoldDone) return;
+    const leaders = this._mainPointLeaders(1);
+    let champ = leaders[0] || null;
+    if (!champ) {
+      const alive = this.fighters.find((f) => f.alive && !f.falling);
+      const last = this._deathSeq[this._deathSeq.length - 1];
+      const fb = alive || last;
+      if (!fb?.code) {
+        this._emit(
+          "phase",
+          `${reason || "Stream end"} — no Main points scored`
+        );
+        return;
+      }
+      champ = {
+        code: fb.code,
+        name: fb.name,
+        img: fb.img || flagUrl(fb.code, 80),
+        points: 0,
+      };
+    }
+    const flag =
+      this.fighters.find((f) => f.code === champ.code) ||
+      {
+        code: champ.code,
+        name: champ.name,
+        img: champ.img || flagUrl(champ.code, 80),
+      };
+    const pts = Number(champ.points) || 0;
+    this._emit(
+      "phase",
+      `${reason || "Final"} — ${flag.name} wins with ${pts} Main point${
+        pts === 1 ? "" : "s"
+      }!`
+    );
+    this._finishAsChampion(flag, { byPoints: true });
   }
 
   _recordRound(winner, type) {
@@ -2652,103 +2769,123 @@ export class FlagBattleGame {
       this._qualify(flag);
       return;
     }
-    if (
-      this.phase === "main" ||
-      this.phase === "invasion" ||
-      this.phase === "final" ||
-      this.finalStage === "battle" ||
-      this.finalStage === "main" ||
-      this.finalStage === "invasion"
-    ) {
-      this.winner = flag;
-      this.phase = "finished";
-      this.finalStage = null;
-      this.aliens = [];
-      this.arenaEvent = null;
-      // Keep the loop running so the winner banner stays live for the hold.
-      this._winnerHoldDone = false;
-      const revealMs = Math.max(1000, CONFIG.winRevealMs || 3000);
-      const holdMs = Math.max(5000, CONFIG.winnerHoldMs || 60_000);
-      const now = performance.now();
-      // Pause everything for the rank-change reveal, then continue champion hold.
-      this._winRevealUntil = now + revealMs;
-      this._winnerHoldUntil = now + revealMs + holdMs;
-
-      // Championship rank change (+1 win) before we persist this stream's win.
-      try {
-        this.rankReveal = computeWinRankReveal(
-          listStreams(),
-          COUNTRIES,
-          { code: flag.code, name: flag.name, img: flag.img },
-          this.stream
-        );
-      } catch (err) {
-        console.warn("[rank-reveal]", err?.message || err);
-        this.rankReveal = {
-          code: flag.code,
-          name: flag.name,
-          img: flag.img,
-          fromRank: null,
-          toRank: 1,
-          points: 1,
-          prevPoints: 0,
-          delta: null,
-          firstWin: true,
-        };
-      }
-
-      const pointAt = new Date().toISOString();
-      if (this.stream) {
-        this.stream.mode = "final";
-        this.stream.status = "winner_hold";
-        this.stream.final = {
-          ranking: this._buildFinalRanking(flag),
-          winner: { code: flag.code, name: flag.name, img: flag.img },
-          at: pointAt,
-          pointAt,
-          scoring: "wins_v1",
-          rules: "opening_main_invasion",
-          rankingRules: {
-            primary: "main_round_points",
-            note: "Invasion champion #1; others by Main last-standing points (earlier first point wins ties)",
-          },
-          mainRoundPoints: Object.fromEntries(this.mainRoundPoints || []),
-          pollPlaces: null,
-        };
-        this.stream.winner = this.stream.final.winner;
-        this.stream.qualified = this.qualified.map((q) => ({
-          code: q.code,
-          name: q.name,
-          img: q.img,
-        }));
-        // Do NOT set endedAt yet — stream stays live through the hold.
-        this.stream.endedAt = null;
-        saveStream(this.stream);
-        this._publishLive({
-          winnerHoldRemainingMs: Math.max(
-            0,
-            this._winnerHoldUntil - performance.now()
-          ),
-          rankReveal: this.rankReveal,
-        });
-      }
-      const rr = this.rankReveal;
-      const rankLine =
-        rr?.fromRank != null
-          ? `#${rr.fromRank} → #${rr.toRank}`
-          : `→ #${rr?.toRank ?? 1}`;
-      this._emit(
-        "rank_reveal",
-        `${flag.name} +1 win · ${rankLine} (${rr?.points ?? 1} pts)`
-      );
-      this._emit("winner", `${flag.name} is the LAST FLAG STANDING!`);
-      this._emit(
-        "phase",
-        `Rank reveal · ${Math.round(revealMs / 1000)}s · then champion hold`
-      );
-      this._uiDirty = true;
-      this._flushUi(true);
+    // Opening→Main→Invasion: champion is most Main points, not last standing.
+    if (this.phase === "invasion" || this.finalStage === "invasion") {
+      this._crownByMainPoints("Invasion over");
+      return;
     }
+    if (this.phase === "main" || this.finalStage === "main") {
+      // Should use _mainWin during Main; never crown from Main last standing.
+      return;
+    }
+    if (
+      this.phase === "final" ||
+      this.finalStage === "battle"
+    ) {
+      this._finishAsChampion(flag, { byPoints: false });
+    }
+  }
+
+  /**
+   * Persist stream winner, season rank reveal, and champion hold.
+   * @param {object} flag
+   * @param {{ byPoints?: boolean }} [opts]
+   */
+  _finishAsChampion(flag, opts = {}) {
+    if (!flag?.code || this.phase === "finished") return;
+    const byPoints = Boolean(opts.byPoints);
+    this.winner = flag;
+    this.phase = "finished";
+    this.finalStage = null;
+    this.aliens = [];
+    this.arenaEvent = null;
+    this.invasionEndsAt = 0;
+    this._winnerHoldDone = false;
+    const revealMs = Math.max(1000, CONFIG.winRevealMs || 3000);
+    const holdMs = Math.max(5000, CONFIG.winnerHoldMs || 60_000);
+    const now = performance.now();
+    this._winRevealUntil = now + revealMs;
+    this._winnerHoldUntil = now + revealMs + holdMs;
+
+    try {
+      this.rankReveal = computeWinRankReveal(
+        listStreams(),
+        COUNTRIES,
+        { code: flag.code, name: flag.name, img: flag.img },
+        this.stream
+      );
+    } catch (err) {
+      console.warn("[rank-reveal]", err?.message || err);
+      this.rankReveal = {
+        kind: "season_win",
+        code: flag.code,
+        name: flag.name,
+        img: flag.img,
+        fromRank: null,
+        toRank: 1,
+        points: 1,
+        prevPoints: 0,
+        delta: null,
+        firstWin: true,
+      };
+    }
+
+    const pointAt = new Date().toISOString();
+    const mainPts = this.mainRoundPoints.get(flag.code) || 0;
+    if (this.stream) {
+      this.stream.mode = "final";
+      this.stream.status = "winner_hold";
+      this.stream.final = {
+        ranking: this._buildFinalRanking(flag),
+        winner: { code: flag.code, name: flag.name, img: flag.img },
+        at: pointAt,
+        pointAt,
+        scoring: "wins_v1",
+        rules: "opening_main_invasion",
+        rankingRules: {
+          primary: "main_round_points",
+          note: "Champion = most Main last-standing points; earlier first point wins ties",
+        },
+        mainRoundPoints: Object.fromEntries(this.mainRoundPoints || []),
+        pollPlaces: null,
+      };
+      this.stream.winner = this.stream.final.winner;
+      this.stream.qualified = this.qualified.map((q) => ({
+        code: q.code,
+        name: q.name,
+        img: q.img,
+      }));
+      this.stream.endedAt = null;
+      saveStream(this.stream);
+      this._publishLive({
+        winnerHoldRemainingMs: Math.max(
+          0,
+          this._winnerHoldUntil - performance.now()
+        ),
+        rankReveal: this.rankReveal,
+      });
+    }
+    const rr = this.rankReveal;
+    const rankLine =
+      rr?.fromRank != null
+        ? `#${rr.fromRank} → #${rr.toRank}`
+        : `→ #${rr?.toRank ?? 1}`;
+    this._emit(
+      "rank_reveal",
+      `${flag.name} season win · ${rankLine} (${rr?.points ?? 1} wins)`
+    );
+    this._emit(
+      "winner",
+      byPoints
+        ? `${flag.name} wins with ${mainPts} Main point${mainPts === 1 ? "" : "s"}!`
+        : `${flag.name} is the LAST FLAG STANDING!`
+    );
+    this._emit(
+      "phase",
+      `Champion · ${Math.round(revealMs / 1000)}s rank reveal · then hold`
+    );
+    this._uiDirty = true;
+    this._flushUi(true);
   }
 
   /** After the champion hold: freeze poll, mark stream ended, stop the loop. */
@@ -2903,6 +3040,7 @@ export class FlagBattleGame {
       qualifyingRemainingMs: this.qualifyingRemainingMs(),
       sprintRemainingMs: this.sprintRemainingMs(),
       mainRemainingMs: this.mainRemainingMs(),
+      invasionRemainingMs: this.invasionRemainingMs(),
       arenaEvent: this.arenaEvent
         ? {
             type: this.arenaEvent.type,
@@ -2977,6 +3115,11 @@ export class FlagBattleGame {
       return Math.max(0, this.mainEndsAt - now);
     }
     return 0;
+  }
+
+  invasionRemainingMs(now = performance.now()) {
+    if (this.phase !== "invasion" || !this.invasionEndsAt) return 0;
+    return Math.max(0, this.invasionEndsAt - now);
   }
 
   eventRemainingMs(now = performance.now()) {
