@@ -495,7 +495,7 @@ function renderBoard() {
 
   if (showingPoints) {
     els.boardLabel.textContent = "CHAMPIONSHIP";
-    els.boardMeta.textContent = "Top 10 · wins (+1 per game)";
+    els.boardMeta.textContent = "Top 10 · season points (50→1)";
   } else if (sprintBoard) {
     els.boardLabel.textContent = "OPENING WINS";
     els.boardMeta.textContent = flags.length
@@ -869,8 +869,8 @@ function renderRankReveal() {
   const live =
     Boolean(rr && game._winRevealUntil) &&
     performance.now() < game._winRevealUntil;
-  // Full-screen reveal on every Main last-standing point AND season champion.
-  const show = live;
+  // Full-screen reveal only for Main last-standing points (not total-points crown).
+  const show = live && rr?.kind === "main_point";
   el.hidden = !show;
   el.classList.toggle("show", show);
   if (!show || !rr) return;

@@ -9,7 +9,6 @@ import {
   getLocalPoll,
   rankPollPlaces,
   fetchStreamsFromApi,
-  listStreams,
   setPersistEnabled,
   seedTeststreamPollDemo,
   startTeststreamChatVoteDemo,
@@ -18,7 +17,6 @@ import { resolveApiBase, pagesDataUrl } from "./public.js";
 import { parseVoteMessage } from "./vote-message.js";
 import {
   averageQualifyingRating,
-  computeWinRankReveal,
   computeMainPointRankReveal,
 } from "./rankings-stats.js";
 import { playSfx } from "./sfx.js";
@@ -2787,7 +2785,9 @@ export class FlagBattleGame {
   }
 
   /**
-   * Persist stream winner, season rank reveal, and champion hold.
+   * Persist stream winner and champion hold.
+   * Full-screen rank reveal is only for Main last-standing points — not for
+   * crowning the stream champion by total Main points.
    * @param {object} flag
    * @param {{ byPoints?: boolean }} [opts]
    */
@@ -2800,35 +2800,12 @@ export class FlagBattleGame {
     this.aliens = [];
     this.arenaEvent = null;
     this.invasionEndsAt = 0;
+    this.rankReveal = null;
+    this._winRevealUntil = 0;
     this._winnerHoldDone = false;
-    const revealMs = Math.max(1000, CONFIG.winRevealMs || 3000);
     const holdMs = Math.max(5000, CONFIG.winnerHoldMs || 60_000);
     const now = performance.now();
-    this._winRevealUntil = now + revealMs;
-    this._winnerHoldUntil = now + revealMs + holdMs;
-
-    try {
-      this.rankReveal = computeWinRankReveal(
-        listStreams(),
-        COUNTRIES,
-        { code: flag.code, name: flag.name, img: flag.img },
-        this.stream
-      );
-    } catch (err) {
-      console.warn("[rank-reveal]", err?.message || err);
-      this.rankReveal = {
-        kind: "season_win",
-        code: flag.code,
-        name: flag.name,
-        img: flag.img,
-        fromRank: null,
-        toRank: 1,
-        points: 1,
-        prevPoints: 0,
-        delta: null,
-        firstWin: true,
-      };
-    }
+    this._winnerHoldUntil = now + holdMs;
 
     const pointAt = new Date().toISOString();
     const mainPts = this.mainRoundPoints.get(flag.code) || 0;
@@ -2840,7 +2817,6 @@ export class FlagBattleGame {
         winner: { code: flag.code, name: flag.name, img: flag.img },
         at: pointAt,
         pointAt,
-        scoring: "wins_v1",
         rules: "opening_main_invasion",
         rankingRules: {
           primary: "main_round_points",
@@ -2862,18 +2838,8 @@ export class FlagBattleGame {
           0,
           this._winnerHoldUntil - performance.now()
         ),
-        rankReveal: this.rankReveal,
       });
     }
-    const rr = this.rankReveal;
-    const rankLine =
-      rr?.fromRank != null
-        ? `#${rr.fromRank} → #${rr.toRank}`
-        : `→ #${rr?.toRank ?? 1}`;
-    this._emit(
-      "rank_reveal",
-      `${flag.name} season win · ${rankLine} (${rr?.points ?? 1} wins)`
-    );
     this._emit(
       "winner",
       byPoints
@@ -2882,7 +2848,7 @@ export class FlagBattleGame {
     );
     this._emit(
       "phase",
-      `Champion · ${Math.round(revealMs / 1000)}s rank reveal · then hold`
+      `Champion hold · ${Math.round(holdMs / 1000)}s before stream ends`
     );
     this._uiDirty = true;
     this._flushUi(true);
