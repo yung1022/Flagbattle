@@ -870,7 +870,7 @@ function renderRankReveal() {
     Boolean(rr && game._winRevealUntil) &&
     performance.now() < game._winRevealUntil;
   // Full-screen reveal only for Main last-standing points (not total-points crown).
-  const show = live && rr.kind === "main_point";
+  const show = live && rr?.kind === "main_point";
   el.hidden = !show;
   el.classList.toggle("show", show);
   if (!show || !rr) return;

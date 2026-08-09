@@ -9,7 +9,6 @@ import {
   getLocalPoll,
   rankPollPlaces,
   fetchStreamsFromApi,
-  listStreams,
   setPersistEnabled,
   seedTeststreamPollDemo,
   startTeststreamChatVoteDemo,
