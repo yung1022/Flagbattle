@@ -3,7 +3,7 @@
  *   FLAG BATTLE - DD/MM/YYYY #N
  * where N is the stream index for that calendar day (resets daily).
  *
- * Variations keep the same date + #N core.
+ * Variations keep the same date + #N core (Opening → Main → Invasion format).
  */
 import fs from "node:fs";
 import path from "node:path";
@@ -14,12 +14,12 @@ const ROOT = path.resolve(__dirname, "../..");
 
 const TITLE_VARIATIONS = [
   (date, n) => `FLAG BATTLE - ${date} #${n}`,
-  (date, n) => `FLAG BATTLE · ${date} #${n} · Last Flag Standing`,
+  (date, n) => `FLAG BATTLE · ${date} #${n} · Opening → Main → Invasion`,
   (date, n) => `FLAG BATTLE Live · ${date} #${n}`,
-  (date, n) => `FLAG BATTLE #${n} · ${date} · Qualifying → Final`,
+  (date, n) => `FLAG BATTLE #${n} · ${date} · Most Points Wins`,
   (date, n) => `FLAG BATTLE - ${date} #${n} · Vote in Chat`,
   (date, n) => `FLAG BATTLE · Day ${date} · Stream #${n}`,
-  (date, n) => `FLAG BATTLE #${n} - ${date} · Hole → Swiss → Final 4`,
+  (date, n) => `FLAG BATTLE #${n} - ${date} · Alien Invasion Finale`,
 ];
 
 /**

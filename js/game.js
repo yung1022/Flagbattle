@@ -419,6 +419,8 @@ export class FlagBattleGame {
   }
 
   _sizeMultForVotes(votes) {
+    // Only vote counts from spawnSprintCountry (chat/user) grow flags.
+    // System-filled field countries start at 0 votes → always normal size.
     const n = Math.max(0, Number(votes) || 0);
     const steps = Math.floor(n / Math.max(1, CONFIG.votesPerBigFlag || 5));
     const step = CONFIG.bigFlagScaleStep ?? 0.55;
@@ -861,7 +863,8 @@ export class FlagBattleGame {
 
   /**
    * Chat / poll: spawn or revive a country (Opening + Main + Invasion).
-   * Each call counts as a vote/spawn — every 5 grows a big flag.
+   * Each user/chat call counts as a vote — every 5 votes grows a big flag.
+   * Auto-filled arena flags never grow unless chat/users vote for them.
    * @returns {boolean}
    */
   spawnSprintCountry(code, { voter = "", avatar = "" } = {}) {
@@ -1033,7 +1036,8 @@ export class FlagBattleGame {
         ? 800
         : rand(CONFIG.eventGapMinMs, CONFIG.eventGapMaxMs));
 
-    // Carry spawn votes / revive field — refill if empty.
+    // Carry chat vote sizes from Opening — only user/chat spawns grow big flags.
+    // Auto-filled field flags stay normal size (spawnVotes = 0).
     if (!this.fighters.length) this._fillSprintField();
     for (const f of this.fighters) {
       f.alive = true;
@@ -1041,12 +1045,6 @@ export class FlagBattleGame {
       f.hp = CONFIG.baseHp;
       f.maxHp = CONFIG.baseHp;
       f.spawnVotes = Number(f.spawnVotes) || 0;
-      f.sizeMult = this._sizeMultForVotes(f.spawnVotes);
-    }
-    // Seed a few big flags so the mode reads clearly on stream / screenshots.
-    const seeds = shuffle(this.fighters).slice(0, 6);
-    for (const f of seeds) {
-      f.spawnVotes = Math.max(f.spawnVotes, CONFIG.votesPerBigFlag * (1 + ((Math.random() * 2) | 0)));
       f.sizeMult = this._sizeMultForVotes(f.spawnVotes);
     }
 
