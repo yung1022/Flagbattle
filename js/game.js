@@ -863,8 +863,9 @@ export class FlagBattleGame {
 
   /**
    * Chat / poll: spawn or revive a country (Opening + Main + Invasion).
-   * Each call is one spawn for the current round only (vote + optional grow).
-   * Round resets clear spawnVotes / recentSpawns — no carry from earlier rounds.
+   * Each user/chat call counts as a vote — every 5 votes grows a big flag.
+   * Auto-filled arena flags never grow unless chat/users vote for them.
+   * Main round refill does not re-apply prior spawnVotes (spawn lasts that round).
    * @returns {boolean}
    */
   spawnSprintCountry(code, { voter = "", avatar = "" } = {}) {
@@ -985,8 +986,6 @@ export class FlagBattleGame {
     this.round += 1;
     this.eliminated = [];
     this._fallOrder = [];
-    // Spawns last one Opening round only — fresh field, no prior vote sizes.
-    this.recentSpawns = [];
     this._fillSprintField();
     this._emit(
       "phase",
@@ -1038,18 +1037,16 @@ export class FlagBattleGame {
         ? 800
         : rand(CONFIG.eventGapMinMs, CONFIG.eventGapMaxMs));
 
-    // Fresh Main field — Opening spawns do not carry. Chat must re-spawn
-    // each Main round for big flags / spawner labels.
-    this.recentSpawns = [];
-    this._fillSprintField();
+    // Carry chat vote sizes from Opening — only user/chat spawns grow big flags.
+    // Auto-filled field flags stay normal size (spawnVotes = 0).
+    if (!this.fighters.length) this._fillSprintField();
     for (const f of this.fighters) {
       f.alive = true;
       f.falling = false;
       f.hp = CONFIG.baseHp;
       f.maxHp = CONFIG.baseHp;
-      f.spawnVotes = 0;
-      f.sizeMult = 1;
-      f.spawnedBy = "";
+      f.spawnVotes = Number(f.spawnVotes) || 0;
+      f.sizeMult = this._sizeMultForVotes(f.spawnVotes);
     }
 
     this.holeAngle = rand(0, Math.PI * 2);
@@ -1191,20 +1188,15 @@ export class FlagBattleGame {
     this.eliminated = [];
     this._fallOrder = [];
     this._deathSeq = [];
-    // Keep the event clock / active event — do not reschedule on round reset.
-    // Spawns last one Main round only: fresh field, no prior vote sizes.
-    this.recentSpawns = [];
+    // Keep event clock / active event — do not reschedule on round reset.
+    // Refill without re-applying prior spawnVotes so each spawn lasts one round.
     this._fillSprintField();
     for (const f of this.fighters) {
       f.hp = CONFIG.baseHp;
       f.maxHp = CONFIG.baseHp;
       f.alive = true;
       f.falling = false;
-      f.spawnVotes = 0;
-      f.sizeMult = 1;
-      f.spawnedBy = "";
     }
-    // Catch event hunter is a new fighter object after refill — re-apply boost.
     if (this.arenaEvent?.type === "catch" && this.arenaEvent.hunterCode) {
       const h = this.fighters.find((f) => f.code === this.arenaEvent.hunterCode);
       if (h) h.sizeMult = Math.max(h.sizeMult || 1, 1.7);
