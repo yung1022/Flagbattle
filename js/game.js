@@ -865,6 +865,7 @@ export class FlagBattleGame {
    * Chat / poll: spawn or revive a country (Opening + Main + Invasion).
    * Each user/chat call counts as a vote — every 5 votes grows a big flag.
    * Auto-filled arena flags never grow unless chat/users vote for them.
+   * Main round refill does not re-apply prior spawnVotes (spawn lasts that round).
    * @returns {boolean}
    */
   spawnSprintCountry(code, { voter = "", avatar = "" } = {}) {
@@ -1181,37 +1182,25 @@ export class FlagBattleGame {
       return;
     }
 
-    // Keep chat vote sizes across Main round resets.
-    const voteMap = new Map(
-      this.fighters.map((f) => [
-        f.code,
-        {
-          spawnVotes: Number(f.spawnVotes) || 0,
-          sizeMult: Number(f.sizeMult) || 1,
-        },
-      ])
-    );
-
     this.phase = "main";
     this.finalStage = "main";
     this.round += 1;
     this.eliminated = [];
     this._fallOrder = [];
     this._deathSeq = [];
-    this.arenaEvent = null;
+    // Keep event clock / active event — do not reschedule on round reset.
+    // Refill without re-applying prior spawnVotes so each spawn lasts one round.
     this._fillSprintField();
     for (const f of this.fighters) {
-      const prev = voteMap.get(f.code);
-      if (prev) {
-        f.spawnVotes = prev.spawnVotes;
-        f.sizeMult = this._sizeMultForVotes(prev.spawnVotes);
-      }
       f.hp = CONFIG.baseHp;
       f.maxHp = CONFIG.baseHp;
       f.alive = true;
       f.falling = false;
     }
-    this._scheduleNextEvent();
+    if (this.arenaEvent?.type === "catch" && this.arenaEvent.hunterCode) {
+      const h = this.fighters.find((f) => f.code === this.arenaEvent.hunterCode);
+      if (h) h.sizeMult = Math.max(h.sizeMult || 1, 1.7);
+    }
     const leaders = this._mainPointLeaders(3)
       .map((r) => `${r.name} ${r.points}`)
       .join(" · ");
