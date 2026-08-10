@@ -99,10 +99,10 @@ PUBLIC_SITE=https://yung1022.github.io/Flagbattle npm run go-live --prefix strea
 # Optional: force a mode locally with --mode qualifying|final
 ```
 
-The GitHub Action always starts a **full battle** (Sprint → Qualifying → Final in one livestream).
+The GitHub Action always starts a **full battle** (Opening → Main → Alien Invasion in one livestream).
 Optional `--mode final` remains for local recovery of a Final-only run.
 
-Livestream titles auto-format as **`FLAG BATTLE - DD/MM/YYYY #N`** (and rotating variations). `#N` is the stream number that day and resets at midnight (`STREAM_TITLE_TZ`, default UTC). Override with `YT_TITLE` only if you need a fixed title.
+Livestream titles auto-format as **`FLAG BATTLE - DD/MM/YYYY #N`** (and rotating variations for the Opening → Main → Invasion format). `#N` is the stream number that day and resets at midnight (`STREAM_TITLE_TZ`, default UTC). Override with `YT_TITLE` only if you need a fixed title.
 
 ## Mobile / cloud stream
 

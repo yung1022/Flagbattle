@@ -8,7 +8,7 @@
 #   NIGHTBOT_TOKEN — auto-update Nightbot !vote to the live tunnel
 #
 # Trigger from your own cron / server with workflow_dispatch (see README).
-# One livestream = Qualifying → Final (unified full battle).
+# One livestream = Opening → Main → Alien Invasion (unified full battle).
 
 name: Go Live — FLAG BATTLE
 
@@ -49,7 +49,7 @@ jobs:
         run: |
           MODE=$(node stream/src/next-mode.js data/rankings.json)
           echo "mode=$MODE" >> "$GITHUB_OUTPUT"
-          echo "Next livestream mode: $MODE (Qualifying → Final in one stream)"
+          echo "Next livestream mode: $MODE (Opening → Main → Invasion in one stream)"
 
       - name: Setup Node
         uses: actions/setup-node@v4

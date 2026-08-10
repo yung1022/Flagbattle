@@ -52,7 +52,7 @@ const TITLE =
   liveTitle.title;
 const DESCRIPTION =
   process.env.YT_DESCRIPTION ||
-  "FLAG BATTLE livestream. Qualifying (last flag in the circle qualifies) → Final: hole (reset on fall) → Swiss 1v1 → last flag standing — all in one stream.\n\nVote who wins: type a country name, or !vote Japan / !vote jp. Live Chat polls + web poll & rankings: https://yung1022.github.io/Flagbattle/";
+  "FLAG BATTLE livestream (~4 hours). Opening (type a country to spawn = vote) → Main (last standing = +1 point, random events) → Alien Invasion (most Main points wins) — all in one stream.\n\nVote / spawn: type a country name, or !vote Japan / !vote jp. Every 5 votes grows your flag. Poll & rankings: https://yung1022.github.io/Flagbattle/";
 
 const children = [];
 let display = null;
