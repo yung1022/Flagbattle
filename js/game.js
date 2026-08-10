@@ -985,6 +985,8 @@ export class FlagBattleGame {
     this.round += 1;
     this.eliminated = [];
     this._fallOrder = [];
+    // Spawns last one Opening round only — fresh field, no prior vote sizes.
+    this.recentSpawns = [];
     this._fillSprintField();
     this._emit(
       "phase",
@@ -1036,16 +1038,18 @@ export class FlagBattleGame {
         ? 800
         : rand(CONFIG.eventGapMinMs, CONFIG.eventGapMaxMs));
 
-    // Carry chat vote sizes from Opening — only user/chat spawns grow big flags.
-    // Auto-filled field flags stay normal size (spawnVotes = 0).
-    if (!this.fighters.length) this._fillSprintField();
+    // Fresh Main field — Opening spawns do not carry. Chat must re-spawn
+    // each Main round for big flags / spawner labels.
+    this.recentSpawns = [];
+    this._fillSprintField();
     for (const f of this.fighters) {
       f.alive = true;
       f.falling = false;
       f.hp = CONFIG.baseHp;
       f.maxHp = CONFIG.baseHp;
-      f.spawnVotes = Number(f.spawnVotes) || 0;
-      f.sizeMult = this._sizeMultForVotes(f.spawnVotes);
+      f.spawnVotes = 0;
+      f.sizeMult = 1;
+      f.spawnedBy = "";
     }
 
     this.holeAngle = rand(0, Math.PI * 2);
@@ -1181,37 +1185,30 @@ export class FlagBattleGame {
       return;
     }
 
-    // Keep chat vote sizes across Main round resets.
-    const voteMap = new Map(
-      this.fighters.map((f) => [
-        f.code,
-        {
-          spawnVotes: Number(f.spawnVotes) || 0,
-          sizeMult: Number(f.sizeMult) || 1,
-        },
-      ])
-    );
-
     this.phase = "main";
     this.finalStage = "main";
     this.round += 1;
     this.eliminated = [];
     this._fallOrder = [];
     this._deathSeq = [];
-    this.arenaEvent = null;
+    // Keep the event clock / active event — do not reschedule on round reset.
+    // Spawns last one Main round only: fresh field, no prior vote sizes.
+    this.recentSpawns = [];
     this._fillSprintField();
     for (const f of this.fighters) {
-      const prev = voteMap.get(f.code);
-      if (prev) {
-        f.spawnVotes = prev.spawnVotes;
-        f.sizeMult = this._sizeMultForVotes(prev.spawnVotes);
-      }
       f.hp = CONFIG.baseHp;
       f.maxHp = CONFIG.baseHp;
       f.alive = true;
       f.falling = false;
+      f.spawnVotes = 0;
+      f.sizeMult = 1;
+      f.spawnedBy = "";
     }
-    this._scheduleNextEvent();
+    // Catch event hunter is a new fighter object after refill — re-apply boost.
+    if (this.arenaEvent?.type === "catch" && this.arenaEvent.hunterCode) {
+      const h = this.fighters.find((f) => f.code === this.arenaEvent.hunterCode);
+      if (h) h.sizeMult = Math.max(h.sizeMult || 1, 1.7);
+    }
     const leaders = this._mainPointLeaders(3)
       .map((r) => `${r.name} ${r.points}`)
       .join(" · ");
