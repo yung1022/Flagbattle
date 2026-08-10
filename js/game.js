@@ -863,8 +863,8 @@ export class FlagBattleGame {
 
   /**
    * Chat / poll: spawn or revive a country (Opening + Main + Invasion).
-   * Each user/chat call counts as a vote — every 5 votes grows a big flag.
-   * Auto-filled arena flags never grow unless chat/users vote for them.
+   * Each call is one spawn for the current round only (vote + optional grow).
+   * Round resets clear spawnVotes / recentSpawns — no carry from earlier rounds.
    * @returns {boolean}
    */
   spawnSprintCountry(code, { voter = "", avatar = "" } = {}) {
