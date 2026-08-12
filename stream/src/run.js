@@ -27,7 +27,6 @@ import { startChatVoteLoop } from "./chat-vote.js";
 import { syncNightbotVoteCommand, nightbotVoteMessage } from "./nightbot.js";
 import { startYoutubePollOrchestrator } from "./yt-polls.js";
 import { buildNextLiveTitle } from "./live-title.js";
-import { prepareNcsBed } from "./ncs-music.js";
 
 loadEnv();
 
@@ -41,8 +40,6 @@ const WENT_LIVE_MARKER = path.join(ROOT, ".data", "went-live");
 const EXIT_PRE_LIVE_FAIL = 75;
 let pulseSink = null;
 let wentLive = false;
-/** @type {string | null} */
-let ncsBedPath = null;
 
 const args = parseArgs(process.argv.slice(2));
 const WIDTH = Number(process.env.STREAM_WIDTH || 1080);
@@ -57,10 +54,9 @@ const TITLE =
   args.title ||
   process.env.YT_TITLE ||
   liveTitle.title;
-const DESCRIPTION_BASE =
+const DESCRIPTION =
   process.env.YT_DESCRIPTION ||
   "FLAG BATTLE livestream (~4 hours). Opening (type a country to spawn = vote) → Main (last standing = +1 point, random events) → Alien Invasion (most Main points wins) — all in one stream.\n\nVote / spawn: type a country name, or !vote Japan / !vote jp. Every 5 votes grows your flag. Poll & rankings: https://yung1022.github.io/Flagbattle/";
-let DESCRIPTION = DESCRIPTION_BASE;
 
 const children = [];
 let display = null;
@@ -86,15 +82,6 @@ async function main() {
     console.log(`Title: ${TITLE}`);
   }
   assertBinaries();
-
-  const ncs = await prepareNcsBed({ pages: 2 });
-  if (ncs.ok && ncs.path) {
-    ncsBedPath = ncs.path;
-    DESCRIPTION = `${DESCRIPTION_BASE}\n\n———\n${ncs.credit}`;
-    console.log(`[ncs] Using NCS ambient bed: ${ncs.song?.name || ncs.path}`);
-  } else {
-    console.warn(`[ncs] Falling back to synth bed: ${ncs.error || "unknown"}`);
-  }
 
   pulseSink = await startPulseAudio();
   if (pulseSink) {
@@ -693,15 +680,14 @@ function startFfmpeg(displayNum, rtmpUrl, w, h, fps) {
     process.env.PULSE_SOURCE ||
     (process.env.PULSE_SINK ? `${process.env.PULSE_SINK}.monitor` : "");
 
-  // NCS MP3 bed (looped) when available; otherwise soft lavfi pad.
-  const useNcs = Boolean(ncsBedPath && fs.existsSync(ncsBedPath));
-  const synthBed =
+  // Soft lavfi pad — guaranteed stream music even if Chrome Web Audio is silent.
+  const ambientInput =
     "aevalsrc=exprs=" +
     "0.055*sin(2*PI*110*t)+0.035*sin(2*PI*164.81*t)+0.022*sin(2*PI*220*t)+" +
     "0.012*sin(2*PI*329.63*t)" +
     ":s=44100:c=stereo,lowpass=f=900,volume=0.9";
 
-  // Video from X11; audio = Pulse (Chrome SFX/TTS) + always-on ambient bed.
+  // Video from X11; audio = Pulse (Chrome SFX/TTS) + always-on lavfi ambient bed.
   const args = [
     "-y",
     "-thread_queue_size",
@@ -718,21 +704,6 @@ function startFfmpeg(displayNum, rtmpUrl, w, h, fps) {
     `${displayNum}.0`,
   ];
 
-  const pushBedInput = () => {
-    if (useNcs) {
-      args.push(
-        "-stream_loop",
-        "-1",
-        "-thread_queue_size",
-        "512",
-        "-i",
-        ncsBedPath
-      );
-    } else {
-      args.push("-f", "lavfi", "-thread_queue_size", "512", "-i", synthBed);
-    }
-  };
-
   if (usePulse && pulseSource) {
     args.push(
       "-thread_queue_size",
@@ -740,14 +711,16 @@ function startFfmpeg(displayNum, rtmpUrl, w, h, fps) {
       "-f",
       "pulse",
       "-i",
-      pulseSource
-    );
-    pushBedInput();
-    const bedVol = useNcs ? "0.28" : "0.55";
-    args.push(
+      pulseSource,
+      "-f",
+      "lavfi",
+      "-thread_queue_size",
+      "512",
+      "-i",
+      ambientInput,
       "-filter_complex",
       "[1:a]aresample=async=1:first_pts=0,volume=1.55[pulse];" +
-        `[2:a]aformat=sample_rates=44100:channel_layouts=stereo,volume=${bedVol}[bed];` +
+        "[2:a]volume=0.55[bed];" +
         "[pulse][bed]amix=inputs=2:duration=first:dropout_transition=2:normalize=0[aout]",
       "-map",
       "0:v",
@@ -755,8 +728,18 @@ function startFfmpeg(displayNum, rtmpUrl, w, h, fps) {
       "[aout]"
     );
   } else {
-    pushBedInput();
-    args.push("-map", "0:v", "-map", "1:a");
+    args.push(
+      "-f",
+      "lavfi",
+      "-thread_queue_size",
+      "512",
+      "-i",
+      ambientInput,
+      "-map",
+      "0:v",
+      "-map",
+      "1:a"
+    );
   }
 
   args.push(
@@ -798,8 +781,8 @@ function startFfmpeg(displayNum, rtmpUrl, w, h, fps) {
 
   console.log(
     `FFmpeg → YouTube RTMP (${w}x${h}@${fps} ${preset} ${bitrate}${
-      usePulse ? " +pulse" : ""
-    }${useNcs ? "+ncs" : "+synth"})`
+      usePulse ? " +pulse+ambient" : " +ambient"
+    })`
   );
   const proc = spawn("ffmpeg", args, {
     stdio: ["ignore", "pipe", "pipe"],
