@@ -102,7 +102,7 @@ PUBLIC_SITE=https://yung1022.github.io/Flagbattle npm run go-live --prefix strea
 The GitHub Action always starts a **full battle** (Opening → Main → Alien Invasion in one livestream).
 Optional `--mode final` remains for local recovery of a Final-only run.
 
-If setup fails **before** the broadcast goes live, the workflow **auto re-dispatches** itself (up to 3 retries). Ambient bed music is pulled from [NCS (NoCopyrightSounds)](https://ncs.io/) with credit in the livestream description.
+If setup fails **before** the broadcast goes live, the workflow **auto re-dispatches** itself (up to 3 retries).
 
 Livestream titles auto-format as **`FLAG BATTLE - DD/MM/YYYY #N`** (and rotating variations for the Opening → Main → Invasion format). `#N` is the stream number that day and resets at midnight (`STREAM_TITLE_TZ`, default UTC). Override with `YT_TITLE` only if you need a fixed title.
 

@@ -8,8 +8,6 @@ let lastSpeakAt = 0;
 let ambientNodes = null;
 let ambientStarted = false;
 let streamAudioWatch = null;
-/** @type {HTMLAudioElement | null} */
-let ncsAudio = null;
 /** @type {Map<string, number>} */
 const sfxLastAt = new Map();
 
@@ -231,16 +229,6 @@ export function announceRoundWinner(name, { champion = false } = {}) {
 }
 
 function tearDownAmbient() {
-  if (ncsAudio) {
-    try {
-      ncsAudio.pause();
-      ncsAudio.removeAttribute("src");
-      ncsAudio.load();
-    } catch {
-      /* ignore */
-    }
-    ncsAudio = null;
-  }
   if (!ambientNodes) {
     ambientStarted = false;
     return;
@@ -265,54 +253,14 @@ function tearDownAmbient() {
   ambientStarted = false;
 }
 
-/** Prefer NCS bed from go-live (`/api/ambient`); fall back to synth pad. */
-function startNcsAmbientAudio() {
-  try {
-    if (typeof Audio === "undefined") return false;
-    if (ncsAudio && !ncsAudio.error && !ncsAudio.paused) {
-      ambientStarted = true;
-      return true;
-    }
-    const el = new Audio("/api/ambient");
-    el.loop = true;
-    el.preload = "auto";
-    el.volume = isStreamPage() ? 0.22 : 0.14;
-    el.crossOrigin = "anonymous";
-    const play = () =>
-      el.play().then(() => {
-        ncsAudio = el;
-        ambientStarted = true;
-        ambientNodes = { kind: "ncs", el };
-      });
-    // Probe: if 404, reject and fall back to synth.
-    return play()
-      .then(() => true)
-      .catch(() => {
-        try {
-          el.pause();
-        } catch {
-          /* ignore */
-        }
-        return false;
-      });
-  } catch {
-    return false;
-  }
-}
-
 /**
- * Looping ambient bed — NCS when `/api/ambient` is available, else synth pad.
- * Rebuilds if a prior start happened while suspended.
+ * Looping ambient pad. Rebuilds if a prior start happened while suspended.
  */
 export function startAmbientMusic({ force = false } = {}) {
   const ac = ctx();
   if (!ac) return false;
 
-  if (ambientStarted && (ambientNodes || ncsAudio) && !force) {
-    if (ncsAudio) {
-      ncsAudio.play().catch(() => {});
-      return true;
-    }
+  if (ambientStarted && ambientNodes && !force) {
     // Nudge gain — scheduled ramps can be stuck if started while suspended.
     try {
       const now = ac.currentTime;
@@ -330,22 +278,8 @@ export function startAmbientMusic({ force = false } = {}) {
   }
 
   if (force) tearDownAmbient();
-
-  // Async NCS try — if it fails, build synth immediately after.
-  const ncsTry = startNcsAmbientAudio();
-  if (ncsTry && typeof ncsTry.then === "function") {
-    ncsTry.then((ok) => {
-      if (ok) return;
-      startSynthAmbient(ac);
-    });
-    return true;
-  }
-  if (ncsTry === true) return true;
-  return startSynthAmbient(ac);
-}
-
-function startSynthAmbient(ac) {
   ambientStarted = true;
+
   try {
     const master = ac.createGain();
     master.gain.value = 0.0001;
@@ -427,10 +361,6 @@ function startSynthAmbient(ac) {
 }
 
 export function stopAmbientMusic() {
-  if (ncsAudio || ambientNodes?.kind === "ncs") {
-    tearDownAmbient();
-    return;
-  }
   if (!ambientNodes) return;
   try {
     const ac = ctx();

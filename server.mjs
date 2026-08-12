@@ -89,9 +89,6 @@ const MIME = {
   ".json": "application/json",
   ".webmanifest": "application/manifest+json",
   ".md": "text/markdown; charset=utf-8",
-  ".mp3": "audio/mpeg",
-  ".m4a": "audio/mp4",
-  ".ogg": "audio/ogg",
 };
 
 function readJson(file, fallback) {
@@ -967,33 +964,6 @@ async function handleApi(req, res, url) {
     writeJson(PRED_FILE, store);
     schedulePublicSync({ forcePredictions: true, github: true });
     return send(res, 200, { ok: true, entry: saved });
-  }
-
-  // NCS ambient bed prepared by go-live (stream/src/ncs-music.js).
-  if (url.pathname === "/api/ambient" && req.method === "GET") {
-    const file = path.join(DATA, "ambient.mp3");
-    const metaFile = path.join(DATA, "ambient.json");
-    if (!fs.existsSync(file)) {
-      return send(res, 404, { ok: false, error: "no ambient bed" });
-    }
-    const meta = readJson(metaFile, null);
-    const stat = fs.statSync(file);
-    res.writeHead(200, {
-      "Content-Type": "audio/mpeg",
-      "Content-Length": stat.size,
-      "Cache-Control": "no-cache",
-      "X-Ambient-Source": "ncs",
-      ...(meta?.name ? { "X-Ambient-Title": String(meta.name).slice(0, 120) } : {}),
-    });
-    fs.createReadStream(file).pipe(res);
-    return;
-  }
-  if (url.pathname === "/api/ambient/meta" && req.method === "GET") {
-    const metaFile = path.join(DATA, "ambient.json");
-    if (!fs.existsSync(metaFile)) {
-      return send(res, 404, { ok: false, error: "no ambient meta" });
-    }
-    return send(res, 200, { ok: true, ...readJson(metaFile, {}) });
   }
 
   if (url.pathname === "/api/announce" && req.method === "POST") {
