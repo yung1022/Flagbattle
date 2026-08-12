@@ -76,7 +76,24 @@ function init() {
       const parts = location.pathname.split("/").filter(Boolean);
       const repo = parts[0] || "Flagbattle";
       $("gh-repo").value = `${owner}/${repo}`;
+      if ($("setup-gh-repo")) $("setup-gh-repo").value = `${owner}/${repo}`;
     }
+  }
+
+  // Keep Setup ↔ Cloud GitHub fields in sync while typing.
+  for (const [a, b] of [
+    ["gh-repo", "setup-gh-repo"],
+    ["gh-token", "setup-gh-token"],
+  ]) {
+    const elA = $(a);
+    const elB = $(b);
+    if (!elA || !elB) continue;
+    elA.addEventListener("input", () => {
+      elB.value = elA.value;
+    });
+    elB.addEventListener("input", () => {
+      elA.value = elB.value;
+    });
   }
 
   // Fix relative arena / teststream links when served from /control/
@@ -129,6 +146,7 @@ function persist() {
 function fillForm() {
   $("gh-repo").value = state.ghRepo || "";
   $("gh-token").value = state.ghToken || "";
+  syncSetupGithubFieldsFromState();
   $("yt-privacy").value = state.privacy || "unlisted";
   $("demo-seconds").value = state.demoSeconds ?? "120";
   $("duration-min").value = state.durationMin ?? "";
@@ -137,9 +155,31 @@ function fillForm() {
   $("g-refresh").value = state.refreshToken || "";
 }
 
+function syncSetupGithubFieldsFromState() {
+  if ($("setup-gh-repo")) $("setup-gh-repo").value = state.ghRepo || "";
+  if ($("setup-gh-token")) $("setup-gh-token").value = state.ghToken || "";
+}
+
+function syncCloudGithubFieldsFromState() {
+  if ($("gh-repo")) $("gh-repo").value = state.ghRepo || "";
+  if ($("gh-token")) $("gh-token").value = state.ghToken || "";
+}
+
+/** Read GitHub repo/PAT from Setup and/or Cloud fields into state. */
+function saveGithubFieldsFromDom() {
+  const setupRepo = $("setup-gh-repo")?.value.trim();
+  const setupToken = $("setup-gh-token")?.value.trim();
+  const cloudRepo = $("gh-repo")?.value.trim();
+  const cloudToken = $("gh-token")?.value.trim();
+  // Prefer the tab the user is editing: non-empty Setup wins when present.
+  state.ghRepo = setupRepo || cloudRepo || state.ghRepo || "";
+  state.ghToken = setupToken || cloudToken || state.ghToken || "";
+  syncSetupGithubFieldsFromState();
+  syncCloudGithubFieldsFromState();
+}
+
 function saveCloudFields() {
-  state.ghRepo = $("gh-repo").value.trim();
-  state.ghToken = $("gh-token").value.trim();
+  saveGithubFieldsFromDom();
   state.privacy = $("yt-privacy").value;
   state.demoSeconds = $("demo-seconds").value.trim();
   state.durationMin = $("duration-min").value.trim();
@@ -148,11 +188,12 @@ function saveCloudFields() {
 }
 
 function saveGoogleFields() {
+  saveGithubFieldsFromDom();
   state.clientId = $("g-client-id").value.trim();
   state.clientSecret = $("g-client-secret").value.trim();
   state.refreshToken = $("g-refresh").value.trim();
   persist();
-  log("setup-log", "Saved Google fields on this phone (not uploaded yet).");
+  log("setup-log", "Saved Google + GitHub fields on this phone (not uploaded yet).");
 }
 
 async function copyArenaLink() {
@@ -267,12 +308,15 @@ async function pollDeviceToken({
 /* ——— GitHub secrets + workflow ——— */
 
 async function pushSecrets() {
+  // Secrets-only — never dispatches go-live.yml or any workflow.
   saveGoogleFields();
-  saveCloudFields();
   const repo = state.ghRepo;
   const token = state.ghToken;
   if (!repo || !token) {
-    log("setup-log", "Set GitHub repo + PAT in the Cloud tab first.");
+    log(
+      "setup-log",
+      "Set GitHub repo + PAT above (Setup tab). No go-live needed."
+    );
     return;
   }
   if (!state.clientId || !state.clientSecret || !state.refreshToken) {
@@ -280,6 +324,8 @@ async function pushSecrets() {
     return;
   }
 
+  const btn = $("btn-push-secrets");
+  if (btn) btn.disabled = true;
   try {
     await sodium.ready;
     const [owner, name] = splitRepo(repo);
@@ -310,9 +356,14 @@ async function pushSecrets() {
       );
       log("setup-log", `Secret ${secretName} updated`);
     }
-    log("setup-log", "All YouTube secrets pushed. Open Cloud tab → Go live now.");
+    log(
+      "setup-log",
+      "All YouTube secrets pushed. Done — go-live was not started."
+    );
   } catch (err) {
     log("setup-log", `Push failed: ${err.message || err}`);
+  } finally {
+    if (btn) btn.disabled = false;
   }
 }
 

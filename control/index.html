@@ -107,10 +107,15 @@
           <input
             id="gh-token"
             type="password"
-            placeholder="ghp_… (workflow + secrets scope)"
+            placeholder="ghp_… (actions:write to go live)"
             autocomplete="off"
           />
         </label>
+        <p class="note">
+          Same repo/PAT as Setup (synced on this phone). Go-live needs
+          <code>actions:write</code>. Pushing secrets is on the Setup tab and
+          does <strong>not</strong> start a stream.
+        </p>
         <p class="note">
           Every go-live is <strong>Opening → Main → Invasion</strong> (~4h).
           Typing a country spawns/votes (big flag every 5). Main last standing
@@ -140,8 +145,9 @@
         </div>
         <pre class="log" id="cloud-log" aria-live="polite"></pre>
         <p class="note">
-          Needs YouTube secrets already on the repo (use the <button type="button" class="linkish" data-tab="setup">Setup</button> tab once).
-          PAT needs <code>actions:write</code> (and <code>secrets:write</code> if you push secrets from Setup).
+          Needs YouTube secrets already on the repo — push them from
+          <button type="button" class="linkish" data-tab="setup">Setup</button>
+          (no go-live required). PAT for this button needs <code>actions:write</code>.
         </p>
       </section>
 
@@ -226,7 +232,10 @@
           </li>
           <li>Paste Client ID + Secret below → Start device login.</li>
           <li>Open <a href="https://www.google.com/device" target="_blank" rel="noopener">google.com/device</a>, enter the code, allow access.</li>
-          <li>Push secrets to GitHub (or copy them manually).</li>
+          <li>
+            Enter GitHub repo + PAT below → <strong>Push secrets to GitHub</strong>
+            (does not start a livestream).
+          </li>
         </ol>
         <p class="note">
           Device login only requests the
@@ -263,6 +272,35 @@
           <textarea id="g-refresh" rows="3" placeholder="Appears after device login"></textarea>
         </label>
 
+        <h2 class="subhead">Push secrets only</h2>
+        <p class="hint">
+          Updates Action secrets on the repo. Does <strong>not</strong> start
+          go-live or run any workflow.
+        </p>
+        <label class="field">
+          <span>GitHub repo</span>
+          <input
+            id="setup-gh-repo"
+            inputmode="url"
+            placeholder="owner/Flagbattle"
+            autocomplete="off"
+          />
+        </label>
+        <label class="field">
+          <span>GitHub token (PAT)</span>
+          <input
+            id="setup-gh-token"
+            type="password"
+            placeholder="ghp_… (secrets:write is enough here)"
+            autocomplete="off"
+          />
+        </label>
+        <p class="note">
+          Fine-grained: Actions secrets <strong>Read and write</strong> on this
+          repo. Classic: <code>repo</code> is enough for secrets. You only need
+          <code>actions:write</code> / workflow scope when using Cloud → Go live.
+        </p>
+
         <div class="actions">
           <button class="btn primary" type="button" id="btn-push-secrets">
             Push secrets to GitHub
@@ -273,6 +311,6 @@
       </section>
     </main>
 
-    <script type="module" src="app.js?v=device-scope-1"></script>
+    <script type="module" src="app.js?v=secrets-no-golive-1"></script>
   </body>
 </html>
