@@ -27,10 +27,14 @@ on:
         description: "Optional safety cap in minutes (empty = run until winner hold ends)"
         required: false
         default: ""
+      retry_attempt:
+        description: "Internal — auto-incremented when re-dispatching after a pre-live failure"
+        required: false
+        default: "0"
 
 permissions:
   contents: write
-  actions: read
+  actions: write
 
 concurrency:
   group: go-live
@@ -50,6 +54,10 @@ jobs:
           MODE=$(node stream/src/next-mode.js data/rankings.json)
           echo "mode=$MODE" >> "$GITHUB_OUTPUT"
           echo "Next livestream mode: $MODE (Opening → Main → Invasion in one stream)"
+          ATTEMPT="${{ inputs.retry_attempt }}"
+          ATTEMPT="${ATTEMPT:-0}"
+          echo "retry_attempt=$ATTEMPT" >> "$GITHUB_OUTPUT"
+          echo "Go-live attempt #$((ATTEMPT + 1)) (retry_attempt=$ATTEMPT)"
 
       - name: Setup Node
         uses: actions/setup-node@v4
@@ -106,6 +114,7 @@ jobs:
           } > .env
 
       - name: Go live
+        id: golive
         working-directory: stream
         env:
           DEMO_SECONDS: ${{ inputs.demo_seconds }}
@@ -140,9 +149,46 @@ jobs:
           set -e
           # 124 = timeout hit planned end; treat as clean stop
           if [ "$code" = "124" ] || [ "$code" = "0" ]; then
+            echo "outcome=ok" >> "$GITHUB_OUTPUT"
             exit 0
           fi
+          echo "outcome=fail" >> "$GITHUB_OUTPUT"
+          echo "exit_code=$code" >> "$GITHUB_OUTPUT"
           exit "$code"
+
+      - name: Rerun if failed before going live
+        if: failure() && steps.golive.outcome == 'failure'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          DEMO_SECONDS: ${{ inputs.demo_seconds }}
+          DURATION_MIN: ${{ inputs.duration_minutes }}
+          PRIVACY: ${{ inputs.privacy }}
+          RETRY_ATTEMPT: ${{ steps.mode.outputs.retry_attempt }}
+        run: |
+          if [ -f .data/went-live ]; then
+            echo "Broadcast reached live — not re-dispatching"
+            cat .data/went-live || true
+            exit 0
+          fi
+          ATTEMPT="${RETRY_ATTEMPT:-0}"
+          MAX=3
+          if [ "$ATTEMPT" -ge "$MAX" ]; then
+            echo "Already retried $ATTEMPT times (max $MAX) — giving up"
+            exit 0
+          fi
+          NEXT=$((ATTEMPT + 1))
+          echo "Pre-live failure — re-dispatching go-live (retry_attempt=$NEXT)"
+          ARGS=(workflow run go-live.yml --ref "${{ github.ref_name }}")
+          ARGS+=(-f "privacy=${PRIVACY:-public}")
+          ARGS+=(-f "retry_attempt=${NEXT}")
+          if [ -n "${DEMO_SECONDS}" ]; then
+            ARGS+=(-f "demo_seconds=${DEMO_SECONDS}")
+          fi
+          if [ -n "${DURATION_MIN}" ]; then
+            ARGS+=(-f "duration_minutes=${DURATION_MIN}")
+          fi
+          gh "${ARGS[@]}"
+          echo "Re-dispatched Go Live workflow"
 
       - name: Persist ranking history to data/
         if: always()
