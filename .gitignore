@@ -1,6 +1,7 @@
 node_modules/
 stream/node_modules/
 stream/.env
+stream/.cache/
 .data/
 .DS_Store
 *.log

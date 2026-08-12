@@ -27,6 +27,7 @@ import { startChatVoteLoop } from "./chat-vote.js";
 import { syncNightbotVoteCommand, nightbotVoteMessage } from "./nightbot.js";
 import { startYoutubePollOrchestrator } from "./yt-polls.js";
 import { buildNextLiveTitle } from "./live-title.js";
+import { prepareNcsBed } from "./ncs-music.js";
 
 loadEnv();
 
@@ -35,7 +36,13 @@ const ROOT = path.resolve(__dirname, "../..");
 // Prefer the compressed YouTube JPEG (<2MB); resolver also falls back to PNG.
 const THUMB = path.join(ROOT, "assets/thumbnail-yt.jpg");
 const PUBLIC_SITE_DEFAULT = "https://yung1022.github.io/Flagbattle";
+const WENT_LIVE_MARKER = path.join(ROOT, ".data", "went-live");
+/** Exit code: failed before YouTube transitioned to live — workflow may re-dispatch. */
+const EXIT_PRE_LIVE_FAIL = 75;
 let pulseSink = null;
+let wentLive = false;
+/** @type {string | null} */
+let ncsBedPath = null;
 
 const args = parseArgs(process.argv.slice(2));
 const WIDTH = Number(process.env.STREAM_WIDTH || 1080);
@@ -50,9 +57,10 @@ const TITLE =
   args.title ||
   process.env.YT_TITLE ||
   liveTitle.title;
-const DESCRIPTION =
+const DESCRIPTION_BASE =
   process.env.YT_DESCRIPTION ||
   "FLAG BATTLE livestream (~4 hours). Opening (type a country to spawn = vote) → Main (last standing = +1 point, random events) → Alien Invasion (most Main points wins) — all in one stream.\n\nVote / spawn: type a country name, or !vote Japan / !vote jp. Every 5 votes grows your flag. Poll & rankings: https://yung1022.github.io/Flagbattle/";
+let DESCRIPTION = DESCRIPTION_BASE;
 
 const children = [];
 let display = null;
@@ -62,6 +70,13 @@ let shuttingDown = false;
 let chatAbort = null;
 
 async function main() {
+  // Fresh marker each attempt — workflow only re-dispatches when this stays missing.
+  try {
+    fs.rmSync(WENT_LIVE_MARKER, { force: true });
+  } catch {
+    /* ignore */
+  }
+
   console.log("▶ FLAG BATTLE auto-stream");
   if (!args.title && !process.env.YT_TITLE) {
     console.log(
@@ -71,6 +86,15 @@ async function main() {
     console.log(`Title: ${TITLE}`);
   }
   assertBinaries();
+
+  const ncs = await prepareNcsBed({ pages: 2 });
+  if (ncs.ok && ncs.path) {
+    ncsBedPath = ncs.path;
+    DESCRIPTION = `${DESCRIPTION_BASE}\n\n———\n${ncs.credit}`;
+    console.log(`[ncs] Using NCS ambient bed: ${ncs.song?.name || ncs.path}`);
+  } else {
+    console.warn(`[ncs] Falling back to synth bed: ${ncs.error || "unknown"}`);
+  }
 
   pulseSink = await startPulseAudio();
   if (pulseSink) {
@@ -127,6 +151,7 @@ async function main() {
   // Give YouTube a moment to detect the ingest, then go live.
   await sleep(12_000);
   await goLive(youtubeClient, broadcastId);
+  markWentLive();
 
   // Only retry thumbnail if the pre-live set failed (double-upload was
   // hitting YouTube's "too many thumbnails recently" quota).
@@ -668,14 +693,15 @@ function startFfmpeg(displayNum, rtmpUrl, w, h, fps) {
     process.env.PULSE_SOURCE ||
     (process.env.PULSE_SINK ? `${process.env.PULSE_SINK}.monitor` : "");
 
-  // Soft lavfi pad — guaranteed stream music even if Chrome Web Audio is silent.
-  const ambientInput =
+  // NCS MP3 bed (looped) when available; otherwise soft lavfi pad.
+  const useNcs = Boolean(ncsBedPath && fs.existsSync(ncsBedPath));
+  const synthBed =
     "aevalsrc=exprs=" +
     "0.055*sin(2*PI*110*t)+0.035*sin(2*PI*164.81*t)+0.022*sin(2*PI*220*t)+" +
     "0.012*sin(2*PI*329.63*t)" +
     ":s=44100:c=stereo,lowpass=f=900,volume=0.9";
 
-  // Video from X11; audio = Pulse (Chrome SFX/TTS) + always-on lavfi ambient bed.
+  // Video from X11; audio = Pulse (Chrome SFX/TTS) + always-on ambient bed.
   const args = [
     "-y",
     "-thread_queue_size",
@@ -692,6 +718,21 @@ function startFfmpeg(displayNum, rtmpUrl, w, h, fps) {
     `${displayNum}.0`,
   ];
 
+  const pushBedInput = () => {
+    if (useNcs) {
+      args.push(
+        "-stream_loop",
+        "-1",
+        "-thread_queue_size",
+        "512",
+        "-i",
+        ncsBedPath
+      );
+    } else {
+      args.push("-f", "lavfi", "-thread_queue_size", "512", "-i", synthBed);
+    }
+  };
+
   if (usePulse && pulseSource) {
     args.push(
       "-thread_queue_size",
@@ -699,16 +740,14 @@ function startFfmpeg(displayNum, rtmpUrl, w, h, fps) {
       "-f",
       "pulse",
       "-i",
-      pulseSource,
-      "-f",
-      "lavfi",
-      "-thread_queue_size",
-      "512",
-      "-i",
-      ambientInput,
+      pulseSource
+    );
+    pushBedInput();
+    const bedVol = useNcs ? "0.28" : "0.55";
+    args.push(
       "-filter_complex",
       "[1:a]aresample=async=1:first_pts=0,volume=1.55[pulse];" +
-        "[2:a]volume=0.55[bed];" +
+        `[2:a]aformat=sample_rates=44100:channel_layouts=stereo,volume=${bedVol}[bed];` +
         "[pulse][bed]amix=inputs=2:duration=first:dropout_transition=2:normalize=0[aout]",
       "-map",
       "0:v",
@@ -716,18 +755,8 @@ function startFfmpeg(displayNum, rtmpUrl, w, h, fps) {
       "[aout]"
     );
   } else {
-    args.push(
-      "-f",
-      "lavfi",
-      "-thread_queue_size",
-      "512",
-      "-i",
-      ambientInput,
-      "-map",
-      "0:v",
-      "-map",
-      "1:a"
-    );
+    pushBedInput();
+    args.push("-map", "0:v", "-map", "1:a");
   }
 
   args.push(
@@ -769,8 +798,8 @@ function startFfmpeg(displayNum, rtmpUrl, w, h, fps) {
 
   console.log(
     `FFmpeg → YouTube RTMP (${w}x${h}@${fps} ${preset} ${bitrate}${
-      usePulse ? " +pulse+ambient" : " +ambient"
-    })`
+      usePulse ? " +pulse" : ""
+    }${useNcs ? "+ncs" : "+synth"})`
   );
   const proc = spawn("ffmpeg", args, {
     stdio: ["ignore", "pipe", "pipe"],
@@ -783,6 +812,20 @@ function startFfmpeg(displayNum, rtmpUrl, w, h, fps) {
     }
   });
   return proc;
+}
+
+function markWentLive() {
+  wentLive = true;
+  try {
+    fs.mkdirSync(path.dirname(WENT_LIVE_MARKER), { recursive: true });
+    fs.writeFileSync(
+      WENT_LIVE_MARKER,
+      `${new Date().toISOString()}\nbroadcast=${broadcastId || ""}\n`
+    );
+    console.log(`[stream] Went live — wrote ${WENT_LIVE_MARKER}`);
+  } catch (err) {
+    console.warn("[stream] Could not write went-live marker:", err?.message || err);
+  }
 }
 
 async function shutdown(code) {
@@ -804,7 +847,15 @@ async function shutdown(code) {
   if (youtubeClient && broadcastId) {
     await completeBroadcast(youtubeClient, broadcastId);
   }
-  setTimeout(() => process.exit(code), 1500);
+  // Pre-live failures use EXIT_PRE_LIVE_FAIL so the workflow can re-dispatch.
+  const exitCode =
+    code !== 0 && !wentLive ? EXIT_PRE_LIVE_FAIL : code;
+  if (exitCode === EXIT_PRE_LIVE_FAIL) {
+    console.error(
+      `[stream] Failed before going live (exit ${EXIT_PRE_LIVE_FAIL}) — job may auto-rerun`
+    );
+  }
+  setTimeout(() => process.exit(exitCode), 1500);
 }
 
 function parseArgs(argv) {
