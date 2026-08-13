@@ -32,8 +32,8 @@ loadEnv();
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(__dirname, "../..");
-// Prefer the compressed YouTube JPEG (<2MB); resolver also falls back to PNG.
-const THUMB = path.join(ROOT, "assets/thumbnail-yt.jpg");
+// Prefer landscape YouTube JPEG (1280×720, <2MB); resolver falls back if missing.
+const THUMB = path.join(ROOT, "assets/thumbnail-yt-1280.jpg");
 const PUBLIC_SITE_DEFAULT = "https://yung1022.github.io/Flagbattle";
 const WENT_LIVE_MARKER = path.join(ROOT, ".data", "went-live");
 /** Exit code: failed before YouTube transitioned to live — workflow may re-dispatch. */

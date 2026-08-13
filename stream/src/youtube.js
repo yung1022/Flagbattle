@@ -264,12 +264,13 @@ export async function resolveThumbnailFile(preferred) {
   const dir = preferred ? path.dirname(preferred) : "";
   const base = preferred ? path.basename(preferred) : "";
   // Prefer ready-made YouTube JPEGs before the large source PNG.
+  // Landscape 1280×720 first (YouTube livestream standard); portrait as fallback.
   const candidates = [
-    preferred && preferred.replace(/\.png$/i, "-yt.jpg"),
-    dir && path.join(dir, "thumbnail-yt.jpg"),
-    dir && path.join(dir, "thumbnail-yt-1280.jpg"),
-    // Explicit .jpg path already (run.js may pass this).
+    // Explicit path from run.js / caller wins when it's already a JPEG.
     preferred && /\.jpe?g$/i.test(preferred) ? preferred : null,
+    preferred && preferred.replace(/\.png$/i, "-yt.jpg"),
+    dir && path.join(dir, "thumbnail-yt-1280.jpg"),
+    dir && path.join(dir, "thumbnail-yt.jpg"),
     // Oversized PNG last — usually skipped for size, kept as ffmpeg source.
     preferred && /\.png$/i.test(base) ? preferred : null,
   ].filter(Boolean);
@@ -315,7 +316,7 @@ function compressThumbnail(input, output) {
         "-i",
         input,
         "-vf",
-        "scale=1080:1920:force_original_aspect_ratio=decrease,pad=1080:1920:(ow-iw)/2:(oh-ih)/2",
+        "scale=1280:720:force_original_aspect_ratio=decrease,pad=1280:720:(ow-iw)/2:(oh-ih)/2",
         "-frames:v",
         "1",
         "-update",
