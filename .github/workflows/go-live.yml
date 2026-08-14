@@ -67,7 +67,7 @@ jobs:
       - name: Install system deps
         run: |
           sudo apt-get update
-          sudo apt-get install -y ffmpeg xvfb pulseaudio pulseaudio-utils espeak-ng
+          sudo apt-get install -y ffmpeg xvfb pulseaudio pulseaudio-utils espeak-ng fonts-liberation fonts-dejavu-core
           curl -fsSL -o /tmp/cloudflared \
             https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64
           sudo install -m 755 /tmp/cloudflared /usr/local/bin/cloudflared

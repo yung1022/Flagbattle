@@ -26,6 +26,7 @@ import {
 import { startChatVoteLoop } from "./chat-vote.js";
 import { syncNightbotVoteCommand, nightbotVoteMessage } from "./nightbot.js";
 import { startYoutubePollOrchestrator } from "./yt-polls.js";
+import { revealWinnerOnYoutube } from "./winner-thumb.js";
 import { buildNextLiveTitle } from "./live-title.js";
 
 loadEnv();
@@ -201,14 +202,12 @@ async function main() {
     console.log("[chat-vote] Off (CHAT_VOTE=0) — Nightbot !vote only");
   }
 
-  // Pinned Live Chat polls: community poll winner → Final 4 (one active at a time).
+  // Pinned Live Chat engagement poll — start once, never close.
   if (String(process.env.YT_LIVE_POLLS || "1").trim() !== "0") {
     if (!chatAbort) chatAbort = new AbortController();
     startYoutubePollOrchestrator({
       youtube: youtubeClient,
       broadcastId,
-      port: PORT,
-      mode: MODE,
       signal: chatAbort.signal,
     }).catch((err) => console.warn("[yt-polls] stopped:", err.message || err));
   } else {
@@ -247,6 +246,7 @@ async function waitForFinalStreamComplete(port) {
   );
   let sawWinner = false;
   let winnerSeenAt = 0;
+  let winnerRevealStarted = false;
   const holdFloorMs = Number(process.env.WINNER_HOLD_MS || 60_000);
   for (;;) {
     if (shuttingDown) return "shutdown";
@@ -264,6 +264,26 @@ async function waitForFinalStreamComplete(port) {
           winnerSeenAt = Date.now();
           console.log(
             `[stream] Champion ${live.winner?.name || "?"} — holding ${Math.round(holdFloorMs / 1000)}s before end`
+          );
+        }
+        // Blank-flag start thumb → winner flag + retitle (once).
+        if (live?.winner?.code && !winnerRevealStarted && youtubeClient && broadcastId) {
+          winnerRevealStarted = true;
+          const liveTags = parseTags(process.env.YT_TAGS) || DEFAULT_LIVE_TAGS;
+          const liveKeywords =
+            parseTags(process.env.YT_KEYWORDS) || DEFAULT_LIVE_KEYWORDS;
+          revealWinnerOnYoutube({
+            youtube: youtubeClient,
+            videoId: broadcastId,
+            winner: live.winner,
+            baseTitle: TITLE,
+            description: DESCRIPTION,
+            tags: liveTags,
+            keywords: liveKeywords,
+            categoryId: process.env.YT_CATEGORY_ID || "20",
+            baseThumbPath: THUMB,
+          }).catch((err) =>
+            console.warn("[winner-thumb] failed:", err.message || err)
           );
         }
       }
