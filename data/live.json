@@ -21,9 +21,9 @@
       "name": "Luxembourg",
       "img": "https://flagcdn.com/w80/lu.png"
     },
-    "streamStatus": "winner_hold",
-    "endedAt": null,
-    "winnerHoldRemainingMs": 1352.199999999255,
+    "streamStatus": "finished",
+    "endedAt": "2026-08-17T04:58:46.854Z",
+    "winnerHoldRemainingMs": 0,
     "qualifyingRemainingMs": 0,
     "sprintRemainingMs": 0,
     "mainRemainingMs": 0,
@@ -304,7 +304,7 @@
       }
     ],
     "finalLiveAt": null,
-    "updatedAt": 1786942725469
+    "updatedAt": 1786942726859
   },
   "streams": [
     {
@@ -666061,6 +666061,6 @@
       "sourceStreamId": null
     }
   ],
-  "api": "https://wheels-chat-engine-displaying.trycloudflare.com",
-  "updatedAt": 1786942727982
+  "api": null,
+  "updatedAt": 1786942736585
 }
