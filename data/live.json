@@ -21,9 +21,9 @@
       "name": "Chile",
       "img": "https://flagcdn.com/w80/cl.png"
     },
-    "streamStatus": "winner_hold",
-    "endedAt": null,
-    "winnerHoldRemainingMs": 1306.4000000003725,
+    "streamStatus": "finished",
+    "endedAt": "2026-08-17T20:52:58.589Z",
+    "winnerHoldRemainingMs": 0,
     "qualifyingRemainingMs": 0,
     "sprintRemainingMs": 0,
     "mainRemainingMs": 0,
@@ -302,7 +302,7 @@
       }
     ],
     "finalLiveAt": null,
-    "updatedAt": 1786999977253
+    "updatedAt": 1786999978591
   },
   "streams": [
     {
@@ -609180,6 +609180,6 @@
       "sourceStreamId": "fb_msh3yh5a_ty6u72"
     }
   ],
-  "api": "https://www-expired-appointment-cio.trycloudflare.com",
-  "updatedAt": 1786999979517
+  "api": null,
+  "updatedAt": 1786999987170
 }
