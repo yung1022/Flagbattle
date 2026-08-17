@@ -21,9 +21,9 @@
       "name": "Uzbekistan",
       "img": "https://flagcdn.com/w80/uz.png"
     },
-    "streamStatus": "winner_hold",
-    "endedAt": null,
-    "winnerHoldRemainingMs": 1313.800000000745,
+    "streamStatus": "finished",
+    "endedAt": "2026-08-17T12:49:01.682Z",
+    "winnerHoldRemainingMs": 0,
     "qualifyingRemainingMs": 0,
     "sprintRemainingMs": 0,
     "mainRemainingMs": 0,
@@ -303,7 +303,7 @@
       }
     ],
     "finalLiveAt": null,
-    "updatedAt": 1786970940357
+    "updatedAt": 1786970941684
   },
   "streams": [
     {
@@ -607839,6 +607839,6 @@
       "sourceStreamId": "fb_msd6irq7_tslqlg"
     }
   ],
-  "api": "https://personals-depend-organ-invest.trycloudflare.com",
-  "updatedAt": 1786970942617
+  "api": null,
+  "updatedAt": 1786970952880
 }
