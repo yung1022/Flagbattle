@@ -21,9 +21,9 @@
       "name": "Panama",
       "img": "https://flagcdn.com/w80/pa.png"
     },
-    "streamStatus": "winner_hold",
-    "endedAt": null,
-    "winnerHoldRemainingMs": 1322.5999999996275,
+    "streamStatus": "finished",
+    "endedAt": "2026-08-18T20:56:59.947Z",
+    "winnerHoldRemainingMs": 0,
     "qualifyingRemainingMs": 0,
     "sprintRemainingMs": 0,
     "mainRemainingMs": 0,
@@ -305,7 +305,7 @@
       }
     ],
     "finalLiveAt": null,
-    "updatedAt": 1787086618607
+    "updatedAt": 1787086619949
   },
   "streams": [
     {
@@ -542486,6 +542486,6 @@
       "nextFinalAt": null
     }
   ],
-  "api": "https://phantom-arm-hewlett-respective.trycloudflare.com",
-  "updatedAt": 1787086620750
+  "api": null,
+  "updatedAt": 1787086628601
 }
