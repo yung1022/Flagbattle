@@ -1087,10 +1087,19 @@ function applySprintSpawnsFromPoll(poll) {
       ? game.sprintEndsAt
       : game.phase === "main"
         ? game.mainEndsAt
-        : 1;
+        : game.phase === "invasion"
+          ? "invasion"
+          : 1;
   if (phaseKey !== sprintSpawnEndsAt) {
     sprintSpawnEndsAt = phaseKey;
-    sprintLastVoteAt = 0;
+    // Do NOT reset to 0 — that re-applies old recentVotes on Opening→Main.
+    // Only brand-new votes (at > watermark) should spawn.
+    const recent = Array.isArray(poll?.recentVotes) ? poll.recentVotes : [];
+    const newest = recent.reduce(
+      (m, r) => Math.max(m, Number(r?.at) || 0),
+      sprintLastVoteAt || 0
+    );
+    sprintLastVoteAt = newest || Date.now();
   }
   const recent = Array.isArray(poll?.recentVotes) ? poll.recentVotes : [];
   const fresh = recent
@@ -1099,6 +1108,7 @@ function applySprintSpawnsFromPoll(poll) {
   for (const r of fresh) {
     game.spawnSprintCountry(r.code, {
       voter: r.voter || "",
+      voterId: r.voterId || "",
       avatar: r.avatar || "",
     });
     sprintLastVoteAt = Math.max(sprintLastVoteAt, Number(r.at) || 0);
@@ -1213,20 +1223,23 @@ function renderRecentVotes(poll) {
 function updateShoutoutPool(poll) {
   const spawn = isSpawnVotePhase();
   const list = [];
-  // Spawn phases: prefer spawners from recentSpawns.
-  if (spawn && Array.isArray(game.recentSpawns) && game.recentSpawns.length) {
+  // Spawn phases: count only alive flags currently on the field for that user
+  // (decreases when their flag dies / round refills — not a lifetime tally).
+  if (spawn && Array.isArray(game.fighters)) {
     const map = new Map();
-    for (const r of game.recentSpawns) {
-      const id = r.voterId || r.voter;
+    for (const f of game.fighters) {
+      if (!f?.alive || f.falling) continue;
+      const id = f.spawnedById || f.spawnedBy;
       if (!id) continue;
       const prev = map.get(id) || {
         id,
-        name: String(r.voter || "Viewer").replace(/^@/, ""),
-        avatar: r.avatar || "",
+        name: String(f.spawnedBy || id).replace(/^@/, "").slice(0, 40),
+        avatar: f.spawnedByAvatar || "",
         count: 0,
       };
       prev.count += 1;
-      if (r.avatar) prev.avatar = r.avatar;
+      if (f.spawnedByAvatar) prev.avatar = f.spawnedByAvatar;
+      if (f.spawnedBy) prev.name = String(f.spawnedBy).replace(/^@/, "").slice(0, 40);
       map.set(id, prev);
     }
     list.push(...map.values());
@@ -1303,7 +1316,7 @@ function renderShoutoutCard(forceNew) {
     shoutoutShownId = pick.id;
     // Hold each shoutout 20–35s before rotating.
     shoutoutUntil = now + (20_000 + Math.random() * 15_000);
-    const unit = isSpawnVotePhase() ? "spawn" : "vote";
+    const unit = isSpawnVotePhase() ? "active spawn" : "vote";
     const initial = (pick.name || "?").trim().charAt(0).toUpperCase() || "?";
     const avatarHtml = pick.avatar
       ? `<img class="stream-shoutout-avatar" src="${escapeAttr(pick.avatar)}" alt="" />`
@@ -1312,7 +1325,7 @@ function renderShoutoutCard(forceNew) {
       ${avatarHtml}
       <div class="stream-shoutout-meta">
         <div class="stream-shoutout-name">@${escapeHtml(pick.name)}</div>
-        <div class="stream-shoutout-count">${pick.count} ${unit}${pick.count === 1 ? "" : "s"} this stream</div>
+        <div class="stream-shoutout-count">${pick.count} ${unit}${pick.count === 1 ? "" : "s"}</div>
       </div>
     `;
     els.streamShoutoutCard.classList.remove("stream-shoutout-pulse");
@@ -1327,8 +1340,10 @@ function renderShoutoutCard(forceNew) {
   if (cur) {
     const countEl = els.streamShoutoutCard.querySelector(".stream-shoutout-count");
     if (countEl) {
-      const unit = isSpawnVotePhase() ? "spawn" : "vote";
-      countEl.textContent = `${cur.count} ${unit}${cur.count === 1 ? "" : "s"} this stream`;
+      const unit = isSpawnVotePhase() ? "active spawn" : "vote";
+      countEl.textContent = `${cur.count} ${unit}${cur.count === 1 ? "" : "s"}${
+        isSpawnVotePhase() ? "" : " this stream"
+      }`;
     }
   }
 }
@@ -1338,7 +1353,10 @@ function ensureShoutoutTicker() {
   shoutoutTickStarted = true;
   setInterval(() => {
     if (!shouldShowStreamPoll()) return;
+    // Refresh active spawn counts as flags die mid-hold.
+    if (isSpawnVotePhase()) updateShoutoutPool(null);
     if (Date.now() >= shoutoutUntil) renderShoutoutCard(true);
+    else renderShoutoutCard(false);
   }, 1000);
 }
 
