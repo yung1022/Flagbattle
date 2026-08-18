@@ -109,11 +109,11 @@ async function startInnertubeChatVoteLoop({
   }
 
   const repliesOn =
-    String(process.env.CHAT_VOTE_REPLIES || "1").trim() !== "0";
+    String(process.env.CHAT_VOTE_REPLIES || "0").trim() === "1";
   console.log(
     "[chat-vote] Listening for !vote and bare country-name chat messages" +
       (ownerChannelId ? ` (skipping owner ${ownerChannelId})` : "") +
-      (repliesOn ? "" : " (replies off)")
+      (repliesOn ? " (replies on)" : " (replies off)")
   );
 
   const seen = new Set();
@@ -188,11 +188,11 @@ async function startApiChatVoteLoop({
     broadcastId
   );
   const repliesOn =
-    String(process.env.CHAT_VOTE_REPLIES || "1").trim() !== "0";
+    String(process.env.CHAT_VOTE_REPLIES || "0").trim() === "1";
   console.log(
     "[chat-vote] Listening for !vote and bare country-name chat messages" +
       (ownerChannelId ? ` (skipping owner ${ownerChannelId})` : "") +
-      (repliesOn ? "" : " (replies off)")
+      (repliesOn ? " (replies on)" : " (replies off)")
   );
 
   let pageToken = undefined;
