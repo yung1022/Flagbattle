@@ -462,6 +462,22 @@ export class FlagBattleGame {
     );
   }
 
+  /** Drop chat-spawn credit when a flag leaves the field (count decreases live). */
+  _clearSpawnCredit(flag) {
+    if (!flag) return;
+    flag.spawnedBy = "";
+    flag.spawnedById = "";
+    flag.spawnedByAvatar = "";
+    flag.spawnVotes = 0;
+    flag.sizeMult = 1;
+    if (flag.code) {
+      this.recentSpawns = (this.recentSpawns || []).filter(
+        (r) => r?.code !== flag.code
+      );
+    }
+    this._uiDirty = true;
+  }
+
   /** Record elimination for ranking — last death wins if they revived earlier. */
   _recordDeath(flag) {
     if (!flag?.code) return;
@@ -472,6 +488,7 @@ export class FlagBattleGame {
       img: flag.img || flagUrl(flag.code, 80),
       at: Date.now(),
     });
+    this._clearSpawnCredit(flag);
   }
 
   /**
@@ -863,12 +880,12 @@ export class FlagBattleGame {
 
   /**
    * Chat / poll: spawn or revive a country (Opening + Main + Invasion).
-   * Each user/chat call counts as a vote — every 5 votes grows a big flag.
-   * Auto-filled arena flags never grow unless chat/users vote for them.
-   * Main round refill does not re-apply prior spawnVotes (spawn lasts that round).
+   * Each chat command applies once — it is not re-applied on the next round.
+   * Within the current round, more votes still grow the flag (every 5 → big).
+   * Round refill / Opening→Main clears spawnVotes so nothing carries over.
    * @returns {boolean}
    */
-  spawnSprintCountry(code, { voter = "", avatar = "" } = {}) {
+  spawnSprintCountry(code, { voter = "", voterId = "", avatar = "" } = {}) {
     const mainBetween =
       this.phase === "between_rounds" && this._pendingMainReset;
     if (
@@ -883,11 +900,14 @@ export class FlagBattleGame {
     const country = COUNTRIES.find((x) => x.code === c);
     if (!country) return false;
 
+    const who = String(voter || "").replace(/^@/, "").slice(0, 40);
+    const whoId = String(voterId || who || "").slice(0, 80);
     const entry = {
       code: country.code,
       name: country.name,
       img: flagUrl(country.code, 80),
-      voter: String(voter || "").replace(/^@/, "").slice(0, 40),
+      voter: who,
+      voterId: whoId,
       avatar: String(avatar || "").slice(0, 500),
       at: Date.now(),
     };
@@ -901,11 +921,17 @@ export class FlagBattleGame {
       Math.floor(nextVotes / CONFIG.votesPerBigFlag) >
       Math.floor(prevVotes / CONFIG.votesPerBigFlag);
 
+    const stampSpawner = (fighter) => {
+      if (who) fighter.spawnedBy = who;
+      if (whoId) fighter.spawnedById = whoId;
+      if (entry.avatar) fighter.spawnedByAvatar = entry.avatar;
+    };
+
     if (f && f.alive && !f.falling) {
       f.spawnVotes = nextVotes;
       f.sizeMult = this._sizeMultForVotes(nextVotes);
       f.pulse = 1;
-      if (entry.voter) f.spawnedBy = entry.voter;
+      stampSpawner(f);
       if (grew) {
         playSfx("bigflag");
         this._emit(
@@ -933,7 +959,7 @@ export class FlagBattleGame {
       f.vx = rand(-0.35, 0.35);
       f.vy = rand(-0.35, 0.35);
       f.pulse = 1;
-      if (entry.voter) f.spawnedBy = entry.voter;
+      stampSpawner(f);
     } else {
       f = this._makeFighter(
         { ...country, spawnVotes: nextVotes },
@@ -941,13 +967,13 @@ export class FlagBattleGame {
         this.fighters.length + 1
       );
       f.pulse = 1;
-      if (entry.voter) f.spawnedBy = entry.voter;
+      stampSpawner(f);
       this.fighters.push(f);
     }
     playSfx(grew ? "bigflag" : "spawn");
     this._emit(
       "phase",
-      `${entry.voter || "Chat"} spawned ${country.name}${grew ? " · BIG!" : ""} (${nextVotes} votes)`
+      `${who || "Chat"} spawned ${country.name}${grew ? " · BIG!" : ""} (${nextVotes} votes)`
     );
     this._uiDirty = true;
     return true;
@@ -986,6 +1012,8 @@ export class FlagBattleGame {
     this.round += 1;
     this.eliminated = [];
     this._fallOrder = [];
+    // One chat spawn lasts this round only — do not carry into the next.
+    this.recentSpawns = [];
     this._fillSprintField();
     this._emit(
       "phase",
@@ -1037,16 +1065,20 @@ export class FlagBattleGame {
         ? 800
         : rand(CONFIG.eventGapMinMs, CONFIG.eventGapMaxMs));
 
-    // Carry chat vote sizes from Opening — only user/chat spawns grow big flags.
-    // Auto-filled field flags stay normal size (spawnVotes = 0).
-    if (!this.fighters.length) this._fillSprintField();
+    // Fresh field for Main — do not carry Opening chat spawn sizes / credits.
+    // Each spawn command only lasts the round it was cast in.
+    this.recentSpawns = [];
+    this._fillSprintField();
     for (const f of this.fighters) {
       f.alive = true;
       f.falling = false;
       f.hp = CONFIG.baseHp;
       f.maxHp = CONFIG.baseHp;
-      f.spawnVotes = Number(f.spawnVotes) || 0;
-      f.sizeMult = this._sizeMultForVotes(f.spawnVotes);
+      f.spawnVotes = 0;
+      f.sizeMult = 1;
+      f.spawnedBy = "";
+      f.spawnedById = "";
+      f.spawnedByAvatar = "";
     }
 
     this.holeAngle = rand(0, Math.PI * 2);
@@ -1189,13 +1221,19 @@ export class FlagBattleGame {
     this._fallOrder = [];
     this._deathSeq = [];
     // Keep event clock / active event — do not reschedule on round reset.
-    // Refill without re-applying prior spawnVotes so each spawn lasts one round.
+    // Refill without prior spawnVotes — each spawn lasts one round only.
+    this.recentSpawns = [];
     this._fillSprintField();
     for (const f of this.fighters) {
       f.hp = CONFIG.baseHp;
       f.maxHp = CONFIG.baseHp;
       f.alive = true;
       f.falling = false;
+      f.spawnVotes = 0;
+      f.sizeMult = 1;
+      f.spawnedBy = "";
+      f.spawnedById = "";
+      f.spawnedByAvatar = "";
     }
     if (this.arenaEvent?.type === "catch" && this.arenaEvent.hunterCode) {
       const h = this.fighters.find((f) => f.code === this.arenaEvent.hunterCode);
@@ -2169,6 +2207,8 @@ export class FlagBattleGame {
     this._fallOrder.push({ code: f.code, name: f.name, img: f.img });
     if (this.phase === "main" || this.phase === "invasion") {
       this._recordDeath(f);
+    } else {
+      this._clearSpawnCredit(f);
     }
     playSfx("fall");
     this._emit("elim", `${f.name} fell through the hole!`);

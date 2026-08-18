@@ -699,6 +699,13 @@ function startFfmpeg(displayNum, rtmpUrl, w, h, fps) {
   const pulseSource =
     process.env.PULSE_SOURCE ||
     (process.env.PULSE_SINK ? `${process.env.PULSE_SINK}.monitor` : "");
+  // Video (Xvfb → x11grab → x264) lags Chrome Web Audio. Delay audio so SFX
+  // land with the frames viewers see. Override with STREAM_AUDIO_DELAY_MS.
+  const audioDelayMs = Math.max(
+    0,
+    Number(process.env.STREAM_AUDIO_DELAY_MS ?? 280) || 0
+  );
+  const audioDelaySec = (audioDelayMs / 1000).toFixed(3);
 
   // Soft lavfi pad — guaranteed stream music even if Chrome Web Audio is silent.
   const ambientInput =
@@ -710,8 +717,10 @@ function startFfmpeg(displayNum, rtmpUrl, w, h, fps) {
   // Video from X11; audio = Pulse (Chrome SFX/TTS) + always-on lavfi ambient bed.
   const args = [
     "-y",
+    "-fflags",
+    "+genpts",
     "-thread_queue_size",
-    "512",
+    "128",
     "-f",
     "x11grab",
     "-draw_mouse",
@@ -725,17 +734,25 @@ function startFfmpeg(displayNum, rtmpUrl, w, h, fps) {
   ];
 
   if (usePulse && pulseSource) {
+    if (audioDelayMs > 0) {
+      args.push("-itsoffset", audioDelaySec);
+    }
     args.push(
       "-thread_queue_size",
-      "512",
+      "128",
       "-f",
       "pulse",
       "-i",
-      pulseSource,
+      pulseSource
+    );
+    if (audioDelayMs > 0) {
+      args.push("-itsoffset", audioDelaySec);
+    }
+    args.push(
       "-f",
       "lavfi",
       "-thread_queue_size",
-      "512",
+      "128",
       "-i",
       ambientInput,
       "-filter_complex",
@@ -748,11 +765,14 @@ function startFfmpeg(displayNum, rtmpUrl, w, h, fps) {
       "[aout]"
     );
   } else {
+    if (audioDelayMs > 0) {
+      args.push("-itsoffset", audioDelaySec);
+    }
     args.push(
       "-f",
       "lavfi",
       "-thread_queue_size",
-      "512",
+      "128",
       "-i",
       ambientInput,
       "-map",
@@ -802,7 +822,7 @@ function startFfmpeg(displayNum, rtmpUrl, w, h, fps) {
   console.log(
     `FFmpeg → YouTube RTMP (${w}x${h}@${fps} ${preset} ${bitrate}${
       usePulse ? " +pulse+ambient" : " +ambient"
-    })`
+    }${audioDelayMs ? ` audio+${audioDelayMs}ms` : ""})`
   );
   const proc = spawn("ffmpeg", args, {
     stdio: ["ignore", "pipe", "pipe"],
