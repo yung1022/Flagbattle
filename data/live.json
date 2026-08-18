@@ -21,9 +21,9 @@
       "name": "Israel",
       "img": "https://flagcdn.com/w80/il.png"
     },
-    "streamStatus": "winner_hold",
-    "endedAt": null,
-    "winnerHoldRemainingMs": 1287,
+    "streamStatus": "finished",
+    "endedAt": "2026-08-18T12:55:58.060Z",
+    "winnerHoldRemainingMs": 0,
     "qualifyingRemainingMs": 0,
     "sprintRemainingMs": 0,
     "mainRemainingMs": 0,
@@ -302,7 +302,7 @@
       }
     ],
     "finalLiveAt": null,
-    "updatedAt": 1787057756739
+    "updatedAt": 1787057758062
   },
   "streams": [
     {
@@ -610948,6 +610948,6 @@
       "nextFinalAt": "2026-08-06T08:00:00.000Z"
     }
   ],
-  "api": "https://precisely-seen-expand-enforcement.trycloudflare.com",
-  "updatedAt": 1787057759141
+  "api": null,
+  "updatedAt": 1787057768784
 }
