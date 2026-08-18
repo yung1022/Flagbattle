@@ -108,6 +108,8 @@ jobs:
             # Bare country names need the YouTube chat listener (Nightbot cannot
             # regex every country). Keep Nightbot !vote as a backup.
             echo "CHAT_VOTE=1"
+            # Off by default — each reply is liveChatMessages.insert (50 quota units).
+            echo "CHAT_VOTE_REPLIES=0"
             if [ -n "$NIGHTBOT_TOKEN" ]; then
               echo "NIGHTBOT_TOKEN=$NIGHTBOT_TOKEN"
             fi

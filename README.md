@@ -65,7 +65,7 @@ Nightbot alone **cannot** match every country name with one command. Go-live ena
 1. Messages like `Japan`, `Brazil`, or `us` count as votes (same as `!vote Japan`). Vote as many times as you want — each vote adds to the tally. More votes → more **Shoutout Zone** features on stream.
 2. Nightbot `!vote` still works as a backup when `NIGHTBOT_TOKEN` is set.
 3. Set `CHAT_VOTE=0` to disable the listener and rely on `!vote` / web poll only.
-4. Optional: `CHAT_VOTE_SOURCE=api` forces the old `liveChatMessages.list` path (burns quota). `CHAT_VOTE_REPLIES=0` skips bot chat replies (those still use Data API insert units).
+4. Optional: `CHAT_VOTE_SOURCE=api` forces the old `liveChatMessages.list` path (burns quota). Bot chat replies are **off** by default (`CHAT_VOTE_REPLIES=0`) — each reply costs Data API insert units; set `CHAT_VOTE_REPLIES=1` only if you want confirmations.
 
 Optional Nightbot workaround for a few popular countries: add a **command named exactly like the country** (no `!`, no spaces — Nightbot command names cannot contain spaces):
 
