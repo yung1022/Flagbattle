@@ -306,6 +306,12 @@ export class FlagBattleGame {
     this.recentMainWins = [];
     /** @type {Array<{code:string,name:string,img:string,at:number,voter?:string,avatar?:string}>} */
     this.recentSpawns = [];
+    /**
+     * Chat spawn credits that survive round refills (votes / size / spawner).
+     * Cleared when that flag dies; re-applied after each field refill.
+     * @type {Map<string, {spawnVotes:number,spawnedBy:string,spawnedById:string,spawnedByAvatar:string}>}
+     */
+    this.spawnCredits = new Map();
     this._swissPairQueue = [];
     this._swissMatchOver = false;
     this._battleAccum = 0;
@@ -375,6 +381,7 @@ export class FlagBattleGame {
     this.mainPointAt = new Map();
     this.recentMainWins = [];
     this.recentSpawns = [];
+    this.spawnCredits = new Map();
     this._swissPairQueue = [];
     this._swissMatchOver = false;
     this._battleAccum = 0;
@@ -462,7 +469,7 @@ export class FlagBattleGame {
     );
   }
 
-  /** Drop chat-spawn credit when a flag leaves the field (count decreases live). */
+  /** Drop chat-spawn credit when a flag dies (count decreases; next refill won't restore). */
   _clearSpawnCredit(flag) {
     if (!flag) return;
     flag.spawnedBy = "";
@@ -471,9 +478,42 @@ export class FlagBattleGame {
     flag.spawnVotes = 0;
     flag.sizeMult = 1;
     if (flag.code) {
+      this.spawnCredits?.delete(flag.code);
       this.recentSpawns = (this.recentSpawns || []).filter(
         (r) => r?.code !== flag.code
       );
+    }
+    this._uiDirty = true;
+  }
+
+  /** Remember / restore chat spawn votes + size + spawner across round refills. */
+  _rememberSpawnCredit(flag) {
+    if (!flag?.code) return;
+    const votes = Number(flag.spawnVotes) || 0;
+    if (votes < 1 && !flag.spawnedBy && !flag.spawnedById) {
+      this.spawnCredits?.delete(flag.code);
+      return;
+    }
+    if (!this.spawnCredits) this.spawnCredits = new Map();
+    this.spawnCredits.set(flag.code, {
+      spawnVotes: votes,
+      spawnedBy: String(flag.spawnedBy || ""),
+      spawnedById: String(flag.spawnedById || ""),
+      spawnedByAvatar: String(flag.spawnedByAvatar || ""),
+    });
+  }
+
+  /** Re-apply carried spawn credits after a field refill. */
+  _applySpawnCredits() {
+    if (!this.spawnCredits?.size) return;
+    for (const f of this.fighters || []) {
+      const credit = this.spawnCredits.get(f.code);
+      if (!credit) continue;
+      f.spawnVotes = Number(credit.spawnVotes) || 0;
+      f.sizeMult = this._sizeMultForVotes(f.spawnVotes);
+      f.spawnedBy = credit.spawnedBy || "";
+      f.spawnedById = credit.spawnedById || "";
+      f.spawnedByAvatar = credit.spawnedByAvatar || "";
     }
     this._uiDirty = true;
   }
@@ -853,6 +893,7 @@ export class FlagBattleGame {
     this._pendingSprintEnd = false;
     this.recentSprintWins = [];
     this.recentSpawns = [];
+    this.spawnCredits = new Map();
     this.arenaEvent = null;
     this.aliens = [];
     this.sprintEndsAt = performance.now() + CONFIG.sprintMs;
@@ -880,9 +921,9 @@ export class FlagBattleGame {
 
   /**
    * Chat / poll: spawn or revive a country (Opening + Main + Invasion).
-   * Each chat command applies once — it is not re-applied on the next round.
-   * Within the current round, more votes still grow the flag (every 5 → big).
-   * Round refill / Opening→Main clears spawnVotes so nothing carries over.
+   * Each chat command applies once (not re-read from old recentVotes later).
+   * Spawn votes / size / spawner credit carry across round refills until that
+   * flag dies (then the user's active spawn count drops).
    * @returns {boolean}
    */
   spawnSprintCountry(code, { voter = "", voterId = "", avatar = "" } = {}) {
@@ -915,7 +956,12 @@ export class FlagBattleGame {
     this.recentSpawns = [entry, ...this.recentSpawns].slice(0, 12);
 
     let f = this.fighters.find((x) => x.code === country.code);
-    const prevVotes = Number(f?.spawnVotes) || 0;
+    // Prefer carried credit if the field was just refilled without this flag grown yet.
+    const credited = this.spawnCredits?.get(country.code);
+    const prevVotes = Math.max(
+      Number(f?.spawnVotes) || 0,
+      Number(credited?.spawnVotes) || 0
+    );
     const nextVotes = prevVotes + 1;
     const grew =
       Math.floor(nextVotes / CONFIG.votesPerBigFlag) >
@@ -925,6 +971,7 @@ export class FlagBattleGame {
       if (who) fighter.spawnedBy = who;
       if (whoId) fighter.spawnedById = whoId;
       if (entry.avatar) fighter.spawnedByAvatar = entry.avatar;
+      this._rememberSpawnCredit(fighter);
     };
 
     if (f && f.alive && !f.falling) {
@@ -1012,9 +1059,10 @@ export class FlagBattleGame {
     this.round += 1;
     this.eliminated = [];
     this._fallOrder = [];
-    // One chat spawn lasts this round only — do not carry into the next.
-    this.recentSpawns = [];
+    // Carry chat spawn votes / size / spawner shoutout into the next round.
+    for (const f of this.fighters) this._rememberSpawnCredit(f);
     this._fillSprintField();
+    this._applySpawnCredits();
     this._emit(
       "phase",
       `SPRINT round ${this.round + 1} — type a country to spawn · smaller hole`
@@ -1065,20 +1113,19 @@ export class FlagBattleGame {
         ? 800
         : rand(CONFIG.eventGapMinMs, CONFIG.eventGapMaxMs));
 
-    // Fresh field for Main — do not carry Opening chat spawn sizes / credits.
-    // Each spawn command only lasts the round it was cast in.
-    this.recentSpawns = [];
-    this._fillSprintField();
+    // Carry Opening chat spawn votes / size / spawner into Main.
+    if (!this.fighters.length) this._fillSprintField();
+    else {
+      // Snapshot credits from the Opening field, then refresh positions.
+      for (const f of this.fighters) this._rememberSpawnCredit(f);
+      this._fillSprintField();
+    }
+    this._applySpawnCredits();
     for (const f of this.fighters) {
       f.alive = true;
       f.falling = false;
       f.hp = CONFIG.baseHp;
       f.maxHp = CONFIG.baseHp;
-      f.spawnVotes = 0;
-      f.sizeMult = 1;
-      f.spawnedBy = "";
-      f.spawnedById = "";
-      f.spawnedByAvatar = "";
     }
 
     this.holeAngle = rand(0, Math.PI * 2);
@@ -1221,19 +1268,15 @@ export class FlagBattleGame {
     this._fallOrder = [];
     this._deathSeq = [];
     // Keep event clock / active event — do not reschedule on round reset.
-    // Refill without prior spawnVotes — each spawn lasts one round only.
-    this.recentSpawns = [];
+    // Carry chat spawn votes / size / spawner shoutout into the next Main round.
+    for (const f of this.fighters) this._rememberSpawnCredit(f);
     this._fillSprintField();
+    this._applySpawnCredits();
     for (const f of this.fighters) {
       f.hp = CONFIG.baseHp;
       f.maxHp = CONFIG.baseHp;
       f.alive = true;
       f.falling = false;
-      f.spawnVotes = 0;
-      f.sizeMult = 1;
-      f.spawnedBy = "";
-      f.spawnedById = "";
-      f.spawnedByAvatar = "";
     }
     if (this.arenaEvent?.type === "catch" && this.arenaEvent.hunterCode) {
       const h = this.fighters.find((f) => f.code === this.arenaEvent.hunterCode);
