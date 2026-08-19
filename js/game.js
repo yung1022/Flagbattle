@@ -312,6 +312,11 @@ export class FlagBattleGame {
      * @type {Map<string, {spawnVotes:number,spawnedBy:string,spawnedById:string,spawnedByAvatar:string}>}
      */
     this.spawnCredits = new Map();
+    /**
+     * Total successful chat spawns this stream per voter (shoutout zone).
+     * @type {Map<string, {name:string,avatar:string,count:number}>}
+     */
+    this.spawnTally = new Map();
     this._swissPairQueue = [];
     this._swissMatchOver = false;
     this._battleAccum = 0;
@@ -382,6 +387,7 @@ export class FlagBattleGame {
     this.recentMainWins = [];
     this.recentSpawns = [];
     this.spawnCredits = new Map();
+    this.spawnTally = new Map();
     this._swissPairQueue = [];
     this._swissMatchOver = false;
     this._battleAccum = 0;
@@ -972,12 +978,23 @@ export class FlagBattleGame {
       if (entry.avatar) fighter.spawnedByAvatar = entry.avatar;
       this._rememberSpawnCredit(fighter);
     };
+    const tallySpawn = () => {
+      if (!whoId && !who) return;
+      const id = whoId || who;
+      if (!this.spawnTally) this.spawnTally = new Map();
+      const prev = this.spawnTally.get(id) || { name: who || id, avatar: "", count: 0 };
+      prev.count = (Number(prev.count) || 0) + 1;
+      if (who) prev.name = who;
+      if (entry.avatar) prev.avatar = entry.avatar;
+      this.spawnTally.set(id, prev);
+    };
 
     if (f && f.alive && !f.falling) {
       f.spawnVotes = nextVotes;
       f.sizeMult = this._sizeMultForVotes(nextVotes);
       f.pulse = 1;
       stampSpawner(f);
+      tallySpawn();
       if (grew) {
         playSfx("bigflag");
         this._emit(
@@ -1016,6 +1033,7 @@ export class FlagBattleGame {
       stampSpawner(f);
       this.fighters.push(f);
     }
+    tallySpawn();
     playSfx(grew ? "bigflag" : "spawn");
     this._emit(
       "phase",
