@@ -21,9 +21,9 @@
       "name": "Comoros",
       "img": "https://flagcdn.com/w80/km.png"
     },
-    "streamStatus": "winner_hold",
-    "endedAt": null,
-    "winnerHoldRemainingMs": 1345.800000000745,
+    "streamStatus": "finished",
+    "endedAt": "2026-08-19T13:38:56.663Z",
+    "winnerHoldRemainingMs": 0,
     "qualifyingRemainingMs": 0,
     "sprintRemainingMs": 0,
     "mainRemainingMs": 0,
@@ -304,7 +304,7 @@
       }
     ],
     "finalLiveAt": null,
-    "updatedAt": 1787146735293
+    "updatedAt": 1787146736665
   },
   "streams": [
     {
@@ -402402,6 +402402,6 @@
       "nextFinalAt": null
     }
   ],
-  "api": "https://running-actual-cadillac-dts.trycloudflare.com",
-  "updatedAt": 1787146737335
+  "api": null,
+  "updatedAt": 1787146744467
 }
