@@ -52,6 +52,7 @@ const els = {
   streamRecentVotesHint: document.getElementById("stream-recent-votes-hint"),
   streamShoutout: document.getElementById("stream-shoutout"),
   streamShoutoutHead: document.getElementById("stream-shoutout-head"),
+  streamShoutoutTimer: document.getElementById("stream-shoutout-timer"),
   streamShoutoutCard: document.getElementById("stream-shoutout-card"),
   streamShoutoutHint: document.getElementById("stream-shoutout-hint"),
   finalistsReveal: document.getElementById("finalists-reveal"),
@@ -1182,6 +1183,27 @@ let shoutoutShownId = "";
 let shoutoutUntil = 0;
 let shoutoutTickStarted = false;
 
+function formatShoutoutTimer(msLeft) {
+  const sec = Math.max(0, Math.ceil(msLeft / 1000));
+  return `${sec}s`;
+}
+
+function updateShoutoutTimerDisplay() {
+  const el = els.streamShoutoutTimer;
+  if (!el) return;
+  if (!shoutoutShownId || !shoutoutUntil) {
+    el.hidden = true;
+    return;
+  }
+  const left = shoutoutUntil - Date.now();
+  if (left <= 0) {
+    el.hidden = true;
+    return;
+  }
+  el.hidden = false;
+  el.textContent = formatShoutoutTimer(left);
+}
+
 function renderRecentVotes(poll) {
   if (!els.streamRecentVotes || !els.streamRecentVotesRows) return;
   if (!shouldShowStreamPoll()) {
@@ -1197,21 +1219,30 @@ function renderRecentVotes(poll) {
       : [];
   els.streamRecentVotes.hidden = false;
   const key = `${spawn ? "s" : "v"}:` + (recent.length
-    ? recent.map((r) => `${r.voter}:${r.code}:${r.at}`).join("|")
+    ? recent.map((r) => `${r.voterId || r.voter}:${r.code}:${r.at}`).join("|")
     : "__empty__");
   if (key !== lastRecentKey) {
     lastRecentKey = key;
     els.streamRecentVotesRows.innerHTML = "";
-    for (const r of recent) {
-      const row = document.createElement("div");
-      row.className = "stream-recent-vote";
-      const who = String(r.voter || "Viewer").replace(/^@/, "");
-      row.innerHTML = `
+    if (!recent.length) {
+      const empty = document.createElement("div");
+      empty.className = "stream-recent-vote-empty";
+      empty.textContent = spawn
+        ? "Waiting for chat spawns…"
+        : "Waiting for votes…";
+      els.streamRecentVotesRows.appendChild(empty);
+    } else {
+      for (const r of recent) {
+        const row = document.createElement("div");
+        row.className = "stream-recent-vote";
+        const who = String(r.voter || "Viewer").replace(/^@/, "");
+        row.innerHTML = `
       <img src="${r.img || `https://flagcdn.com/w40/${r.code}.png`}" alt="" />
       <div class="who">@${who}</div>
       <div class="pick">${r.name || String(r.code || "").toUpperCase()}</div>
     `;
-      els.streamRecentVotesRows.appendChild(row);
+        els.streamRecentVotesRows.appendChild(row);
+      }
     }
   }
 
@@ -1308,14 +1339,16 @@ function renderShoutoutCard(forceNew) {
     const pick = pickWeightedShoutout(shoutoutShownId);
     if (!pick) {
       shoutoutShownId = "";
+      shoutoutUntil = 0;
+      updateShoutoutTimerDisplay();
       els.streamShoutoutCard.innerHTML = `<div class="stream-shoutout-empty">${
         isSpawnVotePhase() ? "Spawn to get featured" : "Vote to get featured"
       }</div>`;
       return;
     }
     shoutoutShownId = pick.id;
-    // Hold each shoutout 20–35s before rotating.
-    shoutoutUntil = now + (20_000 + Math.random() * 15_000);
+    // Hold each shoutout 10–20s before rotating.
+    shoutoutUntil = now + (10_000 + Math.random() * 10_000);
     const unit = isSpawnVotePhase() ? "active spawn" : "vote";
     const initial = (pick.name || "?").trim().charAt(0).toUpperCase() || "?";
     const avatarHtml = pick.avatar
@@ -1332,6 +1365,7 @@ function renderShoutoutCard(forceNew) {
     // Retrigger CSS animation
     void els.streamShoutoutCard.offsetWidth;
     els.streamShoutoutCard.classList.add("stream-shoutout-pulse");
+    updateShoutoutTimerDisplay();
     return;
   }
 
@@ -1346,6 +1380,7 @@ function renderShoutoutCard(forceNew) {
       }`;
     }
   }
+  updateShoutoutTimerDisplay();
 }
 
 function ensureShoutoutTicker() {
@@ -1356,8 +1391,11 @@ function ensureShoutoutTicker() {
     // Refresh active spawn counts as flags die mid-hold.
     if (isSpawnVotePhase()) updateShoutoutPool(null);
     if (Date.now() >= shoutoutUntil) renderShoutoutCard(true);
-    else renderShoutoutCard(false);
-  }, 1000);
+    else {
+      renderShoutoutCard(false);
+      updateShoutoutTimerDisplay();
+    }
+  }, 250);
 }
 
 function escapeHtml(s) {
