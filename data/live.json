@@ -21,9 +21,9 @@
       "name": "Congo",
       "img": "https://flagcdn.com/w80/cg.png"
     },
-    "streamStatus": "winner_hold",
-    "endedAt": null,
-    "winnerHoldRemainingMs": 1450.300000000745,
+    "streamStatus": "finished",
+    "endedAt": "2026-08-19T21:07:48.583Z",
+    "winnerHoldRemainingMs": 0,
     "qualifyingRemainingMs": 0,
     "sprintRemainingMs": 0,
     "mainRemainingMs": 0,
@@ -305,7 +305,7 @@
       }
     ],
     "finalLiveAt": null,
-    "updatedAt": 1787173667108
+    "updatedAt": 1787173668585
   },
   "streams": [
     {
@@ -334685,6 +334685,6 @@
       "nextFinalAt": null
     }
   ],
-  "api": "https://seq-argued-inputs-bass.trycloudflare.com",
-  "updatedAt": 1787173669088
+  "api": null,
+  "updatedAt": 1787173676672
 }
