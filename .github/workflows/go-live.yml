@@ -46,10 +46,12 @@ jobs:
     timeout-minutes: 360
     steps:
       - name: Checkout
+        timeout-minutes: 2
         uses: actions/checkout@v4
 
       - name: Resolve stream mode
         id: mode
+        timeout-minutes: 2
         run: |
           MODE=$(node stream/src/next-mode.js data/rankings.json)
           echo "mode=$MODE" >> "$GITHUB_OUTPUT"
@@ -60,11 +62,13 @@ jobs:
           echo "Go-live attempt #$((ATTEMPT + 1)) (retry_attempt=$ATTEMPT)"
 
       - name: Setup Node
+        timeout-minutes: 2
         uses: actions/setup-node@v4
         with:
           node-version: "22"
 
       - name: Install system deps
+        timeout-minutes: 2
         run: |
           sudo apt-get update
           sudo apt-get install -y ffmpeg xvfb pulseaudio pulseaudio-utils espeak-ng fonts-liberation fonts-dejavu-core
@@ -75,10 +79,12 @@ jobs:
           espeak-ng --version | head -1
 
       - name: Install stream package
+        timeout-minutes: 2
         working-directory: stream
         run: npm install
 
       - name: Write credentials
+        timeout-minutes: 2
         working-directory: stream
         env:
           GOOGLE_CLIENT_ID: ${{ secrets.GOOGLE_CLIENT_ID }}
@@ -159,7 +165,8 @@ jobs:
           exit "$code"
 
       - name: Rerun if failed before going live
-        if: failure() && steps.golive.outcome == 'failure'
+        if: failure() && steps.golive.outcome != 'success'
+        timeout-minutes: 2
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           DEMO_SECONDS: ${{ inputs.demo_seconds }}
@@ -194,6 +201,7 @@ jobs:
 
       - name: Persist ranking history to data/
         if: always()
+        timeout-minutes: 2
         run: |
           mkdir -p data/polls
           if [ -f .data/rankings.json ]; then
