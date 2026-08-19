@@ -787,12 +787,37 @@ body.invasion-mode .brand-bar {
   border-top: 1px solid rgba(230, 184, 74, 0.28);
 }
 
+.stream-shoutout-head-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+
 .stream-shoutout-head {
   font-family: var(--font-display);
   letter-spacing: 0.08em;
   font-size: clamp(12px, 2.6vw, 16px);
   color: var(--teal, #2ec4b8);
-  margin-bottom: 4px;
+  flex: 1;
+  min-width: 0;
+  margin-bottom: 0;
+}
+
+.stream-shoutout-timer {
+  flex-shrink: 0;
+  font-family: var(--font-display);
+  font-size: clamp(12px, 2.6vw, 16px);
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  color: #9ecbff;
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.75);
+  font-variant-numeric: tabular-nums;
+}
+
+.stream-shoutout-timer[hidden] {
+  display: none !important;
 }
 
 .stream-shoutout-card {

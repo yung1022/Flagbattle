@@ -479,9 +479,8 @@ export class FlagBattleGame {
     flag.sizeMult = 1;
     if (flag.code) {
       this.spawnCredits?.delete(flag.code);
-      this.recentSpawns = (this.recentSpawns || []).filter(
-        (r) => r?.code !== flag.code
-      );
+      // Keep recentSpawns history for the RECENT SPAWNS panel — only drop
+      // live field credit / size so shoutout active-count can decrease.
     }
     this._uiDirty = true;
   }
