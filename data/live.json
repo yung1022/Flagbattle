@@ -21,9 +21,9 @@
       "name": "Peru",
       "img": "https://flagcdn.com/w80/pe.png"
     },
-    "streamStatus": "winner_hold",
-    "endedAt": null,
-    "winnerHoldRemainingMs": 1503,
+    "streamStatus": "finished",
+    "endedAt": "2026-08-19T04:53:30.868Z",
+    "winnerHoldRemainingMs": 0,
     "qualifyingRemainingMs": 0,
     "sprintRemainingMs": 0,
     "mainRemainingMs": 0,
@@ -309,7 +309,7 @@
       }
     ],
     "finalLiveAt": null,
-    "updatedAt": 1787115209351
+    "updatedAt": 1787115210869
   },
   "streams": [
     {
@@ -471292,6 +471292,6 @@
       "nextFinalAt": null
     }
   ],
-  "api": "https://thorough-proposals-msgid-axis.trycloudflare.com",
-  "updatedAt": 1787115211531
+  "api": null,
+  "updatedAt": 1787115218100
 }
