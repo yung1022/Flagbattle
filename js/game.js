@@ -899,6 +899,7 @@ export class FlagBattleGame {
     this.recentSprintWins = [];
     this.recentSpawns = [];
     this.spawnCredits = new Map();
+    this.spawnTally = new Map();
     this.arenaEvent = null;
     this.aliens = [];
     this.sprintEndsAt = performance.now() + CONFIG.sprintMs;
