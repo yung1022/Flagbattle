@@ -21,9 +21,9 @@
       "name": "Iraq",
       "img": "https://flagcdn.com/w80/iq.png"
     },
-    "streamStatus": "winner_hold",
-    "endedAt": null,
-    "winnerHoldRemainingMs": 1393.5999999996275,
+    "streamStatus": "finished",
+    "endedAt": "2026-08-20T13:01:05.203Z",
+    "winnerHoldRemainingMs": 0,
     "qualifyingRemainingMs": 0,
     "sprintRemainingMs": 0,
     "mainRemainingMs": 0,
@@ -305,7 +305,7 @@
       }
     ],
     "finalLiveAt": null,
-    "updatedAt": 1787230863781
+    "updatedAt": 1787230865209
   },
   "streams": [
     {
@@ -202878,6 +202878,6 @@
       "nextFinalAt": null
     }
   ],
-  "api": "https://materials-biographies-sperm-philips.trycloudflare.com",
-  "updatedAt": 1787230865531
+  "api": null,
+  "updatedAt": 1787230873329
 }
