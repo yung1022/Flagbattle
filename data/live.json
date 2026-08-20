@@ -21,9 +21,9 @@
       "name": "Bulgaria",
       "img": "https://flagcdn.com/w80/bg.png"
     },
-    "streamStatus": "winner_hold",
-    "endedAt": null,
-    "winnerHoldRemainingMs": 986.5999999996275,
+    "streamStatus": "finished",
+    "endedAt": "2026-08-20T21:01:53.070Z",
+    "winnerHoldRemainingMs": 0,
     "qualifyingRemainingMs": 0,
     "sprintRemainingMs": 0,
     "mainRemainingMs": 0,
@@ -305,7 +305,7 @@
       }
     ],
     "finalLiveAt": null,
-    "updatedAt": 1787259712050
+    "updatedAt": 1787259713073
   },
   "streams": [
     {
@@ -139885,5 +139885,5 @@
     }
   ],
   "api": "https://coupons-maintained-royal-markets.trycloudflare.com",
-  "updatedAt": 1787259713324
+  "updatedAt": 1787259713561
 }
