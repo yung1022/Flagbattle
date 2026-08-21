@@ -21,9 +21,9 @@
       "name": "Lebanon",
       "img": "https://flagcdn.com/w80/lb.png"
     },
-    "streamStatus": "winner_hold",
-    "endedAt": null,
-    "winnerHoldRemainingMs": 1501.8999999985099,
+    "streamStatus": "finished",
+    "endedAt": "2026-08-21T21:02:29.772Z",
+    "winnerHoldRemainingMs": 0,
     "qualifyingRemainingMs": 0,
     "sprintRemainingMs": 0,
     "mainRemainingMs": 0,
@@ -305,7 +305,7 @@
       }
     ],
     "finalLiveAt": null,
-    "updatedAt": 1787346148256
+    "updatedAt": 1787346149773
   },
   "streams": [
     {
@@ -78631,5 +78631,5 @@
     }
   ],
   "api": "https://consistency-appearing-biological-creator.trycloudflare.com",
-  "updatedAt": 1787346149926
+  "updatedAt": 1787346150092
 }
