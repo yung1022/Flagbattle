@@ -21,9 +21,9 @@
       "name": "Kazakhstan",
       "img": "https://flagcdn.com/w80/kz.png"
     },
-    "streamStatus": "winner_hold",
-    "endedAt": null,
-    "winnerHoldRemainingMs": 1382.5,
+    "streamStatus": "finished",
+    "endedAt": "2026-08-21T04:55:16.258Z",
+    "winnerHoldRemainingMs": 0,
     "qualifyingRemainingMs": 0,
     "sprintRemainingMs": 0,
     "mainRemainingMs": 0,
@@ -311,7 +311,7 @@
       }
     ],
     "finalLiveAt": null,
-    "updatedAt": 1787288114844
+    "updatedAt": 1787288116260
   },
   "streams": [
     {
@@ -76975,5 +76975,5 @@
     }
   ],
   "api": "https://services-showed-salary-cosmetics.trycloudflare.com",
-  "updatedAt": 1787288116417
+  "updatedAt": 1787288116552
 }
