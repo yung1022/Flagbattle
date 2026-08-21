@@ -21,9 +21,9 @@
       "name": "Gambia",
       "img": "https://flagcdn.com/w80/gm.png"
     },
-    "streamStatus": "winner_hold",
-    "endedAt": null,
-    "winnerHoldRemainingMs": 1504.4000000003725,
+    "streamStatus": "finished",
+    "endedAt": "2026-08-21T12:58:03.407Z",
+    "winnerHoldRemainingMs": 0,
     "qualifyingRemainingMs": 0,
     "sprintRemainingMs": 0,
     "mainRemainingMs": 0,
@@ -308,7 +308,7 @@
       }
     ],
     "finalLiveAt": null,
-    "updatedAt": 1787317081889
+    "updatedAt": 1787317083409
   },
   "streams": [
     {
@@ -77827,5 +77827,5 @@
     }
   ],
   "api": "https://apt-coral-forming-international.trycloudflare.com",
-  "updatedAt": 1787317083524
+  "updatedAt": 1787317083636
 }
