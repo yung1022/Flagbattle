@@ -21,9 +21,9 @@
       "name": "Bulgaria",
       "img": "https://flagcdn.com/w80/bg.png"
     },
-    "streamStatus": "winner_hold",
-    "endedAt": null,
-    "winnerHoldRemainingMs": 1367.800000000745,
+    "streamStatus": "finished",
+    "endedAt": "2026-08-22T12:57:46.356Z",
+    "winnerHoldRemainingMs": 0,
     "qualifyingRemainingMs": 0,
     "sprintRemainingMs": 0,
     "mainRemainingMs": 0,
@@ -308,7 +308,7 @@
       }
     ],
     "finalLiveAt": null,
-    "updatedAt": 1787403464960
+    "updatedAt": 1787403466361
   },
   "streams": [
     {
@@ -80370,5 +80370,5 @@
     }
   ],
   "api": "https://jewelry-chicken-liz-garbage.trycloudflare.com",
-  "updatedAt": 1787403466538
+  "updatedAt": 1787403466693
 }
