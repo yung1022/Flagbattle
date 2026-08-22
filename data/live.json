@@ -21,9 +21,9 @@
       "name": "Brazil",
       "img": "https://flagcdn.com/w80/br.png"
     },
-    "streamStatus": "winner_hold",
-    "endedAt": null,
-    "winnerHoldRemainingMs": 1222.800000000745,
+    "streamStatus": "finished",
+    "endedAt": "2026-08-22T20:55:05.300Z",
+    "winnerHoldRemainingMs": 0,
     "qualifyingRemainingMs": 0,
     "sprintRemainingMs": 0,
     "mainRemainingMs": 0,
@@ -302,7 +302,7 @@
       }
     ],
     "finalLiveAt": null,
-    "updatedAt": 1787432104051
+    "updatedAt": 1787432105305
   },
   "streams": [
     {
@@ -81027,5 +81027,5 @@
     }
   ],
   "api": "https://ownership-hepatitis-only-myers.trycloudflare.com",
-  "updatedAt": 1787432105451
+  "updatedAt": 1787432105591
 }
