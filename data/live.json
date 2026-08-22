@@ -21,9 +21,9 @@
       "name": "Hungary",
       "img": "https://flagcdn.com/w80/hu.png"
     },
-    "streamStatus": "winner_hold",
-    "endedAt": null,
-    "winnerHoldRemainingMs": 1326.800000000745,
+    "streamStatus": "finished",
+    "endedAt": "2026-08-22T05:02:37.643Z",
+    "winnerHoldRemainingMs": 0,
     "qualifyingRemainingMs": 0,
     "sprintRemainingMs": 0,
     "mainRemainingMs": 0,
@@ -308,7 +308,7 @@
       }
     ],
     "finalLiveAt": null,
-    "updatedAt": 1787374956296
+    "updatedAt": 1787374957644
   },
   "streams": [
     {
@@ -79499,5 +79499,5 @@
     }
   ],
   "api": "https://replacing-really-collaboration-resumes.trycloudflare.com",
-  "updatedAt": 1787374957785
+  "updatedAt": 1787374957966
 }
