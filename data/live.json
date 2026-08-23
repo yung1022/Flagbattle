@@ -21,9 +21,9 @@
       "name": "Thailand",
       "img": "https://flagcdn.com/w80/th.png"
     },
-    "streamStatus": "winner_hold",
-    "endedAt": null,
-    "winnerHoldRemainingMs": 1383.0999999996275,
+    "streamStatus": "finished",
+    "endedAt": "2026-08-23T12:50:45.442Z",
+    "winnerHoldRemainingMs": 0,
     "qualifyingRemainingMs": 0,
     "sprintRemainingMs": 0,
     "mainRemainingMs": 0,
@@ -304,7 +304,7 @@
       }
     ],
     "finalLiveAt": null,
-    "updatedAt": 1787489444019
+    "updatedAt": 1787489445443
   },
   "streams": [
     {
@@ -81123,5 +81123,5 @@
     }
   ],
   "api": "https://possibility-trader-kidney-clarke.trycloudflare.com",
-  "updatedAt": 1787489445600
+  "updatedAt": 1787489445759
 }
