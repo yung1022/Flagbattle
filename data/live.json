@@ -13,9 +13,9 @@
       "name": "El Salvador",
       "img": "https://flagcdn.com/w80/sv.png"
     },
-    "streamStatus": "winner_hold",
-    "endedAt": null,
-    "winnerHoldRemainingMs": 1142.9000000003725,
+    "streamStatus": "finished",
+    "endedAt": "2026-08-23T20:59:54.075Z",
+    "winnerHoldRemainingMs": 0,
     "qualifyingRemainingMs": 0,
     "sprintRemainingMs": 0,
     "mainRemainingMs": 0,
@@ -299,7 +299,7 @@
       }
     ],
     "finalLiveAt": null,
-    "updatedAt": 1787518792906
+    "updatedAt": 1787518794081
   },
   "streams": [
     {
@@ -81160,5 +81160,5 @@
     }
   ],
   "api": "https://fields-excessive-achieved-cingular.trycloudflare.com",
-  "updatedAt": 1787518794238
+  "updatedAt": 1787518794409
 }
