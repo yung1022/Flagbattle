@@ -21,9 +21,9 @@
       "name": "Ecuador",
       "img": "https://flagcdn.com/w80/ec.png"
     },
-    "streamStatus": "winner_hold",
-    "endedAt": null,
-    "winnerHoldRemainingMs": 1320.699999999255,
+    "streamStatus": "finished",
+    "endedAt": "2026-08-23T04:56:04.501Z",
+    "winnerHoldRemainingMs": 0,
     "qualifyingRemainingMs": 0,
     "sprintRemainingMs": 0,
     "mainRemainingMs": 0,
@@ -305,7 +305,7 @@
       }
     ],
     "finalLiveAt": null,
-    "updatedAt": 1787460963165
+    "updatedAt": 1787460964503
   },
   "streams": [
     {
@@ -81095,5 +81095,5 @@
     }
   ],
   "api": "https://confidence-stock-laws-cool.trycloudflare.com",
-  "updatedAt": 1787460964656
+  "updatedAt": 1787460964808
 }
