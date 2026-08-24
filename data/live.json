@@ -21,9 +21,9 @@
       "name": "Burkina Faso",
       "img": "https://flagcdn.com/w80/bf.png"
     },
-    "streamStatus": "winner_hold",
-    "endedAt": null,
-    "winnerHoldRemainingMs": 1374.4000000003725,
+    "streamStatus": "finished",
+    "endedAt": "2026-08-24T12:53:59.669Z",
+    "winnerHoldRemainingMs": 0,
     "qualifyingRemainingMs": 0,
     "sprintRemainingMs": 0,
     "mainRemainingMs": 0,
@@ -300,7 +300,7 @@
       }
     ],
     "finalLiveAt": null,
-    "updatedAt": 1787576038271
+    "updatedAt": 1787576039671
   },
   "streams": [
     {
@@ -81175,5 +81175,5 @@
     }
   ],
   "api": "https://delaware-scripts-wage-require.trycloudflare.com",
-  "updatedAt": 1787576039839
+  "updatedAt": 1787576039995
 }
