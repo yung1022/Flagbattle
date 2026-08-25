@@ -21,9 +21,9 @@
       "name": "Netherlands",
       "img": "https://flagcdn.com/w80/nl.png"
     },
-    "streamStatus": "winner_hold",
-    "endedAt": null,
-    "winnerHoldRemainingMs": 1413.2999999988824,
+    "streamStatus": "finished",
+    "endedAt": "2026-08-25T20:48:22.998Z",
+    "winnerHoldRemainingMs": 0,
     "qualifyingRemainingMs": 0,
     "sprintRemainingMs": 0,
     "mainRemainingMs": 0,
@@ -302,7 +302,7 @@
       }
     ],
     "finalLiveAt": null,
-    "updatedAt": 1787690901570
+    "updatedAt": 1787690903001
   },
   "streams": [
     {
@@ -81171,5 +81171,5 @@
     }
   ],
   "api": "https://futures-scope-leader-probe.trycloudflare.com",
-  "updatedAt": 1787690903163
+  "updatedAt": 1787690903310
 }
