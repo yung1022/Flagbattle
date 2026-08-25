@@ -13,9 +13,9 @@
       "name": "China",
       "img": "https://flagcdn.com/w80/cn.png"
     },
-    "streamStatus": "winner_hold",
-    "endedAt": null,
-    "winnerHoldRemainingMs": 1300.5999999996275,
+    "streamStatus": "finished",
+    "endedAt": "2026-08-25T04:57:15.060Z",
+    "winnerHoldRemainingMs": 0,
     "qualifyingRemainingMs": 0,
     "sprintRemainingMs": 0,
     "mainRemainingMs": 0,
@@ -297,7 +297,7 @@
       }
     ],
     "finalLiveAt": null,
-    "updatedAt": 1787633833741
+    "updatedAt": 1787633835063
   },
   "streams": [
     {
@@ -81072,5 +81072,5 @@
     }
   ],
   "api": "https://determining-vector-minds-eligibility.trycloudflare.com",
-  "updatedAt": 1787633835262
+  "updatedAt": 1787633835424
 }
