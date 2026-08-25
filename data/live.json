@@ -21,9 +21,9 @@
       "name": "Belize",
       "img": "https://flagcdn.com/w80/bz.png"
     },
-    "streamStatus": "winner_hold",
-    "endedAt": null,
-    "winnerHoldRemainingMs": 1504.5,
+    "streamStatus": "finished",
+    "endedAt": "2026-08-25T13:02:24.422Z",
+    "winnerHoldRemainingMs": 0,
     "qualifyingRemainingMs": 0,
     "sprintRemainingMs": 0,
     "mainRemainingMs": 0,
@@ -310,7 +310,7 @@
       }
     ],
     "finalLiveAt": null,
-    "updatedAt": 1787662942903
+    "updatedAt": 1787662944423
   },
   "streams": [
     {
@@ -81159,5 +81159,5 @@
     }
   ],
   "api": "https://division-habitat-hide-trial.trycloudflare.com",
-  "updatedAt": 1787662944662
+  "updatedAt": 1787662944837
 }
