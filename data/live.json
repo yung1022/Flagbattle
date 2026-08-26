@@ -21,9 +21,9 @@
       "name": "Tuvalu",
       "img": "https://flagcdn.com/w80/tv.png"
     },
-    "streamStatus": "winner_hold",
-    "endedAt": null,
-    "winnerHoldRemainingMs": 1260.5999999996275,
+    "streamStatus": "finished",
+    "endedAt": "2026-08-26T04:49:04.817Z",
+    "winnerHoldRemainingMs": 0,
     "qualifyingRemainingMs": 0,
     "sprintRemainingMs": 0,
     "mainRemainingMs": 0,
@@ -303,7 +303,7 @@
       }
     ],
     "finalLiveAt": null,
-    "updatedAt": 1787719743530
+    "updatedAt": 1787719744819
   },
   "streams": [
     {
@@ -81092,5 +81092,5 @@
     }
   ],
   "api": "https://praise-begin-breaks-thee.trycloudflare.com",
-  "updatedAt": 1787719744993
+  "updatedAt": 1787719745180
 }
