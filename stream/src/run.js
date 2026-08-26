@@ -282,6 +282,8 @@ async function waitForFinalStreamComplete(port) {
             keywords: liveKeywords,
             categoryId: process.env.YT_CATEGORY_ID || "20",
             baseThumbPath: THUMB,
+            dateLabel: liveTitle.dateLabel,
+            streamNumber: liveTitle.streamNumber,
           }).catch((err) =>
             console.warn("[winner-thumb] failed:", err.message || err)
           );

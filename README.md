@@ -104,7 +104,7 @@ Optional `--mode final` remains for local recovery of a Final-only run.
 
 If setup fails **before** the broadcast goes live, the workflow **auto re-dispatches** itself (up to 3 retries).
 
-Livestream titles auto-format as **`FLAG BATTLE - DD/MM/YYYY #N`** (and rotating variations for the Opening → Main → Invasion format). `#N` is the stream number that day and resets at midnight (`STREAM_TITLE_TZ`, default UTC). Override with `YT_TITLE` only if you need a fixed title.
+Livestream titles start as **`Who will win today's flag battle? Flag battle DD/MM/YYYY #N`** and change to **`{winner} wins the flag battle! DD/MM/YYYY #N`** when the winner is determined. `#N` is the stream number that day and resets at midnight (`STREAM_TITLE_TZ`, default UTC). Override with `YT_TITLE` only if you need a fixed initial title.
 
 ## Mobile / cloud stream
 

@@ -11,6 +11,7 @@ import path from "node:path";
 import { spawn } from "node:child_process";
 import { fileURLToPath } from "node:url";
 import { applyVideoDiscovery, setVideoThumbnail } from "./youtube.js";
+import { formatWinnerLiveTitle } from "./live-title.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(__dirname, "../..");
@@ -28,14 +29,19 @@ const FONT_CANDIDATES = [
  * @param {string} baseTitle
  * @param {string} countryName
  */
-export function withWinnerTitle(baseTitle, countryName) {
-  const name = String(countryName || "Winner").trim() || "Winner";
-  const suffix = ` · ${name} Wins`;
-  const base = String(baseTitle || "FLAG BATTLE").trim() || "FLAG BATTLE";
-  // Drop a previous " · X Wins" if re-applied.
-  const cleaned = base.replace(/\s*[·\-–—]\s*[^·\-–—]+?\s+Wins\s*$/i, "").trim();
-  const room = Math.max(10, 100 - suffix.length);
-  return `${cleaned.slice(0, room)}${suffix}`.slice(0, 100);
+export function withWinnerTitle(
+  baseTitle,
+  countryName,
+  { dateLabel, streamNumber } = {}
+) {
+  const match = String(baseTitle || "").match(
+    /(\d{2}\/\d{2}\/\d{4})\s+#(\d+)/
+  );
+  return formatWinnerLiveTitle(
+    countryName,
+    dateLabel ?? match?.[1],
+    streamNumber ?? match?.[2]
+  );
 }
 
 function resolveFont() {
@@ -207,6 +213,8 @@ export async function revealWinnerOnYoutube({
   keywords,
   categoryId = "20",
   baseThumbPath,
+  dateLabel,
+  streamNumber,
 }) {
   if (!youtube || !videoId || !winner?.code) {
     return { ok: false, error: "missing youtube/videoId/winner" };
@@ -222,7 +230,10 @@ export async function revealWinnerOnYoutube({
       winner,
     });
     const thumbResult = await setVideoThumbnail(youtube, videoId, outPath);
-    const title = withWinnerTitle(baseTitle, winner.name || winner.code);
+    const title = withWinnerTitle(baseTitle, winner.name || winner.code, {
+      dateLabel,
+      streamNumber,
+    });
     await applyVideoDiscovery(youtube, videoId, {
       title,
       description,

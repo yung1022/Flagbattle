@@ -1,9 +1,7 @@
 /**
  * YouTube livestream titles:
- *   FLAG BATTLE - DD/MM/YYYY #N
+ *   Who will win today's flag battle? Flag battle DD/MM/YYYY #N
  * where N is the stream index for that calendar day (resets daily).
- *
- * Variations keep the same date + #N core (Opening → Main → Invasion format).
  */
 import fs from "node:fs";
 import path from "node:path";
@@ -13,13 +11,7 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(__dirname, "../..");
 
 const TITLE_VARIATIONS = [
-  (date, n) => `FLAG BATTLE - ${date} #${n}`,
-  (date, n) => `FLAG BATTLE · ${date} #${n} · Opening → Main → Invasion`,
-  (date, n) => `FLAG BATTLE Live · ${date} #${n}`,
-  (date, n) => `FLAG BATTLE #${n} · ${date} · Most Points Wins`,
-  (date, n) => `FLAG BATTLE - ${date} #${n} · Vote in Chat`,
-  (date, n) => `FLAG BATTLE · Day ${date} · Stream #${n}`,
-  (date, n) => `FLAG BATTLE #${n} - ${date} · Alien Invasion Finale`,
+  (date, n) => `Who will win today's flag battle? Flag battle ${date} #${n}`,
 ];
 
 /**
@@ -104,6 +96,19 @@ export function formatLiveTitle(streamNumber, dateLabel, variationIndex) {
   const i = ((idx % TITLE_VARIATIONS.length) + TITLE_VARIATIONS.length) % TITLE_VARIATIONS.length;
   const title = TITLE_VARIATIONS[i](date, n);
   return String(title).slice(0, 100);
+}
+
+/**
+ * Format the title after the winner is determined.
+ * @param {string} winnerName
+ * @param {string} dateLabel DD/MM/YYYY
+ * @param {number} streamNumber 1-based
+ */
+export function formatWinnerLiveTitle(winnerName, dateLabel, streamNumber) {
+  const name = String(winnerName || "Winner").trim() || "Winner";
+  const n = Math.max(1, Number(streamNumber) || 1);
+  const date = String(dateLabel || "??/??/????");
+  return `${name} wins the flag battle! ${date} #${n}`.slice(0, 100);
 }
 
 /**
