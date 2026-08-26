@@ -21,9 +21,9 @@
       "name": "Russia",
       "img": "https://flagcdn.com/w80/ru.png"
     },
-    "streamStatus": "winner_hold",
-    "endedAt": null,
-    "winnerHoldRemainingMs": 1494.4000000003725,
+    "streamStatus": "finished",
+    "endedAt": "2026-08-26T20:49:21.358Z",
+    "winnerHoldRemainingMs": 0,
     "qualifyingRemainingMs": 0,
     "sprintRemainingMs": 0,
     "mainRemainingMs": 0,
@@ -306,7 +306,7 @@
       }
     ],
     "finalLiveAt": null,
-    "updatedAt": 1787777359848
+    "updatedAt": 1787777361359
   },
   "streams": [
     {
@@ -79645,5 +79645,5 @@
     }
   ],
   "api": "https://relative-weddings-ministry-janet.trycloudflare.com",
-  "updatedAt": 1787777361479
+  "updatedAt": 1787777361608
 }
