@@ -133,8 +133,13 @@ async function main() {
   await startChrome(display, gameUrl, WIDTH, HEIGHT);
   await sleep(3500);
 
-  const ffmpeg = startFfmpeg(display, live.rtmpUrl, WIDTH, HEIGHT, FPS);
-  children.push(ffmpeg);
+  const ffmpegDone = superviseFfmpeg(
+    display,
+    live.rtmpUrl,
+    WIDTH,
+    HEIGHT,
+    FPS
+  );
 
   // Give YouTube a moment to detect the ingest, then go live.
   await sleep(12_000);
@@ -216,13 +221,6 @@ async function main() {
 
   console.log(`\n🔴 LIVE (${MODE}) — press Ctrl+C to end the stream\n`);
   console.log(live.watchUrl);
-
-  const ffmpegDone = new Promise((resolve) => {
-    ffmpeg.on("exit", (code) => {
-      console.log(`ffmpeg exited (${code})`);
-      resolve("ffmpeg");
-    });
-  });
 
   process.on("SIGINT", () => shutdown(0));
   process.on("SIGTERM", () => shutdown(0));
@@ -837,6 +835,42 @@ function startFfmpeg(displayNum, rtmpUrl, w, h, fps) {
     }
   });
   return proc;
+}
+
+function superviseFfmpeg(displayNum, rtmpUrl, w, h, fps) {
+  let retryDelayMs = 5_000;
+  let resolveDone;
+  const done = new Promise((resolve) => {
+    resolveDone = resolve;
+  });
+
+  const launch = () => {
+    if (shuttingDown) {
+      resolveDone("shutdown");
+      return;
+    }
+
+    const proc = startFfmpeg(displayNum, rtmpUrl, w, h, fps);
+    children.push(proc);
+    proc.once("error", (err) => {
+      console.warn("ffmpeg process error:", err.message || err);
+    });
+    proc.once("exit", (code, signal) => {
+      console.log(`ffmpeg exited (${code}${signal ? `, ${signal}` : ""})`);
+      if (shuttingDown) {
+        resolveDone("ffmpeg");
+        return;
+      }
+
+      const delay = retryDelayMs;
+      retryDelayMs = Math.min(retryDelayMs * 2, 30_000);
+      console.warn(`ffmpeg stopped unexpectedly — reconnecting in ${delay / 1000}s`);
+      setTimeout(launch, delay);
+    });
+  };
+
+  launch();
+  return done;
 }
 
 function markWentLive() {
