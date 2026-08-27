@@ -21,9 +21,9 @@
       "name": "Sudan",
       "img": "https://flagcdn.com/w80/sd.png"
     },
-    "streamStatus": "winner_hold",
-    "endedAt": null,
-    "winnerHoldRemainingMs": 1239.9000000003725,
+    "streamStatus": "finished",
+    "endedAt": "2026-08-27T05:01:55.734Z",
+    "winnerHoldRemainingMs": 0,
     "qualifyingRemainingMs": 0,
     "sprintRemainingMs": 0,
     "mainRemainingMs": 0,
@@ -304,7 +304,7 @@
       }
     ],
     "finalLiveAt": null,
-    "updatedAt": 1787806914467
+    "updatedAt": 1787806915736
   },
   "streams": [
     {
@@ -79617,5 +79617,5 @@
     }
   ],
   "api": "https://horses-arch-bouquet-min.trycloudflare.com",
-  "updatedAt": 1787806915868
+  "updatedAt": 1787806916022
 }
