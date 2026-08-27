@@ -1,7 +1,79 @@
 {
-  "updatedAt": "2026-08-26T11:04:16.971Z",
-  "api": "https://read-bridge-ryan-got.trycloudflare.com",
+  "updatedAt": "2026-08-27T13:02:05.340Z",
+  "api": "https://statistics-provincial-establish-prep.trycloudflare.com",
   "streams": [
+    {
+      "id": "fb_mtbanvhb_iukhy7",
+      "mode": "final",
+      "startedAt": "2026-08-27T09:02:15.839Z",
+      "endedAt": "2026-08-27T13:02:05.084Z",
+      "winner": {
+        "code": "ss",
+        "name": "South Sudan",
+        "img": "https://flagcdn.com/w80/ss.png"
+      },
+      "qualified": [],
+      "rounds": [],
+      "final": {
+        "at": "2026-08-27T13:01:05.069Z",
+        "ranking": [
+          {}
+        ],
+        "winner": {
+          "code": "ss",
+          "name": "South Sudan",
+          "img": "https://flagcdn.com/w80/ss.png"
+        }
+      }
+    },
+    {
+      "id": "fb_mtathmmz_ufz92y",
+      "mode": "final",
+      "startedAt": "2026-08-27T01:01:30.971Z",
+      "endedAt": "2026-08-27T05:01:55.734Z",
+      "winner": {
+        "code": "sd",
+        "name": "Sudan",
+        "img": "https://flagcdn.com/w80/sd.png"
+      },
+      "qualified": [],
+      "rounds": [],
+      "final": {
+        "at": "2026-08-27T05:00:55.706Z",
+        "ranking": [
+          {}
+        ],
+        "winner": {
+          "code": "sd",
+          "name": "Sudan",
+          "img": "https://flagcdn.com/w80/sd.png"
+        }
+      }
+    },
+    {
+      "id": "fb_mtaccj72_v0dcbe",
+      "mode": "final",
+      "startedAt": "2026-08-26T17:01:39.758Z",
+      "endedAt": "2026-08-26T20:49:21.358Z",
+      "winner": {
+        "code": "ru",
+        "name": "Russia",
+        "img": "https://flagcdn.com/w80/ru.png"
+      },
+      "qualified": [],
+      "rounds": [],
+      "final": {
+        "at": "2026-08-26T20:48:21.342Z",
+        "ranking": [
+          {}
+        ],
+        "winner": {
+          "code": "ru",
+          "name": "Russia",
+          "img": "https://flagcdn.com/w80/ru.png"
+        }
+      }
+    },
     {
       "id": "fb_mt9v6rfm_v51bsl",
       "mode": "final",
@@ -859,89 +931,21 @@
           "img": "https://flagcdn.com/w80/va.png"
         }
       }
-    },
-    {
-      "id": "fb_msragx44_pm6f82",
-      "mode": "final",
-      "startedAt": "2026-08-13T09:01:27.844Z",
-      "endedAt": "2026-08-13T13:02:46.341Z",
-      "winner": {
-        "code": "lk",
-        "name": "Sri Lanka",
-        "img": "https://flagcdn.com/w80/lk.png"
-      },
-      "qualified": [],
-      "rounds": [],
-      "final": {
-        "at": "2026-08-13T13:01:46.303Z",
-        "ranking": [
-          {}
-        ],
-        "winner": {
-          "code": "lk",
-          "name": "Sri Lanka",
-          "img": "https://flagcdn.com/w80/lk.png"
-        }
-      }
-    },
-    {
-      "id": "fb_msqxmhh2_w5uhl9",
-      "mode": "final",
-      "startedAt": "2026-08-13T03:01:52.502Z",
-      "endedAt": "2026-08-13T07:02:13.850Z",
-      "winner": {
-        "code": "li",
-        "name": "Liechtenstein",
-        "img": "https://flagcdn.com/w80/li.png"
-      },
-      "qualified": [],
-      "rounds": [],
-      "final": {
-        "at": "2026-08-13T07:01:13.828Z",
-        "ranking": [
-          {}
-        ],
-        "winner": {
-          "code": "li",
-          "name": "Liechtenstein",
-          "img": "https://flagcdn.com/w80/li.png"
-        }
-      }
-    },
-    {
-      "id": "fb_msqmoumo_ia3hvs",
-      "mode": "final",
-      "startedAt": "2026-08-12T21:55:47.088Z",
-      "endedAt": "2026-08-13T01:46:06.315Z",
-      "winner": {
-        "code": "sy",
-        "name": "Syria",
-        "img": "https://flagcdn.com/w80/sy.png"
-      },
-      "qualified": [],
-      "rounds": [],
-      "final": {
-        "at": "2026-08-13T01:45:06.292Z",
-        "ranking": [
-          {}
-        ],
-        "winner": {
-          "code": "sy",
-          "name": "Syria",
-          "img": "https://flagcdn.com/w80/sy.png"
-        }
-      }
     }
   ],
   "live": {
-    "streamId": "fb_mt9v6rfm_v51bsl",
+    "streamId": "fb_mtbanvhb_iukhy7",
     "title": null,
     "mode": "final",
-    "phase": "main",
+    "phase": "finished",
     "startedAt": null,
     "qualifyingRemainingMs": 0,
     "qualified": [],
-    "winner": null,
-    "updatedAt": 1787742254911
+    "winner": {
+      "code": "ss",
+      "name": "South Sudan",
+      "img": "https://flagcdn.com/w80/ss.png"
+    },
+    "updatedAt": 1787835725086
   }
 }
