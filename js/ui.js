@@ -1342,58 +1342,30 @@ function pickWeightedShoutout(excludeId) {
 }
 
 function renderShoutoutCard(forceNew) {
-  if (!els.streamShoutoutCard) return;
-  const now = Date.now();
-  const needNew =
-    forceNew ||
-    !shoutoutShownId ||
-    now >= shoutoutUntil ||
-    !shoutoutPool.some((v) => v.id === shoutoutShownId);
+  if (!els.streamShoutoutCard || !els.streamShoutout) return;
+  const spawnPhase = isSpawnVotePhase();
+  els.streamShoutout.hidden = !spawnPhase;
+  if (!spawnPhase) return;
 
-  if (needNew) {
-    const pick = pickWeightedShoutout(shoutoutShownId);
-    if (!pick) {
-      shoutoutShownId = "";
-      shoutoutUntil = 0;
-      updateShoutoutTimerDisplay();
-      els.streamShoutoutCard.innerHTML = `<div class="stream-shoutout-empty">${
-        isSpawnVotePhase() ? "Spawn to get featured" : "Vote to get featured"
-      }</div>`;
-      return;
-    }
-    shoutoutShownId = pick.id;
-    // Hold each shoutout 10–20s before rotating.
-    shoutoutUntil = now + (10_000 + Math.random() * 10_000);
-    const unit = isSpawnVotePhase() ? "spawn" : "vote";
-    const initial = (pick.name || "?").trim().charAt(0).toUpperCase() || "?";
-    const avatarHtml = pick.avatar
-      ? `<img class="stream-shoutout-avatar" src="${escapeAttr(pick.avatar)}" alt="" />`
-      : `<div class="stream-shoutout-avatar stream-shoutout-avatar-fallback" aria-hidden="true">${escapeHtml(initial)}</div>`;
-    els.streamShoutoutCard.innerHTML = `
-      ${avatarHtml}
-      <div class="stream-shoutout-meta">
-        <div class="stream-shoutout-name">@${escapeHtml(pick.name)}</div>
-        <div class="stream-shoutout-count">${pick.count} ${unit}${pick.count === 1 ? "" : "s"} this stream</div>
-      </div>
-    `;
-    els.streamShoutoutCard.classList.remove("stream-shoutout-pulse");
-    // Retrigger CSS animation
-    void els.streamShoutoutCard.offsetWidth;
-    els.streamShoutoutCard.classList.add("stream-shoutout-pulse");
-    updateShoutoutTimerDisplay();
+  const top = shoutoutPool
+    .slice()
+    .sort((a, b) => b.count - a.count || a.name.localeCompare(b.name))
+    .slice(0, 3);
+  if (!top.length) {
+    els.streamShoutoutCard.innerHTML =
+      '<div class="stream-shoutout-empty">Waiting for chat spawns</div>';
     return;
   }
-
-  // Refresh live count for the featured voter without rotating.
-  const cur = shoutoutPool.find((v) => v.id === shoutoutShownId);
-  if (cur) {
-    const countEl = els.streamShoutoutCard.querySelector(".stream-shoutout-count");
-    if (countEl) {
-      const unit = isSpawnVotePhase() ? "spawn" : "vote";
-      countEl.textContent = `${cur.count} ${unit}${cur.count === 1 ? "" : "s"} this stream`;
-    }
-  }
-  updateShoutoutTimerDisplay();
+  els.streamShoutoutCard.innerHTML = top
+    .map(
+      (entry, index) => `
+        <div class="spawn-leader-row">
+          <strong class="spawn-leader-rank">${index + 1}</strong>
+          <span class="spawn-leader-name">@${escapeHtml(entry.name)}</span>
+          <span class="spawn-leader-count">${entry.count}</span>
+        </div>`
+    )
+    .join("");
 }
 
 function ensureShoutoutTicker() {

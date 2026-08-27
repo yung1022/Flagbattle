@@ -74,26 +74,23 @@
         <!-- QR overlay removed — links are posted to YouTube live chat. -->
         <aside class="stream-links" id="stream-links" hidden></aside>
 
-        <!-- Recent chatter votes / sprint spawns + shoutout zone -->
+        <!-- Recent chatter votes / sprint spawns -->
         <aside class="stream-recent-votes" id="stream-recent-votes" hidden>
           <div class="stream-recent-votes-head" id="stream-recent-votes-head">RECENT VOTES</div>
           <div class="stream-recent-votes-rows" id="stream-recent-votes-rows"></div>
           <div class="stream-recent-votes-hint" id="stream-recent-votes-hint">
             👉 TYPE A COUNTRY CODE IN CHAT TO SPAWN! 🏆
           </div>
-          <div class="stream-shoutout" id="stream-shoutout">
-            <div class="stream-shoutout-head-row">
-              <div class="stream-shoutout-head" id="stream-shoutout-head">SHOUTOUT ZONE</div>
-              <div class="stream-shoutout-timer" id="stream-shoutout-timer" hidden>20s</div>
-            </div>
-            <div class="stream-shoutout-card" id="stream-shoutout-card">
-              <div class="stream-shoutout-empty">Vote to get featured</div>
-            </div>
-            <div class="stream-shoutout-hint" id="stream-shoutout-hint">
-              <span class="shoutout-hint-main">5 VOTES = BIG FLAG!</span>
-              <span class="shoutout-hint-sep" aria-hidden="true">·</span>
-              <span class="shoutout-hint-sub">SUBSCRIBE FOR MORE FLAG BATTLES!</span>
-            </div>
+        </aside>
+
+        <!-- Top three viewers by successful spawns this stream -->
+        <aside class="stream-shoutout" id="stream-shoutout" hidden>
+          <div class="stream-shoutout-head-row">
+            <div class="stream-shoutout-head" id="stream-shoutout-head">TOP SPAWNERS</div>
+            <div class="stream-shoutout-timer" id="stream-shoutout-timer" hidden>20s</div>
+          </div>
+          <div class="stream-shoutout-card" id="stream-shoutout-card">
+            <div class="stream-shoutout-empty">Waiting for chat spawns</div>
           </div>
         </aside>
 
