@@ -21,9 +21,9 @@
       "name": "South Sudan",
       "img": "https://flagcdn.com/w80/ss.png"
     },
-    "streamStatus": "winner_hold",
-    "endedAt": null,
-    "winnerHoldRemainingMs": 1503.4000000003725,
+    "streamStatus": "finished",
+    "endedAt": "2026-08-27T13:02:05.084Z",
+    "winnerHoldRemainingMs": 0,
     "qualifyingRemainingMs": 0,
     "sprintRemainingMs": 0,
     "mainRemainingMs": 0,
@@ -309,7 +309,7 @@
       }
     ],
     "finalLiveAt": null,
-    "updatedAt": 1787835723566
+    "updatedAt": 1787835725086
   },
   "streams": [
     {
@@ -79628,5 +79628,5 @@
     }
   ],
   "api": "https://statistics-provincial-establish-prep.trycloudflare.com",
-  "updatedAt": 1787835725226
+  "updatedAt": 1787835725325
 }
