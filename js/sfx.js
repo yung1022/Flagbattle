@@ -200,7 +200,10 @@ export function speak(text, { force = false } = {}) {
       u.pitch = 1;
       u.volume = 1;
       const voices = window.speechSynthesis.getVoices?.() || [];
-      const en = voices.find((v) => /en[-_]/i.test(v.lang)) || voices[0];
+      const en =
+        voices.find((v) => /male|david|daniel|alex|fred|google us english/i.test(v.name)) ||
+        voices.find((v) => /en[-_]/i.test(v.lang)) ||
+        voices[0];
       if (en) u.voice = en;
       window.speechSynthesis.speak(u);
     }
@@ -226,6 +229,12 @@ export function announceRoundWinner(name, { champion = false } = {}) {
     playSfx("qualify");
     speak(`${who} wins the round!`);
   }
+}
+
+export function announceSpawn(user, country) {
+  const who = String(user || "Chat").trim();
+  const flag = String(country || "a country").trim();
+  speak(`${who} spawned ${flag}!`, { force: true });
 }
 
 function tearDownAmbient() {

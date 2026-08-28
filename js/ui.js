@@ -5,6 +5,7 @@ import { buildPointsLeaderboard } from "./rankings-stats.js";
 import { siteBase as resolveSiteBase } from "./public.js";
 import {
   announceRoundWinner,
+  announceSpawn,
   unlockAudio,
   ensureStreamAudio,
   startAmbientMusic,
@@ -654,8 +655,13 @@ function maybeAnnounce(event) {
       String(event.text || "").split(" ")[0] ||
       "A country";
     announceRoundWinner(name, { champion: false });
+  } else if (event.type === "spawn") {
+    announceSpawn(event.user, event.country);
   } else if (event.type === "winner") {
     announceRoundWinner(game.winner?.name || "Champion", { champion: true });
+  } else if (event.type === "phase" && event.text?.startsWith("MAIN POINT —")) {
+    const name = event.text.match(/^MAIN POINT — (.+?)!/i)?.[1] || "A country";
+    announceRoundWinner(name, { champion: false });
   } else if (event.type === "rank_reveal") {
     // Refresh Top 10 so the board catches the new win after the reveal.
     refreshChampionshipTop10();

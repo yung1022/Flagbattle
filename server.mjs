@@ -1075,7 +1075,7 @@ function speakWithEspeak(text) {
   return new Promise((resolve) => {
     const voice = spawn(
       espeak,
-      ["-v", "en", "-s", "145", "-w", wav, text],
+      ["-v", "en+m3", "-s", "145", "-w", wav, text],
       { stdio: "ignore" }
     );
     voice.on("exit", (code) => {

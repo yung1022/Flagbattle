@@ -1005,6 +1005,10 @@ export class FlagBattleGame {
       } else {
         playSfx("spawn");
       }
+      this._emit("spawn", `${who || "Chat"} spawned ${country.name}`, {
+        user: who || "Chat",
+        country: country.name,
+      });
       this._uiDirty = true;
       return true;
     }
@@ -1040,6 +1044,10 @@ export class FlagBattleGame {
       "phase",
       `${who || "Chat"} spawned ${country.name}${grew ? " · BIG!" : ""} (${nextVotes} votes)`
     );
+    this._emit("spawn", `${who || "Chat"} spawned ${country.name}`, {
+      user: who || "Chat",
+      country: country.name,
+    });
     this._uiDirty = true;
     return true;
   }
@@ -3121,8 +3129,8 @@ export class FlagBattleGame {
     return Math.max(0, this._winnerHoldUntil - now);
   }
 
-  _emit(type, text) {
-    this.events.unshift({ type, text, at: Date.now() });
+  _emit(type, text, extra = {}) {
+    this.events.unshift({ type, text, at: Date.now(), ...extra });
     if (this.events.length > 40) this.events.length = 40;
     this._uiDirty = true;
   }
