@@ -21,9 +21,9 @@
       "name": "Marshall Islands",
       "img": "https://flagcdn.com/w80/mh.png"
     },
-    "streamStatus": "winner_hold",
-    "endedAt": null,
-    "winnerHoldRemainingMs": 1274.300000000745,
+    "streamStatus": "finished",
+    "endedAt": "2026-08-28T12:56:21.228Z",
+    "winnerHoldRemainingMs": 0,
     "qualifyingRemainingMs": 0,
     "sprintRemainingMs": 0,
     "mainRemainingMs": 0,
@@ -305,7 +305,7 @@
       }
     ],
     "finalLiveAt": null,
-    "updatedAt": 1787921779907
+    "updatedAt": 1787921781232
   },
   "streams": [
     {
@@ -79804,5 +79804,5 @@
     }
   ],
   "api": "https://diamonds-chapters-piano-caught.trycloudflare.com",
-  "updatedAt": 1787921781368
+  "updatedAt": 1787921781535
 }
