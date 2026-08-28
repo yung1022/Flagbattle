@@ -21,9 +21,9 @@
       "name": "Azerbaijan",
       "img": "https://flagcdn.com/w80/az.png"
     },
-    "streamStatus": "winner_hold",
-    "endedAt": null,
-    "winnerHoldRemainingMs": 1403.5999999996275,
+    "streamStatus": "finished",
+    "endedAt": "2026-08-28T21:00:24.742Z",
+    "winnerHoldRemainingMs": 0,
     "qualifyingRemainingMs": 0,
     "sprintRemainingMs": 0,
     "mainRemainingMs": 0,
@@ -301,7 +301,7 @@
       }
     ],
     "finalLiveAt": null,
-    "updatedAt": 1787950823315
+    "updatedAt": 1787950824745
   },
   "streams": [
     {
@@ -79784,5 +79784,5 @@
     }
   ],
   "api": "https://ruby-downloads-knock-workflow.trycloudflare.com",
-  "updatedAt": 1787950824911
+  "updatedAt": 1787950825078
 }
