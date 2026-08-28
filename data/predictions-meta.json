@@ -1,7 +1,55 @@
 {
-  "updatedAt": "2026-08-27T13:02:05.340Z",
-  "api": "https://statistics-provincial-establish-prep.trycloudflare.com",
+  "updatedAt": "2026-08-28T04:58:41.854Z",
+  "api": "https://processed-alan-garden-beatles.trycloudflare.com",
   "streams": [
+    {
+      "id": "fb_mtc8xcf4_65t31b",
+      "mode": "final",
+      "startedAt": "2026-08-28T01:01:24.640Z",
+      "endedAt": "2026-08-28T04:58:41.503Z",
+      "winner": {
+        "code": "ee",
+        "name": "Estonia",
+        "img": "https://flagcdn.com/w80/ee.png"
+      },
+      "qualified": [],
+      "rounds": [],
+      "final": {
+        "at": "2026-08-28T04:57:41.495Z",
+        "ranking": [
+          {}
+        ],
+        "winner": {
+          "code": "ee",
+          "name": "Estonia",
+          "img": "https://flagcdn.com/w80/ee.png"
+        }
+      }
+    },
+    {
+      "id": "fb_mtbrtc0o_pfuh61",
+      "mode": "final",
+      "startedAt": "2026-08-27T17:02:24.024Z",
+      "endedAt": "2026-08-27T20:58:43.793Z",
+      "winner": {
+        "code": "om",
+        "name": "Oman",
+        "img": "https://flagcdn.com/w80/om.png"
+      },
+      "qualified": [],
+      "rounds": [],
+      "final": {
+        "at": "2026-08-27T20:57:43.777Z",
+        "ranking": [
+          {}
+        ],
+        "winner": {
+          "code": "om",
+          "name": "Oman",
+          "img": "https://flagcdn.com/w80/om.png"
+        }
+      }
+    },
     {
       "id": "fb_mtbanvhb_iukhy7",
       "mode": "final",
@@ -883,58 +931,10 @@
           "img": "https://flagcdn.com/w80/mu.png"
         }
       }
-    },
-    {
-      "id": "fb_msspwxgf_cftwjn",
-      "mode": "final",
-      "startedAt": "2026-08-14T09:01:35.199Z",
-      "endedAt": "2026-08-14T12:56:44.617Z",
-      "winner": {
-        "code": "ua",
-        "name": "Ukraine",
-        "img": "https://flagcdn.com/w80/ua.png"
-      },
-      "qualified": [],
-      "rounds": [],
-      "final": {
-        "at": "2026-08-14T12:55:44.601Z",
-        "ranking": [
-          {}
-        ],
-        "winner": {
-          "code": "ua",
-          "name": "Ukraine",
-          "img": "https://flagcdn.com/w80/ua.png"
-        }
-      }
-    },
-    {
-      "id": "fb_msrrn2v1_6ps6x4",
-      "mode": "final",
-      "startedAt": "2026-08-13T17:02:08.701Z",
-      "endedAt": "2026-08-13T20:55:57.610Z",
-      "winner": {
-        "code": "va",
-        "name": "Vatican City",
-        "img": "https://flagcdn.com/w80/va.png"
-      },
-      "qualified": [],
-      "rounds": [],
-      "final": {
-        "at": "2026-08-13T20:54:57.586Z",
-        "ranking": [
-          {}
-        ],
-        "winner": {
-          "code": "va",
-          "name": "Vatican City",
-          "img": "https://flagcdn.com/w80/va.png"
-        }
-      }
     }
   ],
   "live": {
-    "streamId": "fb_mtbanvhb_iukhy7",
+    "streamId": "fb_mtc8xcf4_65t31b",
     "title": null,
     "mode": "final",
     "phase": "finished",
@@ -942,10 +942,10 @@
     "qualifyingRemainingMs": 0,
     "qualified": [],
     "winner": {
-      "code": "ss",
-      "name": "South Sudan",
-      "img": "https://flagcdn.com/w80/ss.png"
+      "code": "ee",
+      "name": "Estonia",
+      "img": "https://flagcdn.com/w80/ee.png"
     },
-    "updatedAt": 1787835725086
+    "updatedAt": 1787893121505
   }
 }
