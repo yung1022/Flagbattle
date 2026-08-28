@@ -1060,7 +1060,7 @@ function applySprintHudCopy() {
     fitHintIntoParent(els.streamRecentVotesHint);
   }
   if (els.streamShoutoutHead) {
-    els.streamShoutoutHead.textContent = spawn ? "SPAWN ZONE" : "SHOUTOUT ZONE";
+    els.streamShoutoutHead.textContent = spawn ? "TOP SPAWNERS" : "SHOUTOUT ZONE";
   }
   if (els.streamShoutoutHint) {
     if (spawn) {
@@ -1361,6 +1361,9 @@ function renderShoutoutCard(forceNew) {
       (entry, index) => `
         <div class="spawn-leader-row">
           <strong class="spawn-leader-rank">${index + 1}</strong>
+          ${entry.avatar
+            ? `<img class="spawn-leader-avatar" src="${escapeAttr(entry.avatar)}" alt="" />`
+            : `<span class="spawn-leader-avatar spawn-leader-avatar-fallback" aria-hidden="true">${escapeHtml((entry.name || "?").charAt(0).toUpperCase())}</span>`}
           <span class="spawn-leader-name">@${escapeHtml(entry.name)}</span>
           <span class="spawn-leader-count">${entry.count}</span>
         </div>`

@@ -1450,7 +1450,7 @@ body.stream-mode .stage {
   --safe-bottom: 11%;
   --safe-x: 1%;
   /* Compact top panels leave room for the arena and recent-spawn strip. */
-  --top-panel-h: 22%;
+  --top-panel-h: 18%;
 }
 
 body.stream-mode .board {
@@ -1612,7 +1612,7 @@ body.stream-mode .stream-recent-votes {
   left: 0;
   right: 0;
   width: 100%;
-  height: 15%;
+  height: 12%;
   padding: 5px 8px;
   display: grid;
   grid-template-columns: 46% 54%;
@@ -1634,7 +1634,7 @@ body.stream-mode .stream-recent-votes-hint {
   display: grid;
   place-items: center;
   text-align: center;
-  font-size: clamp(20px, 5vw, 38px);
+  font-size: clamp(24px, 6vw, 46px);
 }
 
 body.stream-mode .stream-recent-votes-rows {
@@ -1656,17 +1656,32 @@ body.stream-mode .stream-shoutout {
   z-index: 6;
 }
 
-body.stream-mode .stream-shoutout-card { display: grid; gap: 3px; min-height: 0; }
+body.stream-mode .stream-shoutout-card { display: grid; gap: 2px; min-height: 0; }
 .spawn-leader-row {
   display: grid;
-  grid-template-columns: 22px 1fr auto;
+  grid-template-columns: 18px 24px 1fr auto;
   align-items: center;
-  gap: 6px;
-  min-height: 22px;
-  padding: 2px 4px;
+  gap: 5px;
+  min-height: 20px;
+  padding: 1px 3px;
   border-bottom: 1px solid rgba(255, 255, 255, 0.08);
 }
 .spawn-leader-rank { color: var(--gold-hot); font-family: var(--font-display); font-size: clamp(16px, 3.6vw, 24px); }
+.spawn-leader-avatar {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 1px solid rgba(46, 196, 182, 0.6);
+  background: rgba(255, 255, 255, 0.1);
+}
+.spawn-leader-avatar-fallback {
+  display: grid;
+  place-items: center;
+  color: var(--ink);
+  font-size: 11px;
+  font-weight: 800;
+}
 .spawn-leader-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: clamp(11px, 2.4vw, 15px); font-weight: 800; }
 .spawn-leader-count { color: var(--teal); font-family: var(--font-display); font-size: clamp(16px, 3.6vw, 24px); }
 
