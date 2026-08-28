@@ -21,9 +21,9 @@
       "name": "Estonia",
       "img": "https://flagcdn.com/w80/ee.png"
     },
-    "streamStatus": "winner_hold",
-    "endedAt": null,
-    "winnerHoldRemainingMs": 1334.2000000011176,
+    "streamStatus": "finished",
+    "endedAt": "2026-08-28T04:58:41.503Z",
+    "winnerHoldRemainingMs": 0,
     "qualifyingRemainingMs": 0,
     "sprintRemainingMs": 0,
     "mainRemainingMs": 0,
@@ -306,7 +306,7 @@
       }
     ],
     "finalLiveAt": null,
-    "updatedAt": 1787893120161
+    "updatedAt": 1787893121505
   },
   "streams": [
     {
@@ -79807,5 +79807,5 @@
     }
   ],
   "api": "https://processed-alan-garden-beatles.trycloudflare.com",
-  "updatedAt": 1787893121675
+  "updatedAt": 1787893121836
 }
