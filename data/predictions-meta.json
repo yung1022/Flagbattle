@@ -1,7 +1,31 @@
 {
-  "updatedAt": "2026-08-28T04:58:41.854Z",
-  "api": "https://processed-alan-garden-beatles.trycloudflare.com",
+  "updatedAt": "2026-08-28T12:56:21.556Z",
+  "api": "https://diamonds-chapters-piano-caught.trycloudflare.com",
   "streams": [
+    {
+      "id": "fb_mtcq2xfy_q20n7q",
+      "mode": "final",
+      "startedAt": "2026-08-28T09:01:38.638Z",
+      "endedAt": "2026-08-28T12:56:21.228Z",
+      "winner": {
+        "code": "mh",
+        "name": "Marshall Islands",
+        "img": "https://flagcdn.com/w80/mh.png"
+      },
+      "qualified": [],
+      "rounds": [],
+      "final": {
+        "at": "2026-08-28T12:55:21.182Z",
+        "ranking": [
+          {}
+        ],
+        "winner": {
+          "code": "mh",
+          "name": "Marshall Islands",
+          "img": "https://flagcdn.com/w80/mh.png"
+        }
+      }
+    },
     {
       "id": "fb_mtc8xcf4_65t31b",
       "mode": "final",
@@ -907,34 +931,10 @@
           "img": "https://flagcdn.com/w80/uz.png"
         }
       }
-    },
-    {
-      "id": "fb_mst75z8q_t4yn40",
-      "mode": "final",
-      "startedAt": "2026-08-14T17:04:30.890Z",
-      "endedAt": "2026-08-14T21:05:37.179Z",
-      "winner": {
-        "code": "mu",
-        "name": "Mauritius",
-        "img": "https://flagcdn.com/w80/mu.png"
-      },
-      "qualified": [],
-      "rounds": [],
-      "final": {
-        "at": "2026-08-14T21:04:37.165Z",
-        "ranking": [
-          {}
-        ],
-        "winner": {
-          "code": "mu",
-          "name": "Mauritius",
-          "img": "https://flagcdn.com/w80/mu.png"
-        }
-      }
     }
   ],
   "live": {
-    "streamId": "fb_mtc8xcf4_65t31b",
+    "streamId": "fb_mtcq2xfy_q20n7q",
     "title": null,
     "mode": "final",
     "phase": "finished",
@@ -942,10 +942,10 @@
     "qualifyingRemainingMs": 0,
     "qualified": [],
     "winner": {
-      "code": "ee",
-      "name": "Estonia",
-      "img": "https://flagcdn.com/w80/ee.png"
+      "code": "mh",
+      "name": "Marshall Islands",
+      "img": "https://flagcdn.com/w80/mh.png"
     },
-    "updatedAt": 1787893121505
+    "updatedAt": 1787921781232
   }
 }
