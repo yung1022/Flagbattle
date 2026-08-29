@@ -1162,7 +1162,7 @@
     "uz": 0,
     "vu": 0,
     "va": 0,
-    "ve": 1,
+    "ve": 2,
     "vn": 0,
     "ye": 0,
     "zm": 0,
@@ -1176,7 +1176,7 @@
   },
   "closed": false,
   "closedAt": null,
-  "updatedAt": 1787999769840,
+  "updatedAt": 1787999881007,
   "voterStats": {
     "yt:UC9f84E-Uxe0Ce9rPQqZk3PQ": {
       "name": "@ErolOnay19",
@@ -1199,11 +1199,20 @@
     "yt:UCqVd08FC56Dk-xa7wwwvycg": {
       "name": "@Froglover8",
       "avatar": "https://yt4.ggpht.com/CFgt1PwfaaTBRtggRV_-Q09nMkN_Ck_lLExlOvhSvj-hUafqTUDpEUgqMgexl5SfGqNN7zSEww=s64-c-k-c0x00ffffff-no-rj",
-      "count": 1,
-      "lastAt": 1787999769840
+      "count": 2,
+      "lastAt": 1787999881007
     }
   },
   "recentVotes": [
+    {
+      "voter": "@Froglover8",
+      "voterId": "yt:UCqVd08FC56Dk-xa7wwwvycg",
+      "code": "ve",
+      "name": "Venezuela",
+      "img": "https://flagcdn.com/w40/ve.png",
+      "avatar": "https://yt4.ggpht.com/CFgt1PwfaaTBRtggRV_-Q09nMkN_Ck_lLExlOvhSvj-hUafqTUDpEUgqMgexl5SfGqNN7zSEww=s64-c-k-c0x00ffffff-no-rj",
+      "at": 1787999881007
+    },
     {
       "voter": "@Froglover8",
       "voterId": "yt:UCqVd08FC56Dk-xa7wwwvycg",
@@ -1239,15 +1248,6 @@
       "img": "https://flagcdn.com/w40/iq.png",
       "avatar": "https://yt4.ggpht.com/CbRJC4u7MXXNqNj6s_q_RUelcawwN0m-lliGnaDDesDL8r0PZ2HHt9-qhxEG36Tera_Qa4w5=s64-c-k-c0x00ffffff-no-rj",
       "at": 1787997018466
-    },
-    {
-      "voter": "@TyjanAshref",
-      "voterId": "yt:UCLcfxfG_zHnSetvGWbVQXww",
-      "code": "iq",
-      "name": "Iraq",
-      "img": "https://flagcdn.com/w40/iq.png",
-      "avatar": "https://yt4.ggpht.com/CbRJC4u7MXXNqNj6s_q_RUelcawwN0m-lliGnaDDesDL8r0PZ2HHt9-qhxEG36Tera_Qa4w5=s64-c-k-c0x00ffffff-no-rj",
-      "at": 1787996998275
     }
   ]
 }
