@@ -1157,7 +1157,7 @@
     "ua": 0,
     "ae": 0,
     "gb": 0,
-    "us": 0,
+    "us": 2,
     "uy": 1,
     "uz": 0,
     "vu": 0,
@@ -1170,11 +1170,12 @@
   },
   "voters": {
     "yt:UC10adFAvMYiQ2CBvcGShKwA": "ar",
-    "yt:UCdTKRTrYPu-mkK38eXJ0Wrg": "uy"
+    "yt:UCdTKRTrYPu-mkK38eXJ0Wrg": "uy",
+    "yt:UC2xj32v3aZQuFpkAr9cullQ": "us"
   },
   "closed": false,
   "closedAt": null,
-  "updatedAt": 1788024871152,
+  "updatedAt": 1788037169245,
   "voterStats": {
     "yt:UC10adFAvMYiQ2CBvcGShKwA": {
       "name": "@luchopf16",
@@ -1187,9 +1188,33 @@
       "avatar": "https://yt4.ggpht.com/kIMpq_8ANLddLTAtXnbV6ZxxPH4xc3Jbo28n2mU_EbtTXnIHxdKsx2kdHgmJ2TeR-scR3wC0=s64-c-k-c0x00ffffff-no-rj",
       "count": 1,
       "lastAt": 1788024494858
+    },
+    "yt:UC2xj32v3aZQuFpkAr9cullQ": {
+      "name": "@Jaxtheson293",
+      "avatar": "https://yt4.ggpht.com/ytc/AIdro_nnIRUmuuO6W_tIk9D-YmL6t0uNruYgC8TeTjvYqXKl6c9FXiAP47jKyuLrHos6hE_DZw=s64-c-k-c0x00ffffff-no-rj",
+      "count": 2,
+      "lastAt": 1788037169245
     }
   },
   "recentVotes": [
+    {
+      "voter": "@Jaxtheson293",
+      "voterId": "yt:UC2xj32v3aZQuFpkAr9cullQ",
+      "code": "us",
+      "name": "United States",
+      "img": "https://flagcdn.com/w40/us.png",
+      "avatar": "https://yt4.ggpht.com/ytc/AIdro_nnIRUmuuO6W_tIk9D-YmL6t0uNruYgC8TeTjvYqXKl6c9FXiAP47jKyuLrHos6hE_DZw=s64-c-k-c0x00ffffff-no-rj",
+      "at": 1788037169245
+    },
+    {
+      "voter": "@Jaxtheson293",
+      "voterId": "yt:UC2xj32v3aZQuFpkAr9cullQ",
+      "code": "us",
+      "name": "United States",
+      "img": "https://flagcdn.com/w40/us.png",
+      "avatar": "https://yt4.ggpht.com/ytc/AIdro_nnIRUmuuO6W_tIk9D-YmL6t0uNruYgC8TeTjvYqXKl6c9FXiAP47jKyuLrHos6hE_DZw=s64-c-k-c0x00ffffff-no-rj",
+      "at": 1788037159003
+    },
     {
       "voter": "@luchopf16",
       "voterId": "yt:UC10adFAvMYiQ2CBvcGShKwA",
@@ -1216,24 +1241,6 @@
       "img": "https://flagcdn.com/w40/ar.png",
       "avatar": "https://yt4.ggpht.com/JvgMOOH69-w7myyvrddqCpXVJ2q-HjT6EtWz2YSccIhV7GOqNmM4iegdnNhvnfHtlpnqal-WJQ=s64-c-k-c0x00ffffff-no-rj",
       "at": 1788024850685
-    },
-    {
-      "voter": "@luchopf16",
-      "voterId": "yt:UC10adFAvMYiQ2CBvcGShKwA",
-      "code": "sc",
-      "name": "Seychelles",
-      "img": "https://flagcdn.com/w40/sc.png",
-      "avatar": "https://yt4.ggpht.com/JvgMOOH69-w7myyvrddqCpXVJ2q-HjT6EtWz2YSccIhV7GOqNmM4iegdnNhvnfHtlpnqal-WJQ=s64-c-k-c0x00ffffff-no-rj",
-      "at": 1788024800013
-    },
-    {
-      "voter": "@luchopf16",
-      "voterId": "yt:UC10adFAvMYiQ2CBvcGShKwA",
-      "code": "sc",
-      "name": "Seychelles",
-      "img": "https://flagcdn.com/w40/sc.png",
-      "avatar": "https://yt4.ggpht.com/JvgMOOH69-w7myyvrddqCpXVJ2q-HjT6EtWz2YSccIhV7GOqNmM4iegdnNhvnfHtlpnqal-WJQ=s64-c-k-c0x00ffffff-no-rj",
-      "at": 1788024779606
     }
   ]
 }
