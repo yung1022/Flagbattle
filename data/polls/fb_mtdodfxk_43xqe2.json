@@ -1050,7 +1050,7 @@
     "hu": 0,
     "is": 0,
     "in": 0,
-    "id": 0,
+    "id": 1,
     "ir": 0,
     "iq": 0,
     "ie": 0,
@@ -1175,11 +1175,12 @@
     "yt:UCiV2eL8fhn5WCTJfvAajfVQ": "ro",
     "yt:UChkicyxSEhEAj6pbGumUltw": "sg",
     "yt:UCPIocgeS9pRVtkhD9B0RlzA": "ar",
-    "yt:UCghr35bL03ugtG6KtWfYwEA": "sv"
+    "yt:UCghr35bL03ugtG6KtWfYwEA": "sv",
+    "yt:UCOP2s0qQXhnhz7scw0CjWng": "id"
   },
   "closed": false,
   "closedAt": null,
-  "updatedAt": 1787974640815,
+  "updatedAt": 1787977250907,
   "voterStats": {
     "yt:UC_gjdYGvaZCTRJKhPFkzHpA": {
       "name": "@AltStatsGuy",
@@ -1222,9 +1223,24 @@
       "avatar": "https://yt4.ggpht.com/IbvXmZdfQpPYk8sDA_oDwnybfb_D8OuFXS4E8Shee3YSij70M138tCvLNvzze98Cai60ePtqkzQ=s64-c-k-c0x00ffffff-no-rj",
       "count": 4,
       "lastAt": 1787974640815
+    },
+    "yt:UCOP2s0qQXhnhz7scw0CjWng": {
+      "name": "@KedaiMuslimah-o8o",
+      "avatar": "https://yt4.ggpht.com/ytc/AIdro_kedlxAby9tBfPJkXZ8EQhn6bmlgHTDhb0RGpWJWrn_Xk7rZowkOmPXdaOCOCTpsF7fXg=s64-c-k-c0x00ffffff-no-rj",
+      "count": 1,
+      "lastAt": 1787977250907
     }
   },
   "recentVotes": [
+    {
+      "voter": "@KedaiMuslimah-o8o",
+      "voterId": "yt:UCOP2s0qQXhnhz7scw0CjWng",
+      "code": "id",
+      "name": "Indonesia",
+      "img": "https://flagcdn.com/w40/id.png",
+      "avatar": "https://yt4.ggpht.com/ytc/AIdro_kedlxAby9tBfPJkXZ8EQhn6bmlgHTDhb0RGpWJWrn_Xk7rZowkOmPXdaOCOCTpsF7fXg=s64-c-k-c0x00ffffff-no-rj",
+      "at": 1787977250907
+    },
     {
       "voter": "@etohplayer17",
       "voterId": "yt:UCghr35bL03ugtG6KtWfYwEA",
@@ -1260,15 +1276,6 @@
       "img": "https://flagcdn.com/w40/sv.png",
       "avatar": "https://yt4.ggpht.com/IbvXmZdfQpPYk8sDA_oDwnybfb_D8OuFXS4E8Shee3YSij70M138tCvLNvzze98Cai60ePtqkzQ=s64-c-k-c0x00ffffff-no-rj",
       "at": 1787974600236
-    },
-    {
-      "voter": "@FranciscoJavierHernández-o7n",
-      "voterId": "yt:UCPIocgeS9pRVtkhD9B0RlzA",
-      "code": "ar",
-      "name": "Argentina",
-      "img": "https://flagcdn.com/w40/ar.png",
-      "avatar": "https://yt4.ggpht.com/oifp_8T78Tz4DznDdkWAmIjy6E0ee0LiTJIHP8ZDSCpcKFbEzEknEI8L4fbOqJP5eQRD2e2nGQ=s64-c-k-c0x00ffffff-no-rj",
-      "at": 1787974247304
     }
   ]
 }
