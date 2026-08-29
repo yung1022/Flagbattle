@@ -1135,7 +1135,7 @@
     "so": 0,
     "za": 0,
     "ss": 0,
-    "es": 0,
+    "es": 2,
     "lk": 0,
     "sd": 0,
     "sr": 0,
@@ -1177,11 +1177,12 @@
     "yt:UCPIocgeS9pRVtkhD9B0RlzA": "ar",
     "yt:UCghr35bL03ugtG6KtWfYwEA": "sv",
     "yt:UCOP2s0qQXhnhz7scw0CjWng": "id",
-    "yt:UCpHPGflRjxHeVVCvrubn_YA": "kw"
+    "yt:UCpHPGflRjxHeVVCvrubn_YA": "kw",
+    "yt:UCwnvnzepyrFh9ibE8-hXpkw": "es"
   },
   "closed": false,
   "closedAt": null,
-  "updatedAt": 1787977710197,
+  "updatedAt": 1787977873826,
   "voterStats": {
     "yt:UC_gjdYGvaZCTRJKhPFkzHpA": {
       "name": "@AltStatsGuy",
@@ -1236,9 +1237,33 @@
       "avatar": "https://yt4.ggpht.com/ytc/AIdro_mJUxkkmi665AmRCz4ilJfPTAan1TU452g2UM5ek9PklkcAAb7dnzzInZhXZe_Ftp4s2g=s64-c-k-c0x00ffffff-no-rj",
       "count": 1,
       "lastAt": 1787977710197
+    },
+    "yt:UCwnvnzepyrFh9ibE8-hXpkw": {
+      "name": "@mangsu-n5h",
+      "avatar": "https://yt4.ggpht.com/5O71wn3etYq8SB0GqrGh3AyKfh7M1ZCfurKIU17pLFX3p1varytkTekJUYji49wfdmO3vwmt=s64-c-k-c0x00ffffff-no-rj",
+      "count": 2,
+      "lastAt": 1787977873826
     }
   },
   "recentVotes": [
+    {
+      "voter": "@mangsu-n5h",
+      "voterId": "yt:UCwnvnzepyrFh9ibE8-hXpkw",
+      "code": "es",
+      "name": "Spain",
+      "img": "https://flagcdn.com/w40/es.png",
+      "avatar": "https://yt4.ggpht.com/5O71wn3etYq8SB0GqrGh3AyKfh7M1ZCfurKIU17pLFX3p1varytkTekJUYji49wfdmO3vwmt=s64-c-k-c0x00ffffff-no-rj",
+      "at": 1787977873826
+    },
+    {
+      "voter": "@mangsu-n5h",
+      "voterId": "yt:UCwnvnzepyrFh9ibE8-hXpkw",
+      "code": "es",
+      "name": "Spain",
+      "img": "https://flagcdn.com/w40/es.png",
+      "avatar": "https://yt4.ggpht.com/5O71wn3etYq8SB0GqrGh3AyKfh7M1ZCfurKIU17pLFX3p1varytkTekJUYji49wfdmO3vwmt=s64-c-k-c0x00ffffff-no-rj",
+      "at": 1787977863683
+    },
     {
       "voter": "@Guadalupe-u8z",
       "voterId": "yt:UCpHPGflRjxHeVVCvrubn_YA",
@@ -1265,24 +1290,6 @@
       "img": "https://flagcdn.com/w40/sv.png",
       "avatar": "https://yt4.ggpht.com/IbvXmZdfQpPYk8sDA_oDwnybfb_D8OuFXS4E8Shee3YSij70M138tCvLNvzze98Cai60ePtqkzQ=s64-c-k-c0x00ffffff-no-rj",
       "at": 1787974640815
-    },
-    {
-      "voter": "@etohplayer17",
-      "voterId": "yt:UCghr35bL03ugtG6KtWfYwEA",
-      "code": "sv",
-      "name": "El Salvador",
-      "img": "https://flagcdn.com/w40/sv.png",
-      "avatar": "https://yt4.ggpht.com/IbvXmZdfQpPYk8sDA_oDwnybfb_D8OuFXS4E8Shee3YSij70M138tCvLNvzze98Cai60ePtqkzQ=s64-c-k-c0x00ffffff-no-rj",
-      "at": 1787974630676
-    },
-    {
-      "voter": "@etohplayer17",
-      "voterId": "yt:UCghr35bL03ugtG6KtWfYwEA",
-      "code": "sv",
-      "name": "El Salvador",
-      "img": "https://flagcdn.com/w40/sv.png",
-      "avatar": "https://yt4.ggpht.com/IbvXmZdfQpPYk8sDA_oDwnybfb_D8OuFXS4E8Shee3YSij70M138tCvLNvzze98Cai60ePtqkzQ=s64-c-k-c0x00ffffff-no-rj",
-      "at": 1787974610350
     }
   ]
 }
