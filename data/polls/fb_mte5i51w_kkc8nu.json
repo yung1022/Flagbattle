@@ -983,7 +983,7 @@
     "am": 0,
     "au": 0,
     "at": 0,
-    "az": 0,
+    "az": 1,
     "bs": 0,
     "bh": 0,
     "bd": 0,
@@ -1174,11 +1174,12 @@
     "yt:UCLcfxfG_zHnSetvGWbVQXww": "us",
     "yt:UCqVd08FC56Dk-xa7wwwvycg": "ve",
     "yt:UC7CxgCywMIHDqtCE5crWFPQ": "br",
-    "yt:UCWJSg-4SNkLsfS-5aZYS6Cw": "vu"
+    "yt:UCWJSg-4SNkLsfS-5aZYS6Cw": "vu",
+    "yt:UCOMEVFI4VM4dPwqs6C8suuQ": "az"
   },
   "closed": false,
   "closedAt": null,
-  "updatedAt": 1788004656056,
+  "updatedAt": 1788005837307,
   "voterStats": {
     "yt:UC9f84E-Uxe0Ce9rPQqZk3PQ": {
       "name": "@ErolOnay19",
@@ -1215,9 +1216,24 @@
       "avatar": "https://yt4.ggpht.com/glti_h53N5WOPZWVeULtQ3AdPOzFnwD0yuMqf3FXTsm4LCEu6Twx4Yv-nRSQw45G7kJbUhxk=s64-c-k-c0x00ffffff-no-rj",
       "count": 8,
       "lastAt": 1788004656056
+    },
+    "yt:UCOMEVFI4VM4dPwqs6C8suuQ": {
+      "name": "@Frostqrblx",
+      "avatar": "https://yt4.ggpht.com/PcLhkDwsRy3kc0eaPAiEfaWC9M9IqGtssux8GYwmt8IICGHd4Fn1RpDRuqM0ub3MwlZ96D0ZqGw=s64-c-k-c0x00ffffff-no-rj",
+      "count": 1,
+      "lastAt": 1788005837307
     }
   },
   "recentVotes": [
+    {
+      "voter": "@Frostqrblx",
+      "voterId": "yt:UCOMEVFI4VM4dPwqs6C8suuQ",
+      "code": "az",
+      "name": "Azerbaijan",
+      "img": "https://flagcdn.com/w40/az.png",
+      "avatar": "https://yt4.ggpht.com/PcLhkDwsRy3kc0eaPAiEfaWC9M9IqGtssux8GYwmt8IICGHd4Fn1RpDRuqM0ub3MwlZ96D0ZqGw=s64-c-k-c0x00ffffff-no-rj",
+      "at": 1788005837307
+    },
     {
       "voter": "@iloveglorpthecats",
       "voterId": "yt:UCWJSg-4SNkLsfS-5aZYS6Cw",
@@ -1253,15 +1269,6 @@
       "img": "https://flagcdn.com/w40/vu.png",
       "avatar": "https://yt4.ggpht.com/glti_h53N5WOPZWVeULtQ3AdPOzFnwD0yuMqf3FXTsm4LCEu6Twx4Yv-nRSQw45G7kJbUhxk=s64-c-k-c0x00ffffff-no-rj",
       "at": 1788004605233
-    },
-    {
-      "voter": "@iloveglorpthecats",
-      "voterId": "yt:UCWJSg-4SNkLsfS-5aZYS6Cw",
-      "code": "vu",
-      "name": "Vanuatu",
-      "img": "https://flagcdn.com/w40/vu.png",
-      "avatar": "https://yt4.ggpht.com/glti_h53N5WOPZWVeULtQ3AdPOzFnwD0yuMqf3FXTsm4LCEu6Twx4Yv-nRSQw45G7kJbUhxk=s64-c-k-c0x00ffffff-no-rj",
-      "at": 1788004564852
     }
   ]
 }
