@@ -996,7 +996,7 @@
     "bo": 0,
     "ba": 0,
     "bw": 0,
-    "br": 2,
+    "br": 4,
     "bn": 0,
     "bg": 0,
     "bf": 0,
@@ -1177,7 +1177,7 @@
   },
   "closed": false,
   "closedAt": null,
-  "updatedAt": 1787999982465,
+  "updatedAt": 1788000315557,
   "voterStats": {
     "yt:UC9f84E-Uxe0Ce9rPQqZk3PQ": {
       "name": "@ErolOnay19",
@@ -1206,11 +1206,29 @@
     "yt:UC7CxgCywMIHDqtCE5crWFPQ": {
       "name": "@smukz1",
       "avatar": "https://yt4.ggpht.com/G8L7E24Hji1Smse6YW1zC533pXJtj5W1CZ-8TgY8EaSwCEecaTRzpQHDE4bIzZ9cFM5fa207CEk=s64-c-k-c0x00ffffff-no-rj",
-      "count": 2,
-      "lastAt": 1787999982465
+      "count": 4,
+      "lastAt": 1788000315557
     }
   },
   "recentVotes": [
+    {
+      "voter": "@smukz1",
+      "voterId": "yt:UC7CxgCywMIHDqtCE5crWFPQ",
+      "code": "br",
+      "name": "Brazil",
+      "img": "https://flagcdn.com/w40/br.png",
+      "avatar": "https://yt4.ggpht.com/G8L7E24Hji1Smse6YW1zC533pXJtj5W1CZ-8TgY8EaSwCEecaTRzpQHDE4bIzZ9cFM5fa207CEk=s64-c-k-c0x00ffffff-no-rj",
+      "at": 1788000315557
+    },
+    {
+      "voter": "@smukz1",
+      "voterId": "yt:UC7CxgCywMIHDqtCE5crWFPQ",
+      "code": "br",
+      "name": "Brazil",
+      "img": "https://flagcdn.com/w40/br.png",
+      "avatar": "https://yt4.ggpht.com/G8L7E24Hji1Smse6YW1zC533pXJtj5W1CZ-8TgY8EaSwCEecaTRzpQHDE4bIzZ9cFM5fa207CEk=s64-c-k-c0x00ffffff-no-rj",
+      "at": 1788000305390
+    },
     {
       "voter": "@smukz1",
       "voterId": "yt:UC7CxgCywMIHDqtCE5crWFPQ",
@@ -1237,24 +1255,6 @@
       "img": "https://flagcdn.com/w40/ve.png",
       "avatar": "https://yt4.ggpht.com/CFgt1PwfaaTBRtggRV_-Q09nMkN_Ck_lLExlOvhSvj-hUafqTUDpEUgqMgexl5SfGqNN7zSEww=s64-c-k-c0x00ffffff-no-rj",
       "at": 1787999881007
-    },
-    {
-      "voter": "@Froglover8",
-      "voterId": "yt:UCqVd08FC56Dk-xa7wwwvycg",
-      "code": "ve",
-      "name": "Venezuela",
-      "img": "https://flagcdn.com/w40/ve.png",
-      "avatar": "https://yt4.ggpht.com/CFgt1PwfaaTBRtggRV_-Q09nMkN_Ck_lLExlOvhSvj-hUafqTUDpEUgqMgexl5SfGqNN7zSEww=s64-c-k-c0x00ffffff-no-rj",
-      "at": 1787999769840
-    },
-    {
-      "voter": "@TyjanAshref",
-      "voterId": "yt:UCLcfxfG_zHnSetvGWbVQXww",
-      "code": "us",
-      "name": "United States",
-      "img": "https://flagcdn.com/w40/us.png",
-      "avatar": "https://yt4.ggpht.com/CbRJC4u7MXXNqNj6s_q_RUelcawwN0m-lliGnaDDesDL8r0PZ2HHt9-qhxEG36Tera_Qa4w5=s64-c-k-c0x00ffffff-no-rj",
-      "at": 1787997220017
     }
   ]
 }
