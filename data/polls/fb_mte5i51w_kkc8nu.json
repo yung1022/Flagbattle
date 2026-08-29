@@ -1119,14 +1119,14 @@
     "rw": 0,
     "kn": 0,
     "lc": 0,
-    "vc": 0,
+    "vc": 2,
     "ws": 0,
     "sm": 0,
     "st": 0,
     "sa": 0,
     "sn": 0,
     "rs": 0,
-    "sc": 0,
+    "sc": 1,
     "sl": 0,
     "sg": 0,
     "sk": 0,
@@ -1160,7 +1160,7 @@
     "us": 1,
     "uy": 0,
     "uz": 0,
-    "vu": 0,
+    "vu": 5,
     "va": 0,
     "ve": 2,
     "vn": 0,
@@ -1173,11 +1173,12 @@
     "yt:UCJMCcIzz6yVyE4Oz9DvV7bQ": "kw",
     "yt:UCLcfxfG_zHnSetvGWbVQXww": "us",
     "yt:UCqVd08FC56Dk-xa7wwwvycg": "ve",
-    "yt:UC7CxgCywMIHDqtCE5crWFPQ": "br"
+    "yt:UC7CxgCywMIHDqtCE5crWFPQ": "br",
+    "yt:UCWJSg-4SNkLsfS-5aZYS6Cw": "vu"
   },
   "closed": false,
   "closedAt": null,
-  "updatedAt": 1788000315557,
+  "updatedAt": 1788004656056,
   "voterStats": {
     "yt:UC9f84E-Uxe0Ce9rPQqZk3PQ": {
       "name": "@ErolOnay19",
@@ -1208,53 +1209,59 @@
       "avatar": "https://yt4.ggpht.com/G8L7E24Hji1Smse6YW1zC533pXJtj5W1CZ-8TgY8EaSwCEecaTRzpQHDE4bIzZ9cFM5fa207CEk=s64-c-k-c0x00ffffff-no-rj",
       "count": 4,
       "lastAt": 1788000315557
+    },
+    "yt:UCWJSg-4SNkLsfS-5aZYS6Cw": {
+      "name": "@iloveglorpthecats",
+      "avatar": "https://yt4.ggpht.com/glti_h53N5WOPZWVeULtQ3AdPOzFnwD0yuMqf3FXTsm4LCEu6Twx4Yv-nRSQw45G7kJbUhxk=s64-c-k-c0x00ffffff-no-rj",
+      "count": 8,
+      "lastAt": 1788004656056
     }
   },
   "recentVotes": [
     {
-      "voter": "@smukz1",
-      "voterId": "yt:UC7CxgCywMIHDqtCE5crWFPQ",
-      "code": "br",
-      "name": "Brazil",
-      "img": "https://flagcdn.com/w40/br.png",
-      "avatar": "https://yt4.ggpht.com/G8L7E24Hji1Smse6YW1zC533pXJtj5W1CZ-8TgY8EaSwCEecaTRzpQHDE4bIzZ9cFM5fa207CEk=s64-c-k-c0x00ffffff-no-rj",
-      "at": 1788000315557
+      "voter": "@iloveglorpthecats",
+      "voterId": "yt:UCWJSg-4SNkLsfS-5aZYS6Cw",
+      "code": "vu",
+      "name": "Vanuatu",
+      "img": "https://flagcdn.com/w40/vu.png",
+      "avatar": "https://yt4.ggpht.com/glti_h53N5WOPZWVeULtQ3AdPOzFnwD0yuMqf3FXTsm4LCEu6Twx4Yv-nRSQw45G7kJbUhxk=s64-c-k-c0x00ffffff-no-rj",
+      "at": 1788004656056
     },
     {
-      "voter": "@smukz1",
-      "voterId": "yt:UC7CxgCywMIHDqtCE5crWFPQ",
-      "code": "br",
-      "name": "Brazil",
-      "img": "https://flagcdn.com/w40/br.png",
-      "avatar": "https://yt4.ggpht.com/G8L7E24Hji1Smse6YW1zC533pXJtj5W1CZ-8TgY8EaSwCEecaTRzpQHDE4bIzZ9cFM5fa207CEk=s64-c-k-c0x00ffffff-no-rj",
-      "at": 1788000305390
+      "voter": "@iloveglorpthecats",
+      "voterId": "yt:UCWJSg-4SNkLsfS-5aZYS6Cw",
+      "code": "vu",
+      "name": "Vanuatu",
+      "img": "https://flagcdn.com/w40/vu.png",
+      "avatar": "https://yt4.ggpht.com/glti_h53N5WOPZWVeULtQ3AdPOzFnwD0yuMqf3FXTsm4LCEu6Twx4Yv-nRSQw45G7kJbUhxk=s64-c-k-c0x00ffffff-no-rj",
+      "at": 1788004645886
     },
     {
-      "voter": "@smukz1",
-      "voterId": "yt:UC7CxgCywMIHDqtCE5crWFPQ",
-      "code": "br",
-      "name": "Brazil",
-      "img": "https://flagcdn.com/w40/br.png",
-      "avatar": "https://yt4.ggpht.com/G8L7E24Hji1Smse6YW1zC533pXJtj5W1CZ-8TgY8EaSwCEecaTRzpQHDE4bIzZ9cFM5fa207CEk=s64-c-k-c0x00ffffff-no-rj",
-      "at": 1787999982465
+      "voter": "@iloveglorpthecats",
+      "voterId": "yt:UCWJSg-4SNkLsfS-5aZYS6Cw",
+      "code": "vu",
+      "name": "Vanuatu",
+      "img": "https://flagcdn.com/w40/vu.png",
+      "avatar": "https://yt4.ggpht.com/glti_h53N5WOPZWVeULtQ3AdPOzFnwD0yuMqf3FXTsm4LCEu6Twx4Yv-nRSQw45G7kJbUhxk=s64-c-k-c0x00ffffff-no-rj",
+      "at": 1788004615412
     },
     {
-      "voter": "@smukz1",
-      "voterId": "yt:UC7CxgCywMIHDqtCE5crWFPQ",
-      "code": "br",
-      "name": "Brazil",
-      "img": "https://flagcdn.com/w40/br.png",
-      "avatar": "https://yt4.ggpht.com/G8L7E24Hji1Smse6YW1zC533pXJtj5W1CZ-8TgY8EaSwCEecaTRzpQHDE4bIzZ9cFM5fa207CEk=s64-c-k-c0x00ffffff-no-rj",
-      "at": 1787999972107
+      "voter": "@iloveglorpthecats",
+      "voterId": "yt:UCWJSg-4SNkLsfS-5aZYS6Cw",
+      "code": "vu",
+      "name": "Vanuatu",
+      "img": "https://flagcdn.com/w40/vu.png",
+      "avatar": "https://yt4.ggpht.com/glti_h53N5WOPZWVeULtQ3AdPOzFnwD0yuMqf3FXTsm4LCEu6Twx4Yv-nRSQw45G7kJbUhxk=s64-c-k-c0x00ffffff-no-rj",
+      "at": 1788004605233
     },
     {
-      "voter": "@Froglover8",
-      "voterId": "yt:UCqVd08FC56Dk-xa7wwwvycg",
-      "code": "ve",
-      "name": "Venezuela",
-      "img": "https://flagcdn.com/w40/ve.png",
-      "avatar": "https://yt4.ggpht.com/CFgt1PwfaaTBRtggRV_-Q09nMkN_Ck_lLExlOvhSvj-hUafqTUDpEUgqMgexl5SfGqNN7zSEww=s64-c-k-c0x00ffffff-no-rj",
-      "at": 1787999881007
+      "voter": "@iloveglorpthecats",
+      "voterId": "yt:UCWJSg-4SNkLsfS-5aZYS6Cw",
+      "code": "vu",
+      "name": "Vanuatu",
+      "img": "https://flagcdn.com/w40/vu.png",
+      "avatar": "https://yt4.ggpht.com/glti_h53N5WOPZWVeULtQ3AdPOzFnwD0yuMqf3FXTsm4LCEu6Twx4Yv-nRSQw45G7kJbUhxk=s64-c-k-c0x00ffffff-no-rj",
+      "at": 1788004564852
     }
   ]
 }
