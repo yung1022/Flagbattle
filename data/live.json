@@ -21,9 +21,9 @@
       "name": "Gabon",
       "img": "https://flagcdn.com/w80/ga.png"
     },
-    "streamStatus": "winner_hold",
-    "endedAt": null,
-    "winnerHoldRemainingMs": 59996.20000000112,
+    "streamStatus": "finished",
+    "endedAt": "2026-08-29T04:58:41.433Z",
+    "winnerHoldRemainingMs": 0,
     "qualifyingRemainingMs": 0,
     "sprintRemainingMs": 0,
     "mainRemainingMs": 0,
@@ -303,7 +303,7 @@
       }
     ],
     "finalLiveAt": null,
-    "updatedAt": 1787979461423
+    "updatedAt": 1787979521435
   },
   "streams": [
     {
@@ -79858,5 +79858,5 @@
     }
   ],
   "api": "https://suzuki-season-wish-holdem.trycloudflare.com",
-  "updatedAt": 1787979521591
+  "updatedAt": 1787979521733
 }
