@@ -1064,7 +1064,7 @@
     "ki": 0,
     "kp": 0,
     "kr": 0,
-    "kw": 0,
+    "kw": 1,
     "kg": 0,
     "la": 0,
     "lv": 0,
@@ -1176,11 +1176,12 @@
     "yt:UChkicyxSEhEAj6pbGumUltw": "sg",
     "yt:UCPIocgeS9pRVtkhD9B0RlzA": "ar",
     "yt:UCghr35bL03ugtG6KtWfYwEA": "sv",
-    "yt:UCOP2s0qQXhnhz7scw0CjWng": "id"
+    "yt:UCOP2s0qQXhnhz7scw0CjWng": "id",
+    "yt:UCpHPGflRjxHeVVCvrubn_YA": "kw"
   },
   "closed": false,
   "closedAt": null,
-  "updatedAt": 1787977250907,
+  "updatedAt": 1787977710197,
   "voterStats": {
     "yt:UC_gjdYGvaZCTRJKhPFkzHpA": {
       "name": "@AltStatsGuy",
@@ -1229,9 +1230,24 @@
       "avatar": "https://yt4.ggpht.com/ytc/AIdro_kedlxAby9tBfPJkXZ8EQhn6bmlgHTDhb0RGpWJWrn_Xk7rZowkOmPXdaOCOCTpsF7fXg=s64-c-k-c0x00ffffff-no-rj",
       "count": 1,
       "lastAt": 1787977250907
+    },
+    "yt:UCpHPGflRjxHeVVCvrubn_YA": {
+      "name": "@Guadalupe-u8z",
+      "avatar": "https://yt4.ggpht.com/ytc/AIdro_mJUxkkmi665AmRCz4ilJfPTAan1TU452g2UM5ek9PklkcAAb7dnzzInZhXZe_Ftp4s2g=s64-c-k-c0x00ffffff-no-rj",
+      "count": 1,
+      "lastAt": 1787977710197
     }
   },
   "recentVotes": [
+    {
+      "voter": "@Guadalupe-u8z",
+      "voterId": "yt:UCpHPGflRjxHeVVCvrubn_YA",
+      "code": "kw",
+      "name": "Kuwait",
+      "img": "https://flagcdn.com/w40/kw.png",
+      "avatar": "https://yt4.ggpht.com/ytc/AIdro_mJUxkkmi665AmRCz4ilJfPTAan1TU452g2UM5ek9PklkcAAb7dnzzInZhXZe_Ftp4s2g=s64-c-k-c0x00ffffff-no-rj",
+      "at": 1787977710197
+    },
     {
       "voter": "@KedaiMuslimah-o8o",
       "voterId": "yt:UCOP2s0qQXhnhz7scw0CjWng",
@@ -1267,15 +1283,6 @@
       "img": "https://flagcdn.com/w40/sv.png",
       "avatar": "https://yt4.ggpht.com/IbvXmZdfQpPYk8sDA_oDwnybfb_D8OuFXS4E8Shee3YSij70M138tCvLNvzze98Cai60ePtqkzQ=s64-c-k-c0x00ffffff-no-rj",
       "at": 1787974610350
-    },
-    {
-      "voter": "@etohplayer17",
-      "voterId": "yt:UCghr35bL03ugtG6KtWfYwEA",
-      "code": "sv",
-      "name": "El Salvador",
-      "img": "https://flagcdn.com/w40/sv.png",
-      "avatar": "https://yt4.ggpht.com/IbvXmZdfQpPYk8sDA_oDwnybfb_D8OuFXS4E8Shee3YSij70M138tCvLNvzze98Cai60ePtqkzQ=s64-c-k-c0x00ffffff-no-rj",
-      "at": 1787974600236
     }
   ]
 }
