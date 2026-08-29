@@ -996,7 +996,7 @@
     "bo": 0,
     "ba": 0,
     "bw": 0,
-    "br": 0,
+    "br": 2,
     "bn": 0,
     "bg": 0,
     "bf": 0,
@@ -1172,11 +1172,12 @@
     "yt:UC9f84E-Uxe0Ce9rPQqZk3PQ": "tr",
     "yt:UCJMCcIzz6yVyE4Oz9DvV7bQ": "kw",
     "yt:UCLcfxfG_zHnSetvGWbVQXww": "us",
-    "yt:UCqVd08FC56Dk-xa7wwwvycg": "ve"
+    "yt:UCqVd08FC56Dk-xa7wwwvycg": "ve",
+    "yt:UC7CxgCywMIHDqtCE5crWFPQ": "br"
   },
   "closed": false,
   "closedAt": null,
-  "updatedAt": 1787999881007,
+  "updatedAt": 1787999982465,
   "voterStats": {
     "yt:UC9f84E-Uxe0Ce9rPQqZk3PQ": {
       "name": "@ErolOnay19",
@@ -1201,9 +1202,33 @@
       "avatar": "https://yt4.ggpht.com/CFgt1PwfaaTBRtggRV_-Q09nMkN_Ck_lLExlOvhSvj-hUafqTUDpEUgqMgexl5SfGqNN7zSEww=s64-c-k-c0x00ffffff-no-rj",
       "count": 2,
       "lastAt": 1787999881007
+    },
+    "yt:UC7CxgCywMIHDqtCE5crWFPQ": {
+      "name": "@smukz1",
+      "avatar": "https://yt4.ggpht.com/G8L7E24Hji1Smse6YW1zC533pXJtj5W1CZ-8TgY8EaSwCEecaTRzpQHDE4bIzZ9cFM5fa207CEk=s64-c-k-c0x00ffffff-no-rj",
+      "count": 2,
+      "lastAt": 1787999982465
     }
   },
   "recentVotes": [
+    {
+      "voter": "@smukz1",
+      "voterId": "yt:UC7CxgCywMIHDqtCE5crWFPQ",
+      "code": "br",
+      "name": "Brazil",
+      "img": "https://flagcdn.com/w40/br.png",
+      "avatar": "https://yt4.ggpht.com/G8L7E24Hji1Smse6YW1zC533pXJtj5W1CZ-8TgY8EaSwCEecaTRzpQHDE4bIzZ9cFM5fa207CEk=s64-c-k-c0x00ffffff-no-rj",
+      "at": 1787999982465
+    },
+    {
+      "voter": "@smukz1",
+      "voterId": "yt:UC7CxgCywMIHDqtCE5crWFPQ",
+      "code": "br",
+      "name": "Brazil",
+      "img": "https://flagcdn.com/w40/br.png",
+      "avatar": "https://yt4.ggpht.com/G8L7E24Hji1Smse6YW1zC533pXJtj5W1CZ-8TgY8EaSwCEecaTRzpQHDE4bIzZ9cFM5fa207CEk=s64-c-k-c0x00ffffff-no-rj",
+      "at": 1787999972107
+    },
     {
       "voter": "@Froglover8",
       "voterId": "yt:UCqVd08FC56Dk-xa7wwwvycg",
@@ -1230,24 +1255,6 @@
       "img": "https://flagcdn.com/w40/us.png",
       "avatar": "https://yt4.ggpht.com/CbRJC4u7MXXNqNj6s_q_RUelcawwN0m-lliGnaDDesDL8r0PZ2HHt9-qhxEG36Tera_Qa4w5=s64-c-k-c0x00ffffff-no-rj",
       "at": 1787997220017
-    },
-    {
-      "voter": "@TyjanAshref",
-      "voterId": "yt:UCLcfxfG_zHnSetvGWbVQXww",
-      "code": "iq",
-      "name": "Iraq",
-      "img": "https://flagcdn.com/w40/iq.png",
-      "avatar": "https://yt4.ggpht.com/CbRJC4u7MXXNqNj6s_q_RUelcawwN0m-lliGnaDDesDL8r0PZ2HHt9-qhxEG36Tera_Qa4w5=s64-c-k-c0x00ffffff-no-rj",
-      "at": 1787997028655
-    },
-    {
-      "voter": "@TyjanAshref",
-      "voterId": "yt:UCLcfxfG_zHnSetvGWbVQXww",
-      "code": "iq",
-      "name": "Iraq",
-      "img": "https://flagcdn.com/w40/iq.png",
-      "avatar": "https://yt4.ggpht.com/CbRJC4u7MXXNqNj6s_q_RUelcawwN0m-lliGnaDDesDL8r0PZ2HHt9-qhxEG36Tera_Qa4w5=s64-c-k-c0x00ffffff-no-rj",
-      "at": 1787997018466
     }
   ]
 }
