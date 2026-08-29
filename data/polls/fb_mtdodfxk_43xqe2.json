@@ -979,7 +979,7 @@
     "ad": 0,
     "ao": 0,
     "ag": 0,
-    "ar": 0,
+    "ar": 1,
     "am": 0,
     "au": 0,
     "at": 0,
@@ -1173,11 +1173,12 @@
     "yt:UC33HfIHhpsVOATjSsxwYLZQ": "ly",
     "yt:UCDaFaubn8j3qMAEiwQLEhgQ": "rs",
     "yt:UCiV2eL8fhn5WCTJfvAajfVQ": "ro",
-    "yt:UChkicyxSEhEAj6pbGumUltw": "sg"
+    "yt:UChkicyxSEhEAj6pbGumUltw": "sg",
+    "yt:UCPIocgeS9pRVtkhD9B0RlzA": "ar"
   },
   "closed": false,
   "closedAt": null,
-  "updatedAt": 1787971727445,
+  "updatedAt": 1787974247304,
   "voterStats": {
     "yt:UC_gjdYGvaZCTRJKhPFkzHpA": {
       "name": "@AltStatsGuy",
@@ -1208,9 +1209,24 @@
       "avatar": "https://yt4.ggpht.com/qofZHWu7XDFyscT84m7mCM5MJDQ1ikpF-jGn0ExUidOW-nXg9QlHlcYKLgXVmxTFPb_7K-tBnNw=s64-c-k-c0x00ffffff-no-rj",
       "count": 2,
       "lastAt": 1787971727445
+    },
+    "yt:UCPIocgeS9pRVtkhD9B0RlzA": {
+      "name": "@FranciscoJavierHernández-o7n",
+      "avatar": "https://yt4.ggpht.com/oifp_8T78Tz4DznDdkWAmIjy6E0ee0LiTJIHP8ZDSCpcKFbEzEknEI8L4fbOqJP5eQRD2e2nGQ=s64-c-k-c0x00ffffff-no-rj",
+      "count": 1,
+      "lastAt": 1787974247304
     }
   },
   "recentVotes": [
+    {
+      "voter": "@FranciscoJavierHernández-o7n",
+      "voterId": "yt:UCPIocgeS9pRVtkhD9B0RlzA",
+      "code": "ar",
+      "name": "Argentina",
+      "img": "https://flagcdn.com/w40/ar.png",
+      "avatar": "https://yt4.ggpht.com/oifp_8T78Tz4DznDdkWAmIjy6E0ee0LiTJIHP8ZDSCpcKFbEzEknEI8L4fbOqJP5eQRD2e2nGQ=s64-c-k-c0x00ffffff-no-rj",
+      "at": 1787974247304
+    },
     {
       "voter": "@TryToThen",
       "voterId": "yt:UChkicyxSEhEAj6pbGumUltw",
@@ -1246,15 +1262,6 @@
       "img": "https://flagcdn.com/w40/rs.png",
       "avatar": "https://yt4.ggpht.com/ytc/AIdro_n3Z6oInA0qtkc2QQi4nc1ukngULn0AVkqdHoXoI-NkVj0=s64-c-k-c0x00ffffff-no-rj",
       "at": 1787968582122
-    },
-    {
-      "voter": "@Epic_19-w3i",
-      "voterId": "yt:UC33HfIHhpsVOATjSsxwYLZQ",
-      "code": "ly",
-      "name": "Libya",
-      "img": "https://flagcdn.com/w40/ly.png",
-      "avatar": "https://yt4.ggpht.com/lNxpMtICd24jVyNvsjrCNEei18Ii2xwRkIrH_jJwYYNSJojQQAg9QkKMNyJokyyQGg2OcMO61A=s64-c-k-c0x00ffffff-no-rj",
-      "at": 1787966626840
     }
   ]
 }
