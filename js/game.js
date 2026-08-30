@@ -1063,6 +1063,9 @@ export class FlagBattleGame {
     this.recentSprintWins = [win, ...this.recentSprintWins].slice(0, 16);
     flag.pulse = 1;
     playSfx("opening_win");
+    this._emit("round_win", `${flag.name} wins the round`, {
+      country: flag.name,
+    });
     this.phase = "between_rounds";
     this._pendingSprintReset = true;
     this._betweenUntil =
@@ -1209,6 +1212,9 @@ export class FlagBattleGame {
     this.recentMainWins = [win, ...this.recentMainWins].slice(0, 16);
     flag.pulse = 1;
     playSfx("opening_win");
+    this._emit("round_win", `${flag.name} wins the round`, {
+      country: flag.name,
+    });
 
     try {
       this.rankReveal = computeMainPointRankReveal(

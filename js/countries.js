@@ -254,6 +254,17 @@ function normalizeCountryText(value) {
     .trim();
 }
 
+function countryFromFlagEmoji(value) {
+  const chars = [...String(value || "").trim()];
+  if (chars.length !== 2) return null;
+  const points = chars.map((char) => char.codePointAt(0));
+  if (points.some((point) => point < 0x1f1e6 || point > 0x1f1ff)) return null;
+  const code = points
+    .map((point) => String.fromCharCode(point - 0x1f1e6 + 97))
+    .join("");
+  return COUNTRY_BY_CODE.get(code) || null;
+}
+
 const COUNTRY_BY_NAME = new Map(
   COUNTRIES.map((c) => [normalizeCountryText(c.name), c])
 );
@@ -285,6 +296,9 @@ function includesPhrase(haystack, phrase) {
 export function resolveCountryQuery(raw) {
   const original = String(raw || "").trim();
   if (!original) return null;
+
+  const emojiCountry = countryFromFlagEmoji(original);
+  if (emojiCountry) return emojiCountry;
 
   const norm = normalizeCountryText(original);
   if (!norm) return null;

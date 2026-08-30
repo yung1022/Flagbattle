@@ -86,7 +86,7 @@ function pageUrl(file, query = "") {
 let lastLinkKey = "";
 let lastPollKey = "";
 let pollTimer = 0;
-let lastAnnouncedAt = 0;
+const announcedEventKeys = new Set();
 
 const fighterEls = new Map();
 let lastBoardKey = "";
@@ -632,21 +632,24 @@ function renderBoard() {
 
 function renderFeed() {
   const latest = game.events[0];
-  if (!latest || latest.at === lastEventAt) return;
-  lastEventAt = latest.at;
-  const item = document.createElement("div");
-  item.className = `feed-item ${latest.type}`;
-  item.textContent = latest.text;
-  els.feed.prepend(item);
-  while (els.feed.children.length > 3) {
-    els.feed.lastElementChild.remove();
+  if (latest && latest.at !== lastEventAt) {
+    lastEventAt = latest.at;
+    const item = document.createElement("div");
+    item.className = `feed-item ${latest.type}`;
+    item.textContent = latest.text;
+    els.feed.prepend(item);
+    while (els.feed.children.length > 3) {
+      els.feed.lastElementChild.remove();
+    }
   }
-  maybeAnnounce(latest);
+  for (const event of [...game.events].reverse()) maybeAnnounce(event);
 }
 
 function maybeAnnounce(event) {
-  if (!event || event.at === lastAnnouncedAt) return;
-  lastAnnouncedAt = event.at;
+  if (!event) return;
+  const key = `${event.at}:${event.type}:${event.text}`;
+  if (announcedEventKeys.has(key)) return;
+  announcedEventKeys.add(key);
   // Keep ambient alive on feed activity (helps after tab focus / autoplay).
   startAmbientMusic({ force: false });
   if (event.type === "qualify") {
@@ -656,12 +659,11 @@ function maybeAnnounce(event) {
       "A country";
     announceRoundWinner(name, { champion: false });
   } else if (event.type === "spawn") {
-    announceSpawn(event.user, event.country);
+    announceSpawn(event.user || "Chat", event.country || "a country");
+  } else if (event.type === "round_win") {
+    announceRoundWinner(event.country || "A country", { champion: false });
   } else if (event.type === "winner") {
     announceRoundWinner(game.winner?.name || "Champion", { champion: true });
-  } else if (event.type === "phase" && event.text?.startsWith("MAIN POINT —")) {
-    const name = event.text.match(/^MAIN POINT — (.+?)!/i)?.[1] || "A country";
-    announceRoundWinner(name, { champion: false });
   } else if (event.type === "rank_reveal") {
     // Refresh Top 10 so the board catches the new win after the reveal.
     refreshChampionshipTop10();
@@ -1044,7 +1046,7 @@ function fitHintIntoParent(el) {
   el.style.fontSize = `${size}px`;
   el.style.whiteSpace = "normal";
   // Cap height so it doesn't steal the whole column.
-  const maxH = Math.max(28, parent.clientHeight * 0.22);
+  const maxH = Math.max(28, parent.clientHeight * 0.75);
   let guard = 40;
   while (
     guard-- > 0 &&

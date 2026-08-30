@@ -1665,6 +1665,7 @@ body.stream-mode .stream-shoutout-card { display: grid; gap: 2px; min-height: 0;
   min-height: 20px;
   padding: 1px 3px;
   border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  min-width: 0;
 }
 .spawn-leader-rank { color: var(--gold-hot); font-family: var(--font-display); font-size: clamp(16px, 3.6vw, 24px); }
 .spawn-leader-avatar {
@@ -1682,7 +1683,7 @@ body.stream-mode .stream-shoutout-card { display: grid; gap: 2px; min-height: 0;
   font-size: 11px;
   font-weight: 800;
 }
-.spawn-leader-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: clamp(11px, 2.4vw, 15px); font-weight: 800; }
+.spawn-leader-name { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: clamp(11px, 2.4vw, 15px); font-weight: 800; }
 .spawn-leader-count { color: var(--teal); font-family: var(--font-display); font-size: clamp(16px, 3.6vw, 24px); }
 
 body.stream-mode .stream-shoutout-card {
