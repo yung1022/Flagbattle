@@ -1115,7 +1115,7 @@
     "pt": 0,
     "qa": 1,
     "ro": 0,
-    "ru": 0,
+    "ru": 1,
     "rw": 0,
     "kn": 0,
     "lc": 0,
@@ -1175,11 +1175,12 @@
     "yt:UCX9u4foYezgb49b8GnD6Lrg": "pw",
     "yt:UC2U83ROZc-MX282S-PzT1Yg": "nr",
     "yt:UCjwuTLqGJgO1zbg9EIGRsuw": "fr",
-    "yt:UCxojjAukpONkMm3stHG0ZcQ": "in"
+    "yt:UCxojjAukpONkMm3stHG0ZcQ": "in",
+    "yt:UCEpyqo9si5TW75YritS60dA": "ru"
   },
   "closed": false,
   "closedAt": null,
-  "updatedAt": 1788093537314,
+  "updatedAt": 1788094991946,
   "voterStats": {
     "yt:UC47Lmf6UiBDe9R2wtJgsTQA": {
       "name": "@SHIVRAJBHUJBAL-P4J",
@@ -1222,9 +1223,24 @@
       "avatar": "https://yt4.ggpht.com/7ZJM51LqVkIOWmAGCzJn9hs3c8dTuWLtee23aim_1vjZ7ct3vjrLlbfwCv0YAs8zQXC9EZopCA=s64-c-k-c0x00ffffff-no-rj",
       "count": 3,
       "lastAt": 1788093537314
+    },
+    "yt:UCEpyqo9si5TW75YritS60dA": {
+      "name": "@kapycenb",
+      "avatar": "https://yt4.ggpht.com/dgwK_A9M7moM8JfSthcBAo0hQI7bfBhNmzwvfFi_UVumsLdJkTfMfVFtf1Wb2rXxzz3ZlEsPcQ=s64-c-k-c0x00ffffff-no-rj",
+      "count": 1,
+      "lastAt": 1788094991946
     }
   },
   "recentVotes": [
+    {
+      "voter": "@kapycenb",
+      "voterId": "yt:UCEpyqo9si5TW75YritS60dA",
+      "code": "ru",
+      "name": "Russia",
+      "img": "https://flagcdn.com/w40/ru.png",
+      "avatar": "https://yt4.ggpht.com/dgwK_A9M7moM8JfSthcBAo0hQI7bfBhNmzwvfFi_UVumsLdJkTfMfVFtf1Wb2rXxzz3ZlEsPcQ=s64-c-k-c0x00ffffff-no-rj",
+      "at": 1788094991946
+    },
     {
       "voter": "@Op_Editzz1",
       "voterId": "yt:UCxojjAukpONkMm3stHG0ZcQ",
@@ -1260,15 +1276,6 @@
       "img": "https://flagcdn.com/w40/fr.png",
       "avatar": "https://yt4.ggpht.com/PvrE6bmkK_NFp1SxA-Ots0EHW3ce1k3INVIZRAXVg3-sRdISkQ0fFP4LwAYj71msFBnrva9UVw=s64-c-k-c0x00ffffff-no-rj",
       "at": 1788092112668
-    },
-    {
-      "voter": "@makohdel4953",
-      "voterId": "yt:UCjwuTLqGJgO1zbg9EIGRsuw",
-      "code": "fr",
-      "name": "France",
-      "img": "https://flagcdn.com/w40/fr.png",
-      "avatar": "https://yt4.ggpht.com/PvrE6bmkK_NFp1SxA-Ots0EHW3ce1k3INVIZRAXVg3-sRdISkQ0fFP4LwAYj71msFBnrva9UVw=s64-c-k-c0x00ffffff-no-rj",
-      "at": 1788092092279
     }
   ]
 }
