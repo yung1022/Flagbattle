@@ -1033,7 +1033,7 @@
     "et": 0,
     "fj": 0,
     "fi": 0,
-    "fr": 0,
+    "fr": 3,
     "ga": 0,
     "gm": 0,
     "ge": 0,
@@ -1173,11 +1173,12 @@
     "yt:UCBJh8GQdqepplyklUnElL6g": "nr",
     "yt:UCBw8gjrSgx_tHCbhhTaIEHw": "kr",
     "yt:UCX9u4foYezgb49b8GnD6Lrg": "pw",
-    "yt:UC2U83ROZc-MX282S-PzT1Yg": "nr"
+    "yt:UC2U83ROZc-MX282S-PzT1Yg": "nr",
+    "yt:UCjwuTLqGJgO1zbg9EIGRsuw": "fr"
   },
   "closed": false,
   "closedAt": null,
-  "updatedAt": 1788090991163,
+  "updatedAt": 1788092112668,
   "voterStats": {
     "yt:UC47Lmf6UiBDe9R2wtJgsTQA": {
       "name": "@SHIVRAJBHUJBAL-P4J",
@@ -1208,9 +1209,42 @@
       "avatar": "https://yt4.ggpht.com/WTMJYLUEw-YA4IoasPAe6c7wZ2UU_QB-7LEf4UEJRVRy5ugGekFtly-3lyw84qKKBBtG9dWr=s64-c-k-c0x00ffffff-no-rj",
       "count": 2,
       "lastAt": 1788090991163
+    },
+    "yt:UCjwuTLqGJgO1zbg9EIGRsuw": {
+      "name": "@makohdel4953",
+      "avatar": "https://yt4.ggpht.com/PvrE6bmkK_NFp1SxA-Ots0EHW3ce1k3INVIZRAXVg3-sRdISkQ0fFP4LwAYj71msFBnrva9UVw=s64-c-k-c0x00ffffff-no-rj",
+      "count": 3,
+      "lastAt": 1788092112668
     }
   },
   "recentVotes": [
+    {
+      "voter": "@makohdel4953",
+      "voterId": "yt:UCjwuTLqGJgO1zbg9EIGRsuw",
+      "code": "fr",
+      "name": "France",
+      "img": "https://flagcdn.com/w40/fr.png",
+      "avatar": "https://yt4.ggpht.com/PvrE6bmkK_NFp1SxA-Ots0EHW3ce1k3INVIZRAXVg3-sRdISkQ0fFP4LwAYj71msFBnrva9UVw=s64-c-k-c0x00ffffff-no-rj",
+      "at": 1788092112668
+    },
+    {
+      "voter": "@makohdel4953",
+      "voterId": "yt:UCjwuTLqGJgO1zbg9EIGRsuw",
+      "code": "fr",
+      "name": "France",
+      "img": "https://flagcdn.com/w40/fr.png",
+      "avatar": "https://yt4.ggpht.com/PvrE6bmkK_NFp1SxA-Ots0EHW3ce1k3INVIZRAXVg3-sRdISkQ0fFP4LwAYj71msFBnrva9UVw=s64-c-k-c0x00ffffff-no-rj",
+      "at": 1788092092279
+    },
+    {
+      "voter": "@makohdel4953",
+      "voterId": "yt:UCjwuTLqGJgO1zbg9EIGRsuw",
+      "code": "fr",
+      "name": "France",
+      "img": "https://flagcdn.com/w40/fr.png",
+      "avatar": "https://yt4.ggpht.com/PvrE6bmkK_NFp1SxA-Ots0EHW3ce1k3INVIZRAXVg3-sRdISkQ0fFP4LwAYj71msFBnrva9UVw=s64-c-k-c0x00ffffff-no-rj",
+      "at": 1788092082077
+    },
     {
       "voter": "@nauru-ph",
       "voterId": "yt:UC2U83ROZc-MX282S-PzT1Yg",
@@ -1228,33 +1262,6 @@
       "img": "https://flagcdn.com/w40/nr.png",
       "avatar": "https://yt4.ggpht.com/WTMJYLUEw-YA4IoasPAe6c7wZ2UU_QB-7LEf4UEJRVRy5ugGekFtly-3lyw84qKKBBtG9dWr=s64-c-k-c0x00ffffff-no-rj",
       "at": 1788090980935
-    },
-    {
-      "voter": "@isaedmausilva5239",
-      "voterId": "yt:UCBw8gjrSgx_tHCbhhTaIEHw",
-      "code": "kr",
-      "name": "South Korea",
-      "img": "https://flagcdn.com/w40/kr.png",
-      "avatar": "https://yt4.ggpht.com/5fGdUIyDk4ORlSQOqCzIRIcdkrcn9m8FJSW7AQ0TwIxl2_mW1CiQsGlmNIZ_SGfpRBZHL0J9Bg=s64-c-k-c0x00ffffff-no-rj",
-      "at": 1788086092506
-    },
-    {
-      "voter": "@isaedmausilva5239",
-      "voterId": "yt:UCBw8gjrSgx_tHCbhhTaIEHw",
-      "code": "jp",
-      "name": "Japan",
-      "img": "https://flagcdn.com/w40/jp.png",
-      "avatar": "https://yt4.ggpht.com/5fGdUIyDk4ORlSQOqCzIRIcdkrcn9m8FJSW7AQ0TwIxl2_mW1CiQsGlmNIZ_SGfpRBZHL0J9Bg=s64-c-k-c0x00ffffff-no-rj",
-      "at": 1788086021585
-    },
-    {
-      "voter": "@isaedmausilva5239",
-      "voterId": "yt:UCBw8gjrSgx_tHCbhhTaIEHw",
-      "code": "es",
-      "name": "Spain",
-      "img": "https://flagcdn.com/w40/es.png",
-      "avatar": "https://yt4.ggpht.com/5fGdUIyDk4ORlSQOqCzIRIcdkrcn9m8FJSW7AQ0TwIxl2_mW1CiQsGlmNIZ_SGfpRBZHL0J9Bg=s64-c-k-c0x00ffffff-no-rj",
-      "at": 1788086011408
     }
   ]
 }
