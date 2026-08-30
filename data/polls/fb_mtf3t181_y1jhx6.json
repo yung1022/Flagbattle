@@ -1046,7 +1046,7 @@
     "gw": 0,
     "gy": 0,
     "ht": 3,
-    "hn": 0,
+    "hn": 1,
     "hu": 0,
     "is": 1,
     "in": 0,
@@ -1177,11 +1177,12 @@
     "yt:UCWhMxa5U4TiSM9bUajg8hvQ": "eg",
     "yt:UCoL_CG4cjUwhz3LQfidmCVw": "ru",
     "yt:UCghr35bL03ugtG6KtWfYwEA": "sv",
-    "yt:UCB5vGaZK3Z3uQprAjrVTfxQ": "lk"
+    "yt:UCB5vGaZK3Z3uQprAjrVTfxQ": "lk",
+    "yt:UClhLE6PD4N87tAy0jSYPJCg": "hn"
   },
   "closed": false,
   "closedAt": null,
-  "updatedAt": 1788057795186,
+  "updatedAt": 1788058053567,
   "voterStats": {
     "yt:UCAbVyIVZ7TlyqcYpYVeDiuA": {
       "name": "@yvenetteleger6614",
@@ -1236,9 +1237,24 @@
       "avatar": "https://yt4.ggpht.com/tS876EUkgPMWTg9rimXHYj3eY_4sfctB5p7j99nhLsKsjwWGxo_rWBedQTiqk4peHHNCh1zhew=s64-c-k-c0x00ffffff-no-rj",
       "count": 1,
       "lastAt": 1788057795186
+    },
+    "yt:UClhLE6PD4N87tAy0jSYPJCg": {
+      "name": "@JacobAguilar-p1k",
+      "avatar": "https://yt4.ggpht.com/ZZSGtZLr38prkpivfpJg4d1X3CwjNpl9Vns7_ouZ4eC540Ber3eLGmo9qXKuUYad8Pit07gULh4=s64-c-k-c0x00ffffff-no-rj",
+      "count": 1,
+      "lastAt": 1788058053567
     }
   },
   "recentVotes": [
+    {
+      "voter": "@JacobAguilar-p1k",
+      "voterId": "yt:UClhLE6PD4N87tAy0jSYPJCg",
+      "code": "hn",
+      "name": "Honduras",
+      "img": "https://flagcdn.com/w40/hn.png",
+      "avatar": "https://yt4.ggpht.com/ZZSGtZLr38prkpivfpJg4d1X3CwjNpl9Vns7_ouZ4eC540Ber3eLGmo9qXKuUYad8Pit07gULh4=s64-c-k-c0x00ffffff-no-rj",
+      "at": 1788058053567
+    },
     {
       "voter": "@Minesha-v5l",
       "voterId": "yt:UCB5vGaZK3Z3uQprAjrVTfxQ",
@@ -1274,15 +1290,6 @@
       "img": "https://flagcdn.com/w40/ru.png",
       "avatar": "https://yt4.ggpht.com/dVqx25KVV7na6Npb5plDknwIt63330Jt2NQpRzauhUMWHlNgkPR1Bw6mw_LHN3at2tWAUt3ykQ=s64-c-k-c0x00ffffff-no-rj",
       "at": 1788055918931
-    },
-    {
-      "voter": "@Astamar7",
-      "voterId": "yt:UCoL_CG4cjUwhz3LQfidmCVw",
-      "code": "ru",
-      "name": "Russia",
-      "img": "https://flagcdn.com/w40/ru.png",
-      "avatar": "https://yt4.ggpht.com/dVqx25KVV7na6Npb5plDknwIt63330Jt2NQpRzauhUMWHlNgkPR1Bw6mw_LHN3at2tWAUt3ykQ=s64-c-k-c0x00ffffff-no-rj",
-      "at": 1788055908693
     }
   ]
 }
