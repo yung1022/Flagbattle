@@ -1025,7 +1025,7 @@
     "do": 0,
     "ec": 0,
     "eg": 3,
-    "sv": 2,
+    "sv": 3,
     "gq": 0,
     "er": 0,
     "ee": 0,
@@ -1177,11 +1177,12 @@
     "yt:UC3PvdfAclarnqkUCJlWECOA": "br",
     "yt:UCS1XFj5H72vF8gjeNorVEHQ": "it",
     "yt:UCgHScuXQI80yQTh6UazRCVg": "co",
-    "yt:UCsKgeD0YtG48u1cKmhTmPwA": "eg"
+    "yt:UCsKgeD0YtG48u1cKmhTmPwA": "eg",
+    "yt:UCghr35bL03ugtG6KtWfYwEA": "sv"
   },
   "closed": false,
   "closedAt": null,
-  "updatedAt": 1788121566104,
+  "updatedAt": 1788124005125,
   "voterStats": {
     "yt:UCBw8gjrSgx_tHCbhhTaIEHw": {
       "name": "@isaedmausilva5239",
@@ -1236,9 +1237,24 @@
       "avatar": "https://yt4.ggpht.com/8iY-3H642iuNTcEu0xKn5M6q1WfgOiT51a17tJ_54bKPdV4QVeu5h-1j7RDDBEOAbcjF7XHclIE=s64-c-k-c0x00ffffff-no-rj",
       "count": 3,
       "lastAt": 1788121566104
+    },
+    "yt:UCghr35bL03ugtG6KtWfYwEA": {
+      "name": "@etohplayer17",
+      "avatar": "https://yt4.ggpht.com/IbvXmZdfQpPYk8sDA_oDwnybfb_D8OuFXS4E8Shee3YSij70M138tCvLNvzze98Cai60ePtqkzQ=s64-c-k-c0x00ffffff-no-rj",
+      "count": 1,
+      "lastAt": 1788124005125
     }
   },
   "recentVotes": [
+    {
+      "voter": "@etohplayer17",
+      "voterId": "yt:UCghr35bL03ugtG6KtWfYwEA",
+      "code": "sv",
+      "name": "El Salvador",
+      "img": "https://flagcdn.com/w40/sv.png",
+      "avatar": "https://yt4.ggpht.com/IbvXmZdfQpPYk8sDA_oDwnybfb_D8OuFXS4E8Shee3YSij70M138tCvLNvzze98Cai60ePtqkzQ=s64-c-k-c0x00ffffff-no-rj",
+      "at": 1788124005125
+    },
     {
       "voter": "@Seasoned_FriesMatter",
       "voterId": "yt:UCsKgeD0YtG48u1cKmhTmPwA",
@@ -1274,15 +1290,6 @@
       "img": "https://flagcdn.com/w40/co.png",
       "avatar": "https://yt4.ggpht.com/ytc/AIdro_mQPSrH_ciG7qqWxXbvLdt-yOWg8iIxIJ94kZavog4xQVh7F-Pwyaiwm5oLdrxwNC7pVw=s64-c-k-c0x00ffffff-no-rj",
       "at": 1788121051708
-    },
-    {
-      "voter": "@NELSON2083envi",
-      "voterId": "yt:UCgHScuXQI80yQTh6UazRCVg",
-      "code": "co",
-      "name": "Colombia",
-      "img": "https://flagcdn.com/w40/co.png",
-      "avatar": "https://yt4.ggpht.com/ytc/AIdro_mQPSrH_ciG7qqWxXbvLdt-yOWg8iIxIJ94kZavog4xQVh7F-Pwyaiwm5oLdrxwNC7pVw=s64-c-k-c0x00ffffff-no-rj",
-      "at": 1788120920456
     }
   ]
 }
