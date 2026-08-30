@@ -1055,7 +1055,7 @@
     "iq": 0,
     "ie": 0,
     "il": 0,
-    "it": 0,
+    "it": 1,
     "jm": 0,
     "jp": 1,
     "jo": 0,
@@ -1174,11 +1174,12 @@
     "yt:UC-jkAn-3hfq36fA1ggyVpGQ": "es",
     "yt:UCO4ipk5oCt7dtNYcbn9sLBw": "gt",
     "yt:UCcfasogSn8u4-t93qWnFxLw": "sv",
-    "yt:UC3PvdfAclarnqkUCJlWECOA": "bz"
+    "yt:UC3PvdfAclarnqkUCJlWECOA": "bz",
+    "yt:UCS1XFj5H72vF8gjeNorVEHQ": "it"
   },
   "closed": false,
   "closedAt": null,
-  "updatedAt": 1788114597344,
+  "updatedAt": 1788118309776,
   "voterStats": {
     "yt:UCBw8gjrSgx_tHCbhhTaIEHw": {
       "name": "@isaedmausilva5239",
@@ -1215,9 +1216,24 @@
       "avatar": "https://yt4.ggpht.com/F483c8cwhbkVdxm9o9RCQx5kVEtXckpLIf00-LhPZvgyJ2A4rwqmhcH476JC08wmVG5AIfBU_HE=s64-c-k-c0x00ffffff-no-rj",
       "count": 3,
       "lastAt": 1788114597344
+    },
+    "yt:UCS1XFj5H72vF8gjeNorVEHQ": {
+      "name": "@Tortugadetelmex216",
+      "avatar": "https://yt4.ggpht.com/ytc/AIdro_nLQhX1PoHX5jME-72sexmj586E4ccVieaaMIwgakYRug=s64-c-k-c0x00ffffff-no-rj",
+      "count": 1,
+      "lastAt": 1788118309776
     }
   },
   "recentVotes": [
+    {
+      "voter": "@Tortugadetelmex216",
+      "voterId": "yt:UCS1XFj5H72vF8gjeNorVEHQ",
+      "code": "it",
+      "name": "Italy",
+      "img": "https://flagcdn.com/w40/it.png",
+      "avatar": "https://yt4.ggpht.com/ytc/AIdro_nLQhX1PoHX5jME-72sexmj586E4ccVieaaMIwgakYRug=s64-c-k-c0x00ffffff-no-rj",
+      "at": 1788118309776
+    },
     {
       "voter": "@juju-jy3rc-j2u",
       "voterId": "yt:UC3PvdfAclarnqkUCJlWECOA",
@@ -1253,15 +1269,6 @@
       "img": "https://flagcdn.com/w40/sv.png",
       "avatar": "https://yt4.ggpht.com/_KmMhXnHXmCg2_hHhqieec8D6Cc_SBm4VPYKowx3-kLuEPilffRk0jj4Otk6rrABJyrnlUEtsg=s64-c-k-c0x00ffffff-no-rj",
       "at": 1788112592107
-    },
-    {
-      "voter": "@anakarolina4552",
-      "voterId": "yt:UCcfasogSn8u4-t93qWnFxLw",
-      "code": "la",
-      "name": "Laos",
-      "img": "https://flagcdn.com/w40/la.png",
-      "avatar": "https://yt4.ggpht.com/_KmMhXnHXmCg2_hHhqieec8D6Cc_SBm4VPYKowx3-kLuEPilffRk0jj4Otk6rrABJyrnlUEtsg=s64-c-k-c0x00ffffff-no-rj",
-      "at": 1788112571837
     }
   ]
 }
