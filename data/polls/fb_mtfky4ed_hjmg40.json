@@ -1094,7 +1094,7 @@
     "mz": 0,
     "mm": 0,
     "na": 0,
-    "nr": 1,
+    "nr": 3,
     "np": 1,
     "nl": 0,
     "nz": 0,
@@ -1172,11 +1172,12 @@
     "yt:UC47Lmf6UiBDe9R2wtJgsTQA": "uz",
     "yt:UCBJh8GQdqepplyklUnElL6g": "nr",
     "yt:UCBw8gjrSgx_tHCbhhTaIEHw": "kr",
-    "yt:UCX9u4foYezgb49b8GnD6Lrg": "pw"
+    "yt:UCX9u4foYezgb49b8GnD6Lrg": "pw",
+    "yt:UC2U83ROZc-MX282S-PzT1Yg": "nr"
   },
   "closed": false,
   "closedAt": null,
-  "updatedAt": 1788086092506,
+  "updatedAt": 1788090991163,
   "voterStats": {
     "yt:UC47Lmf6UiBDe9R2wtJgsTQA": {
       "name": "@SHIVRAJBHUJBAL-P4J",
@@ -1201,9 +1202,33 @@
       "avatar": "https://yt4.ggpht.com/zXtiNrNdEGfOdbCty20wskA1yEzz6_eHpm6E9dEOds0mO1qmZ7n1TqZBB8XBs7fRoBFF6zfE=s64-c-k-c0x00ffffff-no-rj",
       "count": 2,
       "lastAt": 1788084446144
+    },
+    "yt:UC2U83ROZc-MX282S-PzT1Yg": {
+      "name": "@nauru-ph",
+      "avatar": "https://yt4.ggpht.com/WTMJYLUEw-YA4IoasPAe6c7wZ2UU_QB-7LEf4UEJRVRy5ugGekFtly-3lyw84qKKBBtG9dWr=s64-c-k-c0x00ffffff-no-rj",
+      "count": 2,
+      "lastAt": 1788090991163
     }
   },
   "recentVotes": [
+    {
+      "voter": "@nauru-ph",
+      "voterId": "yt:UC2U83ROZc-MX282S-PzT1Yg",
+      "code": "nr",
+      "name": "Nauru",
+      "img": "https://flagcdn.com/w40/nr.png",
+      "avatar": "https://yt4.ggpht.com/WTMJYLUEw-YA4IoasPAe6c7wZ2UU_QB-7LEf4UEJRVRy5ugGekFtly-3lyw84qKKBBtG9dWr=s64-c-k-c0x00ffffff-no-rj",
+      "at": 1788090991163
+    },
+    {
+      "voter": "@nauru-ph",
+      "voterId": "yt:UC2U83ROZc-MX282S-PzT1Yg",
+      "code": "nr",
+      "name": "Nauru",
+      "img": "https://flagcdn.com/w40/nr.png",
+      "avatar": "https://yt4.ggpht.com/WTMJYLUEw-YA4IoasPAe6c7wZ2UU_QB-7LEf4UEJRVRy5ugGekFtly-3lyw84qKKBBtG9dWr=s64-c-k-c0x00ffffff-no-rj",
+      "at": 1788090980935
+    },
     {
       "voter": "@isaedmausilva5239",
       "voterId": "yt:UCBw8gjrSgx_tHCbhhTaIEHw",
@@ -1230,24 +1255,6 @@
       "img": "https://flagcdn.com/w40/es.png",
       "avatar": "https://yt4.ggpht.com/5fGdUIyDk4ORlSQOqCzIRIcdkrcn9m8FJSW7AQ0TwIxl2_mW1CiQsGlmNIZ_SGfpRBZHL0J9Bg=s64-c-k-c0x00ffffff-no-rj",
       "at": 1788086011408
-    },
-    {
-      "voter": "@isaedmausilva5239",
-      "voterId": "yt:UCBw8gjrSgx_tHCbhhTaIEHw",
-      "code": "pw",
-      "name": "Palau",
-      "img": "https://flagcdn.com/w40/pw.png",
-      "avatar": "https://yt4.ggpht.com/5fGdUIyDk4ORlSQOqCzIRIcdkrcn9m8FJSW7AQ0TwIxl2_mW1CiQsGlmNIZ_SGfpRBZHL0J9Bg=s64-c-k-c0x00ffffff-no-rj",
-      "at": 1788084456339
-    },
-    {
-      "voter": "@AgheuhLittleGuppy",
-      "voterId": "yt:UCX9u4foYezgb49b8GnD6Lrg",
-      "code": "pw",
-      "name": "Palau",
-      "img": "https://flagcdn.com/w40/pw.png",
-      "avatar": "https://yt4.ggpht.com/zXtiNrNdEGfOdbCty20wskA1yEzz6_eHpm6E9dEOds0mO1qmZ7n1TqZBB8XBs7fRoBFF6zfE=s64-c-k-c0x00ffffff-no-rj",
-      "at": 1788084446144
     }
   ]
 }
