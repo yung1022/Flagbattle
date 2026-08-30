@@ -1,7 +1,91 @@
 {
-  "updatedAt": "2026-08-28T12:56:21.556Z",
-  "api": "https://diamonds-chapters-piano-caught.trycloudflare.com",
+  "updatedAt": "2026-08-30T12:57:09.977Z",
+  "api": "https://enquiry-response-int-hosts.trycloudflare.com",
   "streams": [
+    {
+      "id": "fb_mtfky4ed_hjmg40",
+      "mode": "final",
+      "startedAt": "2026-08-30T09:01:14.821Z",
+      "endedAt": null,
+      "winner": null,
+      "qualified": [],
+      "rounds": []
+    },
+    {
+      "id": "fb_mtf3t181_y1jhx6",
+      "mode": "final",
+      "startedAt": "2026-08-30T01:01:23.953Z",
+      "endedAt": null,
+      "winner": null,
+      "qualified": [],
+      "rounds": []
+    },
+    {
+      "id": "fb_mtemonhp_7xgax1",
+      "mode": "final",
+      "startedAt": "2026-08-29T17:02:06.061Z",
+      "endedAt": null,
+      "winner": null,
+      "qualified": [],
+      "rounds": []
+    },
+    {
+      "id": "fb_mte5i51w_kkc8nu",
+      "mode": "final",
+      "startedAt": "2026-08-29T09:01:08.756Z",
+      "endedAt": null,
+      "winner": null,
+      "qualified": [],
+      "rounds": []
+    },
+    {
+      "id": "fb_mtdodfxk_43xqe2",
+      "mode": "final",
+      "startedAt": "2026-08-29T01:01:36.104Z",
+      "endedAt": "2026-08-29T04:58:41.433Z",
+      "winner": {
+        "code": "ga",
+        "name": "Gabon",
+        "img": "https://flagcdn.com/w80/ga.png"
+      },
+      "qualified": [],
+      "rounds": [],
+      "final": {
+        "at": "2026-08-29T04:57:41.420Z",
+        "ranking": [
+          {}
+        ],
+        "winner": {
+          "code": "ga",
+          "name": "Gabon",
+          "img": "https://flagcdn.com/w80/ga.png"
+        }
+      }
+    },
+    {
+      "id": "fb_mtd784lh_6wxn3e",
+      "mode": "final",
+      "startedAt": "2026-08-28T17:01:34.661Z",
+      "endedAt": "2026-08-28T21:00:24.742Z",
+      "winner": {
+        "code": "az",
+        "name": "Azerbaijan",
+        "img": "https://flagcdn.com/w80/az.png"
+      },
+      "qualified": [],
+      "rounds": [],
+      "final": {
+        "at": "2026-08-28T20:59:24.718Z",
+        "ranking": [
+          {}
+        ],
+        "winner": {
+          "code": "az",
+          "name": "Azerbaijan",
+          "img": "https://flagcdn.com/w80/az.png"
+        }
+      }
+    },
     {
       "id": "fb_mtcq2xfy_q20n7q",
       "mode": "final",
@@ -802,150 +886,17 @@
           "img": "https://flagcdn.com/w80/lu.png"
         }
       }
-    },
-    {
-      "id": "fb_msw1xt24_t9ehdg",
-      "mode": "final",
-      "startedAt": "2026-08-16T17:01:30.076Z",
-      "endedAt": null,
-      "winner": null,
-      "qualified": [],
-      "rounds": []
-    },
-    {
-      "id": "fb_msvksj1g_3cq7mf",
-      "mode": "final",
-      "startedAt": "2026-08-16T09:01:30.340Z",
-      "endedAt": "2026-08-16T12:58:20.913Z",
-      "winner": {
-        "code": "gn",
-        "name": "Guinea",
-        "img": "https://flagcdn.com/w80/gn.png"
-      },
-      "qualified": [],
-      "rounds": [],
-      "final": {
-        "at": "2026-08-16T12:57:20.894Z",
-        "ranking": [
-          {}
-        ],
-        "winner": {
-          "code": "gn",
-          "name": "Guinea",
-          "img": "https://flagcdn.com/w80/gn.png"
-        }
-      }
-    },
-    {
-      "id": "fb_msv3nbnl_77i8wz",
-      "mode": "final",
-      "startedAt": "2026-08-16T01:01:34.017Z",
-      "endedAt": "2026-08-16T05:02:34.803Z",
-      "winner": {
-        "code": "zm",
-        "name": "Zambia",
-        "img": "https://flagcdn.com/w80/zm.png"
-      },
-      "qualified": [],
-      "rounds": [],
-      "final": {
-        "at": "2026-08-16T05:01:34.778Z",
-        "ranking": [
-          {}
-        ],
-        "winner": {
-          "code": "zm",
-          "name": "Zambia",
-          "img": "https://flagcdn.com/w80/zm.png"
-        }
-      }
-    },
-    {
-      "id": "fb_msumim1i_3zgakh",
-      "mode": "final",
-      "startedAt": "2026-08-15T17:02:00.726Z",
-      "endedAt": "2026-08-15T20:58:16.819Z",
-      "winner": {
-        "code": "lu",
-        "name": "Luxembourg",
-        "img": "https://flagcdn.com/w80/lu.png"
-      },
-      "qualified": [],
-      "rounds": [],
-      "final": {
-        "at": "2026-08-15T20:57:16.788Z",
-        "ranking": [
-          {}
-        ],
-        "winner": {
-          "code": "lu",
-          "name": "Luxembourg",
-          "img": "https://flagcdn.com/w80/lu.png"
-        }
-      }
-    },
-    {
-      "id": "fb_msu5cok6_3r9bqg",
-      "mode": "final",
-      "startedAt": "2026-08-15T09:01:30.582Z",
-      "endedAt": "2026-08-15T12:50:21.298Z",
-      "winner": {
-        "code": "ag",
-        "name": "Antigua and Barbuda",
-        "img": "https://flagcdn.com/w80/ag.png"
-      },
-      "qualified": [],
-      "rounds": [],
-      "final": {
-        "at": "2026-08-15T12:49:21.287Z",
-        "ranking": [
-          {}
-        ],
-        "winner": {
-          "code": "ag",
-          "name": "Antigua and Barbuda",
-          "img": "https://flagcdn.com/w80/ag.png"
-        }
-      }
-    },
-    {
-      "id": "fb_msto7oop_eze910",
-      "mode": "final",
-      "startedAt": "2026-08-15T01:01:43.993Z",
-      "endedAt": "2026-08-15T05:00:21.878Z",
-      "winner": {
-        "code": "uz",
-        "name": "Uzbekistan",
-        "img": "https://flagcdn.com/w80/uz.png"
-      },
-      "qualified": [],
-      "rounds": [],
-      "final": {
-        "at": "2026-08-15T04:59:21.860Z",
-        "ranking": [
-          {}
-        ],
-        "winner": {
-          "code": "uz",
-          "name": "Uzbekistan",
-          "img": "https://flagcdn.com/w80/uz.png"
-        }
-      }
     }
   ],
   "live": {
-    "streamId": "fb_mtcq2xfy_q20n7q",
+    "streamId": "fb_mtfky4ed_hjmg40",
     "title": null,
     "mode": "final",
-    "phase": "finished",
+    "phase": "main",
     "startedAt": null,
     "qualifyingRemainingMs": 0,
     "qualified": [],
-    "winner": {
-      "code": "mh",
-      "name": "Marshall Islands",
-      "img": "https://flagcdn.com/w80/mh.png"
-    },
-    "updatedAt": 1787921781232
+    "winner": null,
+    "updatedAt": 1788094627921
   }
 }
