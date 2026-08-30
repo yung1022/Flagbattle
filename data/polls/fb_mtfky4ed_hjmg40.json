@@ -1049,7 +1049,7 @@
     "hn": 0,
     "hu": 0,
     "is": 0,
-    "in": 0,
+    "in": 3,
     "id": 0,
     "ir": 0,
     "iq": 1,
@@ -1174,11 +1174,12 @@
     "yt:UCBw8gjrSgx_tHCbhhTaIEHw": "kr",
     "yt:UCX9u4foYezgb49b8GnD6Lrg": "pw",
     "yt:UC2U83ROZc-MX282S-PzT1Yg": "nr",
-    "yt:UCjwuTLqGJgO1zbg9EIGRsuw": "fr"
+    "yt:UCjwuTLqGJgO1zbg9EIGRsuw": "fr",
+    "yt:UCxojjAukpONkMm3stHG0ZcQ": "in"
   },
   "closed": false,
   "closedAt": null,
-  "updatedAt": 1788092112668,
+  "updatedAt": 1788093537314,
   "voterStats": {
     "yt:UC47Lmf6UiBDe9R2wtJgsTQA": {
       "name": "@SHIVRAJBHUJBAL-P4J",
@@ -1215,9 +1216,42 @@
       "avatar": "https://yt4.ggpht.com/PvrE6bmkK_NFp1SxA-Ots0EHW3ce1k3INVIZRAXVg3-sRdISkQ0fFP4LwAYj71msFBnrva9UVw=s64-c-k-c0x00ffffff-no-rj",
       "count": 3,
       "lastAt": 1788092112668
+    },
+    "yt:UCxojjAukpONkMm3stHG0ZcQ": {
+      "name": "@Op_Editzz1",
+      "avatar": "https://yt4.ggpht.com/7ZJM51LqVkIOWmAGCzJn9hs3c8dTuWLtee23aim_1vjZ7ct3vjrLlbfwCv0YAs8zQXC9EZopCA=s64-c-k-c0x00ffffff-no-rj",
+      "count": 3,
+      "lastAt": 1788093537314
     }
   },
   "recentVotes": [
+    {
+      "voter": "@Op_Editzz1",
+      "voterId": "yt:UCxojjAukpONkMm3stHG0ZcQ",
+      "code": "in",
+      "name": "India",
+      "img": "https://flagcdn.com/w40/in.png",
+      "avatar": "https://yt4.ggpht.com/7ZJM51LqVkIOWmAGCzJn9hs3c8dTuWLtee23aim_1vjZ7ct3vjrLlbfwCv0YAs8zQXC9EZopCA=s64-c-k-c0x00ffffff-no-rj",
+      "at": 1788093537314
+    },
+    {
+      "voter": "@Op_Editzz1",
+      "voterId": "yt:UCxojjAukpONkMm3stHG0ZcQ",
+      "code": "in",
+      "name": "India",
+      "img": "https://flagcdn.com/w40/in.png",
+      "avatar": "https://yt4.ggpht.com/7ZJM51LqVkIOWmAGCzJn9hs3c8dTuWLtee23aim_1vjZ7ct3vjrLlbfwCv0YAs8zQXC9EZopCA=s64-c-k-c0x00ffffff-no-rj",
+      "at": 1788093527087
+    },
+    {
+      "voter": "@Op_Editzz1",
+      "voterId": "yt:UCxojjAukpONkMm3stHG0ZcQ",
+      "code": "in",
+      "name": "India",
+      "img": "https://flagcdn.com/w40/in.png",
+      "avatar": "https://yt4.ggpht.com/7ZJM51LqVkIOWmAGCzJn9hs3c8dTuWLtee23aim_1vjZ7ct3vjrLlbfwCv0YAs8zQXC9EZopCA=s64-c-k-c0x00ffffff-no-rj",
+      "at": 1788093516890
+    },
     {
       "voter": "@makohdel4953",
       "voterId": "yt:UCjwuTLqGJgO1zbg9EIGRsuw",
@@ -1235,33 +1269,6 @@
       "img": "https://flagcdn.com/w40/fr.png",
       "avatar": "https://yt4.ggpht.com/PvrE6bmkK_NFp1SxA-Ots0EHW3ce1k3INVIZRAXVg3-sRdISkQ0fFP4LwAYj71msFBnrva9UVw=s64-c-k-c0x00ffffff-no-rj",
       "at": 1788092092279
-    },
-    {
-      "voter": "@makohdel4953",
-      "voterId": "yt:UCjwuTLqGJgO1zbg9EIGRsuw",
-      "code": "fr",
-      "name": "France",
-      "img": "https://flagcdn.com/w40/fr.png",
-      "avatar": "https://yt4.ggpht.com/PvrE6bmkK_NFp1SxA-Ots0EHW3ce1k3INVIZRAXVg3-sRdISkQ0fFP4LwAYj71msFBnrva9UVw=s64-c-k-c0x00ffffff-no-rj",
-      "at": 1788092082077
-    },
-    {
-      "voter": "@nauru-ph",
-      "voterId": "yt:UC2U83ROZc-MX282S-PzT1Yg",
-      "code": "nr",
-      "name": "Nauru",
-      "img": "https://flagcdn.com/w40/nr.png",
-      "avatar": "https://yt4.ggpht.com/WTMJYLUEw-YA4IoasPAe6c7wZ2UU_QB-7LEf4UEJRVRy5ugGekFtly-3lyw84qKKBBtG9dWr=s64-c-k-c0x00ffffff-no-rj",
-      "at": 1788090991163
-    },
-    {
-      "voter": "@nauru-ph",
-      "voterId": "yt:UC2U83ROZc-MX282S-PzT1Yg",
-      "code": "nr",
-      "name": "Nauru",
-      "img": "https://flagcdn.com/w40/nr.png",
-      "avatar": "https://yt4.ggpht.com/WTMJYLUEw-YA4IoasPAe6c7wZ2UU_QB-7LEf4UEJRVRy5ugGekFtly-3lyw84qKKBBtG9dWr=s64-c-k-c0x00ffffff-no-rj",
-      "at": 1788090980935
     }
   ]
 }
