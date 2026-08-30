@@ -1009,7 +1009,7 @@
     "td": 0,
     "cl": 0,
     "cn": 0,
-    "co": 2,
+    "co": 3,
     "km": 0,
     "cg": 0,
     "cd": 0,
@@ -1180,7 +1180,7 @@
   },
   "closed": false,
   "closedAt": null,
-  "updatedAt": 1788120920456,
+  "updatedAt": 1788121051708,
   "voterStats": {
     "yt:UCBw8gjrSgx_tHCbhhTaIEHw": {
       "name": "@isaedmausilva5239",
@@ -1227,11 +1227,20 @@
     "yt:UCgHScuXQI80yQTh6UazRCVg": {
       "name": "@NELSON2083envi",
       "avatar": "https://yt4.ggpht.com/ytc/AIdro_mQPSrH_ciG7qqWxXbvLdt-yOWg8iIxIJ94kZavog4xQVh7F-Pwyaiwm5oLdrxwNC7pVw=s64-c-k-c0x00ffffff-no-rj",
-      "count": 2,
-      "lastAt": 1788120920456
+      "count": 3,
+      "lastAt": 1788121051708
     }
   },
   "recentVotes": [
+    {
+      "voter": "@NELSON2083envi",
+      "voterId": "yt:UCgHScuXQI80yQTh6UazRCVg",
+      "code": "co",
+      "name": "Colombia",
+      "img": "https://flagcdn.com/w40/co.png",
+      "avatar": "https://yt4.ggpht.com/ytc/AIdro_mQPSrH_ciG7qqWxXbvLdt-yOWg8iIxIJ94kZavog4xQVh7F-Pwyaiwm5oLdrxwNC7pVw=s64-c-k-c0x00ffffff-no-rj",
+      "at": 1788121051708
+    },
     {
       "voter": "@NELSON2083envi",
       "voterId": "yt:UCgHScuXQI80yQTh6UazRCVg",
@@ -1267,15 +1276,6 @@
       "img": "https://flagcdn.com/w40/it.png",
       "avatar": "https://yt4.ggpht.com/ytc/AIdro_nLQhX1PoHX5jME-72sexmj586E4ccVieaaMIwgakYRug=s64-c-k-c0x00ffffff-no-rj",
       "at": 1788118309776
-    },
-    {
-      "voter": "@juju-jy3rc-j2u",
-      "voterId": "yt:UC3PvdfAclarnqkUCJlWECOA",
-      "code": "bz",
-      "name": "Belize",
-      "img": "https://flagcdn.com/w40/bz.png",
-      "avatar": "https://yt4.ggpht.com/F483c8cwhbkVdxm9o9RCQx5kVEtXckpLIf00-LhPZvgyJ2A4rwqmhcH476JC08wmVG5AIfBU_HE=s64-c-k-c0x00ffffff-no-rj",
-      "at": 1788114597344
     }
   ]
 }
