@@ -1009,7 +1009,7 @@
     "td": 0,
     "cl": 0,
     "cn": 0,
-    "co": 0,
+    "co": 2,
     "km": 0,
     "cg": 0,
     "cd": 0,
@@ -1175,11 +1175,12 @@
     "yt:UCO4ipk5oCt7dtNYcbn9sLBw": "gt",
     "yt:UCcfasogSn8u4-t93qWnFxLw": "sv",
     "yt:UC3PvdfAclarnqkUCJlWECOA": "br",
-    "yt:UCS1XFj5H72vF8gjeNorVEHQ": "it"
+    "yt:UCS1XFj5H72vF8gjeNorVEHQ": "it",
+    "yt:UCgHScuXQI80yQTh6UazRCVg": "co"
   },
   "closed": false,
   "closedAt": null,
-  "updatedAt": 1788119055623,
+  "updatedAt": 1788120920456,
   "voterStats": {
     "yt:UCBw8gjrSgx_tHCbhhTaIEHw": {
       "name": "@isaedmausilva5239",
@@ -1222,9 +1223,33 @@
       "avatar": "https://yt4.ggpht.com/ytc/AIdro_nLQhX1PoHX5jME-72sexmj586E4ccVieaaMIwgakYRug=s64-c-k-c0x00ffffff-no-rj",
       "count": 1,
       "lastAt": 1788118309776
+    },
+    "yt:UCgHScuXQI80yQTh6UazRCVg": {
+      "name": "@NELSON2083envi",
+      "avatar": "https://yt4.ggpht.com/ytc/AIdro_mQPSrH_ciG7qqWxXbvLdt-yOWg8iIxIJ94kZavog4xQVh7F-Pwyaiwm5oLdrxwNC7pVw=s64-c-k-c0x00ffffff-no-rj",
+      "count": 2,
+      "lastAt": 1788120920456
     }
   },
   "recentVotes": [
+    {
+      "voter": "@NELSON2083envi",
+      "voterId": "yt:UCgHScuXQI80yQTh6UazRCVg",
+      "code": "co",
+      "name": "Colombia",
+      "img": "https://flagcdn.com/w40/co.png",
+      "avatar": "https://yt4.ggpht.com/ytc/AIdro_mQPSrH_ciG7qqWxXbvLdt-yOWg8iIxIJ94kZavog4xQVh7F-Pwyaiwm5oLdrxwNC7pVw=s64-c-k-c0x00ffffff-no-rj",
+      "at": 1788120920456
+    },
+    {
+      "voter": "@NELSON2083envi",
+      "voterId": "yt:UCgHScuXQI80yQTh6UazRCVg",
+      "code": "co",
+      "name": "Colombia",
+      "img": "https://flagcdn.com/w40/co.png",
+      "avatar": "https://yt4.ggpht.com/ytc/AIdro_mQPSrH_ciG7qqWxXbvLdt-yOWg8iIxIJ94kZavog4xQVh7F-Pwyaiwm5oLdrxwNC7pVw=s64-c-k-c0x00ffffff-no-rj",
+      "at": 1788120890074
+    },
     {
       "voter": "@juju-jy3rc-j2u",
       "voterId": "yt:UC3PvdfAclarnqkUCJlWECOA",
@@ -1251,24 +1276,6 @@
       "img": "https://flagcdn.com/w40/bz.png",
       "avatar": "https://yt4.ggpht.com/F483c8cwhbkVdxm9o9RCQx5kVEtXckpLIf00-LhPZvgyJ2A4rwqmhcH476JC08wmVG5AIfBU_HE=s64-c-k-c0x00ffffff-no-rj",
       "at": 1788114597344
-    },
-    {
-      "voter": "@juju-jy3rc-j2u",
-      "voterId": "yt:UC3PvdfAclarnqkUCJlWECOA",
-      "code": "ar",
-      "name": "Argentina",
-      "img": "https://flagcdn.com/w40/ar.png",
-      "avatar": "https://yt4.ggpht.com/F483c8cwhbkVdxm9o9RCQx5kVEtXckpLIf00-LhPZvgyJ2A4rwqmhcH476JC08wmVG5AIfBU_HE=s64-c-k-c0x00ffffff-no-rj",
-      "at": 1788114556985
-    },
-    {
-      "voter": "@juju-jy3rc-j2u",
-      "voterId": "yt:UC3PvdfAclarnqkUCJlWECOA",
-      "code": "hn",
-      "name": "Honduras",
-      "img": "https://flagcdn.com/w40/hn.png",
-      "avatar": "https://yt4.ggpht.com/F483c8cwhbkVdxm9o9RCQx5kVEtXckpLIf00-LhPZvgyJ2A4rwqmhcH476JC08wmVG5AIfBU_HE=s64-c-k-c0x00ffffff-no-rj",
-      "at": 1788114516577
     }
   ]
 }
