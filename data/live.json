@@ -21,9 +21,9 @@
       "name": "Malaysia",
       "img": "https://flagcdn.com/w80/my.png"
     },
-    "streamStatus": "winner_hold",
-    "endedAt": null,
-    "winnerHoldRemainingMs": 1484,
+    "streamStatus": "finished",
+    "endedAt": "2026-08-31T21:01:28.052Z",
+    "winnerHoldRemainingMs": 0,
     "qualifyingRemainingMs": 0,
     "sprintRemainingMs": 0,
     "mainRemainingMs": 0,
@@ -308,7 +308,7 @@
       }
     ],
     "finalLiveAt": null,
-    "updatedAt": 1788210086540
+    "updatedAt": 1788210088053
   },
   "streams": [
     {
@@ -73667,5 +73667,5 @@
     }
   ],
   "api": "https://identification-unexpected-replaced-individually.trycloudflare.com",
-  "updatedAt": 1788210088164
+  "updatedAt": 1788210088278
 }
