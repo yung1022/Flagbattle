@@ -21,9 +21,9 @@
       "name": "Malta",
       "img": "https://flagcdn.com/w80/mt.png"
     },
-    "streamStatus": "winner_hold",
-    "endedAt": null,
-    "winnerHoldRemainingMs": 1242.199999999255,
+    "streamStatus": "finished",
+    "endedAt": "2026-08-31T12:57:13.123Z",
+    "winnerHoldRemainingMs": 0,
     "qualifyingRemainingMs": 0,
     "sprintRemainingMs": 0,
     "mainRemainingMs": 0,
@@ -306,7 +306,7 @@
       }
     ],
     "finalLiveAt": null,
-    "updatedAt": 1788181031868
+    "updatedAt": 1788181033125
   },
   "streams": [
     {
@@ -73671,5 +73671,5 @@
     }
   ],
   "api": "https://spatial-katrina-participants-carlos.trycloudflare.com",
-  "updatedAt": 1788181033290
+  "updatedAt": 1788181033471
 }
