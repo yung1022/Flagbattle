@@ -21,9 +21,9 @@
       "name": "China",
       "img": "https://flagcdn.com/w80/cn.png"
     },
-    "streamStatus": "winner_hold",
-    "endedAt": null,
-    "winnerHoldRemainingMs": 1247.8999999985099,
+    "streamStatus": "finished",
+    "endedAt": "2026-08-31T04:47:59.642Z",
+    "winnerHoldRemainingMs": 0,
     "qualifyingRemainingMs": 0,
     "sprintRemainingMs": 0,
     "mainRemainingMs": 0,
@@ -304,7 +304,7 @@
       }
     ],
     "finalLiveAt": null,
-    "updatedAt": 1788151678383
+    "updatedAt": 1788151679644
   },
   "streams": [
     {
@@ -73641,5 +73641,5 @@
     }
   ],
   "api": "https://kitchen-yrs-sufficient-creative.trycloudflare.com",
-  "updatedAt": 1788151679792
+  "updatedAt": 1788151679939
 }
