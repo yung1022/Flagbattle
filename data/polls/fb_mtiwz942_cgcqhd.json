@@ -1115,7 +1115,7 @@
     "pt": 0,
     "qa": 0,
     "ro": 0,
-    "ru": 0,
+    "ru": 1,
     "rw": 0,
     "kn": 0,
     "lc": 0,
@@ -1172,11 +1172,12 @@
     "yt:UCwvPRroI5hhqzbfxo5iXA_A": "gb",
     "yt:UCKWyMz8TCTvUDkvbttxKQ4g": "br",
     "yt:UCirHOTgr8t4JfOFiOgVLL4g": "in",
-    "yt:UCW8qjzcrfAM6OBhT8HLuQHA": "km"
+    "yt:UCW8qjzcrfAM6OBhT8HLuQHA": "km",
+    "yt:UCCj0ULsAWAYFVMKuBPBbeBw": "ru"
   },
   "closed": false,
   "closedAt": null,
-  "updatedAt": 1788294763035,
+  "updatedAt": 1788295548706,
   "voterStats": {
     "yt:UCwvPRroI5hhqzbfxo5iXA_A": {
       "name": "@ShenadeMorgan",
@@ -1201,9 +1202,24 @@
       "avatar": "https://yt4.ggpht.com/8DDvARNlpY14U7jf96leXDofVaIrYcpc2bVpoJCCJcSCWtxNFP-KpmcH3ozDOjAV-Y0obcePEg=s64-c-k-c0x00ffffff-no-rj",
       "count": 1,
       "lastAt": 1788294763035
+    },
+    "yt:UCCj0ULsAWAYFVMKuBPBbeBw": {
+      "name": "@adeputrabanjarmasin213",
+      "avatar": "https://yt4.ggpht.com/UScnoV99oeNOSPddD8LezodE2B1QbRIWAS-vD5y_2_BpsJgCWPi3wpKEKO0GABroouWU8rE3tw=s64-c-k-c0x00ffffff-no-rj",
+      "count": 1,
+      "lastAt": 1788295548706
     }
   },
   "recentVotes": [
+    {
+      "voter": "@adeputrabanjarmasin213",
+      "voterId": "yt:UCCj0ULsAWAYFVMKuBPBbeBw",
+      "code": "ru",
+      "name": "Russia",
+      "img": "https://flagcdn.com/w40/ru.png",
+      "avatar": "https://yt4.ggpht.com/UScnoV99oeNOSPddD8LezodE2B1QbRIWAS-vD5y_2_BpsJgCWPi3wpKEKO0GABroouWU8rE3tw=s64-c-k-c0x00ffffff-no-rj",
+      "at": 1788295548706
+    },
     {
       "voter": "@sunshine9254",
       "voterId": "yt:UCW8qjzcrfAM6OBhT8HLuQHA",
@@ -1239,15 +1255,6 @@
       "img": "https://flagcdn.com/w40/in.png",
       "avatar": "https://yt4.ggpht.com/ytc/AIdro_nkB_g43dtn8gtoNzjbuw1QgNSqL8VsdxWVCdQP7iAbF1Q=s64-c-k-c0x00ffffff-no-rj",
       "at": 1788290543014
-    },
-    {
-      "voter": "@RafaelaFerreira-dc6kl",
-      "voterId": "yt:UCKWyMz8TCTvUDkvbttxKQ4g",
-      "code": "br",
-      "name": "Brazil",
-      "img": "https://flagcdn.com/w40/br.png",
-      "avatar": "https://yt4.ggpht.com/ytc/AIdro_nhoOi8Lhcr7w0l0Ur6N0ern1n6gqe49p8sDZDsXjKezsAllwS3frRAi1p45L_qVDrCfQ=s64-c-k-c0x00ffffff-no-rj",
-      "at": 1788290280768
     }
   ]
 }
