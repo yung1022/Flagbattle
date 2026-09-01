@@ -1,7 +1,31 @@
 {
-  "updatedAt": "2026-09-01T04:58:54.583Z",
-  "api": "https://call-higher-commitment-certification.trycloudflare.com",
+  "updatedAt": "2026-09-01T12:57:36.746Z",
+  "api": "https://subsidiaries-folks-shoulder-phi.trycloudflare.com",
   "streams": [
+    {
+      "id": "fb_mtiftvdj_vb2iis",
+      "mode": "final",
+      "startedAt": "2026-09-01T09:01:16.951Z",
+      "endedAt": "2026-09-01T12:57:36.411Z",
+      "winner": {
+        "code": "tj",
+        "name": "Tajikistan",
+        "img": "https://flagcdn.com/w80/tj.png"
+      },
+      "qualified": [],
+      "rounds": [],
+      "final": {
+        "at": "2026-09-01T12:56:36.403Z",
+        "ranking": [
+          {}
+        ],
+        "winner": {
+          "code": "tj",
+          "name": "Tajikistan",
+          "img": "https://flagcdn.com/w80/tj.png"
+        }
+      }
+    },
     {
       "id": "fb_mthys4d0_2afa66",
       "mode": "final",
@@ -847,34 +871,10 @@
           "img": "https://flagcdn.com/w80/km.png"
         }
       }
-    },
-    {
-      "id": "fb_mszdyndc_fhbegr",
-      "mode": "final",
-      "startedAt": "2026-08-19T01:01:23.280Z",
-      "endedAt": "2026-08-19T04:53:30.868Z",
-      "winner": {
-        "code": "pe",
-        "name": "Peru",
-        "img": "https://flagcdn.com/w80/pe.png"
-      },
-      "qualified": [],
-      "rounds": [],
-      "final": {
-        "at": "2026-08-19T04:52:30.854Z",
-        "ranking": [
-          {}
-        ],
-        "winner": {
-          "code": "pe",
-          "name": "Peru",
-          "img": "https://flagcdn.com/w80/pe.png"
-        }
-      }
     }
   ],
   "live": {
-    "streamId": "fb_mthys4d0_2afa66",
+    "streamId": "fb_mtiftvdj_vb2iis",
     "title": null,
     "mode": "final",
     "phase": "finished",
@@ -882,10 +882,10 @@
     "qualifyingRemainingMs": 0,
     "qualified": [],
     "winner": {
-      "code": "ua",
-      "name": "Ukraine",
-      "img": "https://flagcdn.com/w80/ua.png"
+      "code": "tj",
+      "name": "Tajikistan",
+      "img": "https://flagcdn.com/w80/tj.png"
     },
-    "updatedAt": 1788238734326
+    "updatedAt": 1788267456412
   }
 }
