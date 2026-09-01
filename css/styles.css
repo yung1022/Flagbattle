@@ -1627,6 +1627,7 @@ body.stream-mode .stream-recent-votes-hint {
   grid-row: 1 / -1;
   align-self: stretch;
   max-height: none;
+  height: 100%;
   margin: 0;
   padding: 4px 6px;
   border-top: 0;
@@ -1634,7 +1635,8 @@ body.stream-mode .stream-recent-votes-hint {
   display: grid;
   place-items: center;
   text-align: center;
-  font-size: clamp(24px, 6vw, 46px);
+  font-size: clamp(28px, 5vw, 54px);
+  line-height: 1;
 }
 
 body.stream-mode .stream-recent-votes-rows {
@@ -1656,12 +1658,19 @@ body.stream-mode .stream-shoutout {
   z-index: 6;
 }
 
-body.stream-mode .stream-shoutout-card { display: grid; gap: 2px; min-height: 0; }
+body.stream-mode .stream-shoutout-card {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 4px;
+  min-height: 0;
+  align-content: start;
+}
 .spawn-leader-row {
   display: grid;
   grid-template-columns: 18px 24px 1fr auto;
   align-items: center;
   gap: 5px;
+  width: 100%;
   min-height: 20px;
   padding: 1px 3px;
   border-bottom: 1px solid rgba(255, 255, 255, 0.08);
@@ -1683,7 +1692,7 @@ body.stream-mode .stream-shoutout-card { display: grid; gap: 2px; min-height: 0;
   font-size: 11px;
   font-weight: 800;
 }
-.spawn-leader-name { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: clamp(11px, 2.4vw, 15px); font-weight: 800; }
+.spawn-leader-name { min-width: 0; width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: clamp(11px, 2.4vw, 15px); font-weight: 800; }
 .spawn-leader-count { color: var(--teal); font-family: var(--font-display); font-size: clamp(16px, 3.6vw, 24px); }
 
 body.stream-mode .stream-shoutout-card {

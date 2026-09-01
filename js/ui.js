@@ -1040,12 +1040,12 @@ function fitHintIntoParent(el) {
   if (!el) return;
   const parent = el.parentElement;
   if (!parent) return;
-  // Grow to fill available width; shrink until it fits the hint strip.
-  const maxPx = Math.min(42, Math.max(18, parent.clientWidth * 0.095));
+  // Use parent height as the real sizing constraint, then shrink only if needed.
+  const maxPx = Math.min(88, Math.max(28, parent.clientHeight * 0.72));
   let size = maxPx;
   el.style.fontSize = `${size}px`;
   el.style.whiteSpace = "normal";
-  // Cap height so it doesn't steal the whole column.
+  // Cap the hint to 75% of the parent height, matching the requested stream layout.
   const maxH = Math.max(28, parent.clientHeight * 0.75);
   let guard = 40;
   while (
