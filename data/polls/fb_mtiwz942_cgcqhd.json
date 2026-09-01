@@ -1010,7 +1010,7 @@
     "cl": 0,
     "cn": 0,
     "co": 0,
-    "km": 0,
+    "km": 1,
     "cg": 0,
     "cd": 0,
     "cr": 0,
@@ -1171,11 +1171,12 @@
   "voters": {
     "yt:UCwvPRroI5hhqzbfxo5iXA_A": "gb",
     "yt:UCKWyMz8TCTvUDkvbttxKQ4g": "br",
-    "yt:UCirHOTgr8t4JfOFiOgVLL4g": "in"
+    "yt:UCirHOTgr8t4JfOFiOgVLL4g": "in",
+    "yt:UCW8qjzcrfAM6OBhT8HLuQHA": "km"
   },
   "closed": false,
   "closedAt": null,
-  "updatedAt": 1788290563312,
+  "updatedAt": 1788294763035,
   "voterStats": {
     "yt:UCwvPRroI5hhqzbfxo5iXA_A": {
       "name": "@ShenadeMorgan",
@@ -1194,9 +1195,24 @@
       "avatar": "https://yt4.ggpht.com/ytc/AIdro_nkB_g43dtn8gtoNzjbuw1QgNSqL8VsdxWVCdQP7iAbF1Q=s64-c-k-c0x00ffffff-no-rj",
       "count": 3,
       "lastAt": 1788290563312
+    },
+    "yt:UCW8qjzcrfAM6OBhT8HLuQHA": {
+      "name": "@sunshine9254",
+      "avatar": "https://yt4.ggpht.com/8DDvARNlpY14U7jf96leXDofVaIrYcpc2bVpoJCCJcSCWtxNFP-KpmcH3ozDOjAV-Y0obcePEg=s64-c-k-c0x00ffffff-no-rj",
+      "count": 1,
+      "lastAt": 1788294763035
     }
   },
   "recentVotes": [
+    {
+      "voter": "@sunshine9254",
+      "voterId": "yt:UCW8qjzcrfAM6OBhT8HLuQHA",
+      "code": "km",
+      "name": "Comoros",
+      "img": "https://flagcdn.com/w40/km.png",
+      "avatar": "https://yt4.ggpht.com/8DDvARNlpY14U7jf96leXDofVaIrYcpc2bVpoJCCJcSCWtxNFP-KpmcH3ozDOjAV-Y0obcePEg=s64-c-k-c0x00ffffff-no-rj",
+      "at": 1788294763035
+    },
     {
       "voter": "@sandeeptaluja5412",
       "voterId": "yt:UCirHOTgr8t4JfOFiOgVLL4g",
@@ -1232,15 +1248,6 @@
       "img": "https://flagcdn.com/w40/br.png",
       "avatar": "https://yt4.ggpht.com/ytc/AIdro_nhoOi8Lhcr7w0l0Ur6N0ern1n6gqe49p8sDZDsXjKezsAllwS3frRAi1p45L_qVDrCfQ=s64-c-k-c0x00ffffff-no-rj",
       "at": 1788290280768
-    },
-    {
-      "voter": "@ShenadeMorgan",
-      "voterId": "yt:UCwvPRroI5hhqzbfxo5iXA_A",
-      "code": "gb",
-      "name": "United Kingdom",
-      "img": "https://flagcdn.com/w40/gb.png",
-      "avatar": "https://yt4.ggpht.com/ytc/AIdro_mGCcO77qRAILeeq23h9y6AoVb-S6jhNjs55xh4H1JqzRtYoueMFrSC8S9Y7lZhzF6Tww=s64-c-k-c0x00ffffff-no-rj",
-      "at": 1788288256789
     }
   ]
 }
