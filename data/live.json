@@ -21,9 +21,9 @@
       "name": "Ukraine",
       "img": "https://flagcdn.com/w80/ua.png"
     },
-    "streamStatus": "winner_hold",
-    "endedAt": null,
-    "winnerHoldRemainingMs": 1406.9000000003725,
+    "streamStatus": "finished",
+    "endedAt": "2026-09-01T04:58:54.322Z",
+    "winnerHoldRemainingMs": 0,
     "qualifyingRemainingMs": 0,
     "sprintRemainingMs": 0,
     "mainRemainingMs": 0,
@@ -311,7 +311,7 @@
       }
     ],
     "finalLiveAt": null,
-    "updatedAt": 1788238732902
+    "updatedAt": 1788238734326
   },
   "streams": [
     {
@@ -73730,5 +73730,5 @@
     }
   ],
   "api": "https://call-higher-commitment-certification.trycloudflare.com",
-  "updatedAt": 1788238734436
+  "updatedAt": 1788238734570
 }
