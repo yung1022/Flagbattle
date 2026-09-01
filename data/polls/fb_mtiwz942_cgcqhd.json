@@ -996,7 +996,7 @@
     "bo": 0,
     "ba": 0,
     "bw": 0,
-    "br": 0,
+    "br": 1,
     "bn": 0,
     "bg": 0,
     "bf": 0,
@@ -1169,20 +1169,36 @@
     "zw": 0
   },
   "voters": {
-    "yt:UCwvPRroI5hhqzbfxo5iXA_A": "gb"
+    "yt:UCwvPRroI5hhqzbfxo5iXA_A": "gb",
+    "yt:UCKWyMz8TCTvUDkvbttxKQ4g": "br"
   },
   "closed": false,
   "closedAt": null,
-  "updatedAt": 1788288256789,
+  "updatedAt": 1788290280768,
   "voterStats": {
     "yt:UCwvPRroI5hhqzbfxo5iXA_A": {
       "name": "@ShenadeMorgan",
       "avatar": "https://yt4.ggpht.com/ytc/AIdro_mGCcO77qRAILeeq23h9y6AoVb-S6jhNjs55xh4H1JqzRtYoueMFrSC8S9Y7lZhzF6Tww=s64-c-k-c0x00ffffff-no-rj",
       "count": 1,
       "lastAt": 1788288256789
+    },
+    "yt:UCKWyMz8TCTvUDkvbttxKQ4g": {
+      "name": "@RafaelaFerreira-dc6kl",
+      "avatar": "https://yt4.ggpht.com/ytc/AIdro_nhoOi8Lhcr7w0l0Ur6N0ern1n6gqe49p8sDZDsXjKezsAllwS3frRAi1p45L_qVDrCfQ=s64-c-k-c0x00ffffff-no-rj",
+      "count": 1,
+      "lastAt": 1788290280768
     }
   },
   "recentVotes": [
+    {
+      "voter": "@RafaelaFerreira-dc6kl",
+      "voterId": "yt:UCKWyMz8TCTvUDkvbttxKQ4g",
+      "code": "br",
+      "name": "Brazil",
+      "img": "https://flagcdn.com/w40/br.png",
+      "avatar": "https://yt4.ggpht.com/ytc/AIdro_nhoOi8Lhcr7w0l0Ur6N0ern1n6gqe49p8sDZDsXjKezsAllwS3frRAi1p45L_qVDrCfQ=s64-c-k-c0x00ffffff-no-rj",
+      "at": 1788290280768
+    },
     {
       "voter": "@ShenadeMorgan",
       "voterId": "yt:UCwvPRroI5hhqzbfxo5iXA_A",
