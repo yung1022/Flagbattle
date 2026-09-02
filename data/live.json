@@ -21,9 +21,9 @@
       "name": "Kiribati",
       "img": "https://flagcdn.com/w80/ki.png"
     },
-    "streamStatus": "winner_hold",
-    "endedAt": null,
-    "winnerHoldRemainingMs": 1309.300000000745,
+    "streamStatus": "finished",
+    "endedAt": "2026-09-02T04:59:56.862Z",
+    "winnerHoldRemainingMs": 0,
     "qualifyingRemainingMs": 0,
     "sprintRemainingMs": 0,
     "mainRemainingMs": 0,
@@ -307,7 +307,7 @@
       }
     ],
     "finalLiveAt": null,
-    "updatedAt": 1788325195532
+    "updatedAt": 1788325196864
   },
   "streams": [
     {
@@ -72092,5 +72092,5 @@
     }
   ],
   "api": "https://familiar-response-legislation-forum.trycloudflare.com",
-  "updatedAt": 1788325197010
+  "updatedAt": 1788325197131
 }
