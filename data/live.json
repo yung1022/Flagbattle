@@ -21,9 +21,9 @@
       "name": "United States",
       "img": "https://flagcdn.com/w80/us.png"
     },
-    "streamStatus": "winner_hold",
-    "endedAt": null,
-    "winnerHoldRemainingMs": 1240,
+    "streamStatus": "finished",
+    "endedAt": "2026-09-02T12:49:10.496Z",
+    "winnerHoldRemainingMs": 0,
     "qualifyingRemainingMs": 0,
     "sprintRemainingMs": 0,
     "mainRemainingMs": 0,
@@ -303,7 +303,7 @@
       }
     ],
     "finalLiveAt": null,
-    "updatedAt": 1788353349230
+    "updatedAt": 1788353350498
   },
   "streams": [
     {
@@ -72042,5 +72042,5 @@
     }
   ],
   "api": "https://nasa-pitch-biodiversity-why.trycloudflare.com",
-  "updatedAt": 1788353350653
+  "updatedAt": 1788353350814
 }
