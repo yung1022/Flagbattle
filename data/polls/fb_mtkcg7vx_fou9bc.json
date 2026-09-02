@@ -1037,7 +1037,7 @@
     "ga": 0,
     "gm": 0,
     "ge": 0,
-    "de": 0,
+    "de": 1,
     "gh": 0,
     "gr": 0,
     "gd": 0,
@@ -1173,11 +1173,12 @@
     "yt:UCsgOJtJprlzAsbd4yiuJ8Eg": "za",
     "yt:UCbTrWFa-mm8JRFUXo7_t9TA": "br",
     "yt:UCG_Q2wY0ilJ3Fw7RvaVILFQ": "gb",
-    "yt:UCmZ-Omz84JxTY3RNBKTPCrQ": "gb"
+    "yt:UCmZ-Omz84JxTY3RNBKTPCrQ": "gb",
+    "yt:UCra0JMfnhZmzlFRja1dA7Jw": "de"
   },
   "closed": false,
   "closedAt": null,
-  "updatedAt": 1788375125409,
+  "updatedAt": 1788380776020,
   "voterStats": {
     "yt:UCxMEmsMYIxcU2hES5zHu4lQ": {
       "name": "@BraxtenNewsom-b3t",
@@ -1208,9 +1209,24 @@
       "avatar": "https://yt4.ggpht.com/pCUFHp3Ojn4pDxChXiSnPuDLZDUxMe_x5kwCNzyspiMoUripQ9QrNQ9zLc5dEO5GITosiAdB=s64-c-k-c0x00ffffff-no-rj",
       "count": 1,
       "lastAt": 1788375125409
+    },
+    "yt:UCra0JMfnhZmzlFRja1dA7Jw": {
+      "name": "@jonhatley9483",
+      "avatar": "https://yt4.ggpht.com/ytc/AIdro_lm_zOZN6FVCMC9XEgozZJNxopPmyd0qspJwRJFxH0emdOvBN8EgbvmEsBy4G2A8EPFaA=s64-c-k-c0x00ffffff-no-rj",
+      "count": 1,
+      "lastAt": 1788380776020
     }
   },
   "recentVotes": [
+    {
+      "voter": "@jonhatley9483",
+      "voterId": "yt:UCra0JMfnhZmzlFRja1dA7Jw",
+      "code": "de",
+      "name": "Germany",
+      "img": "https://flagcdn.com/w40/de.png",
+      "avatar": "https://yt4.ggpht.com/ytc/AIdro_lm_zOZN6FVCMC9XEgozZJNxopPmyd0qspJwRJFxH0emdOvBN8EgbvmEsBy4G2A8EPFaA=s64-c-k-c0x00ffffff-no-rj",
+      "at": 1788380776020
+    },
     {
       "voter": "@L1amw90",
       "voterId": "yt:UCmZ-Omz84JxTY3RNBKTPCrQ",
@@ -1246,15 +1262,6 @@
       "img": "https://flagcdn.com/w40/gb.png",
       "avatar": "https://yt4.ggpht.com/gNzZ-nGpAd7J7i8ySTC-KAvoxa_nHU9pNaFdzv1gRd_ZX_KbfLCRTxAkU3BGD0AudSej10XDeNw=s64-c-k-c0x00ffffff-no-rj",
       "at": 1788369141980
-    },
-    {
-      "voter": "@auttputtp4629",
-      "voterId": "yt:UCbTrWFa-mm8JRFUXo7_t9TA",
-      "code": "br",
-      "name": "Brazil",
-      "img": "https://flagcdn.com/w40/br.png",
-      "avatar": "https://yt4.ggpht.com/HjxJ5NrsUHN1PrheVGCkx62jAEaaA338-y0mXqNfFbHwYtV4H0KfZVy_viqEUviaH6gZiL5PJcg=s64-c-k-c0x00ffffff-no-rj",
-      "at": 1788369111296
     }
   ]
 }
