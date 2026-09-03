@@ -974,7 +974,7 @@
   ],
   "votes": {
     "af": 0,
-    "al": 0,
+    "al": 1,
     "dz": 0,
     "ad": 0,
     "ao": 0,
@@ -1170,11 +1170,12 @@
   },
   "voters": {
     "yt:UCV2nEmGZV0khtJVC7CWQHag": "na",
-    "yt:UCEE1RlIBaPsjtvUG-ksSS-w": "mz"
+    "yt:UCEE1RlIBaPsjtvUG-ksSS-w": "mz",
+    "yt:UC_Dmoq6NjdjHgMY5C_s4k1Q": "al"
   },
   "closed": false,
   "closedAt": null,
-  "updatedAt": 1788461853475,
+  "updatedAt": 1788463869222,
   "voterStats": {
     "yt:UCV2nEmGZV0khtJVC7CWQHag": {
       "name": "@Raaziafahim1975",
@@ -1187,9 +1188,24 @@
       "avatar": "https://yt4.ggpht.com/NbdFNidqnE-nkjalmU2UQah-dPE12ov1GsdgHIrJ0IqBClDaMHBVz1A2Ie93pl3eztVT3tugoA=s64-c-k-c0x00ffffff-no-rj",
       "count": 14,
       "lastAt": 1788461853475
+    },
+    "yt:UC_Dmoq6NjdjHgMY5C_s4k1Q": {
+      "name": "@reddo_YT",
+      "avatar": "https://yt4.ggpht.com/lb19cE9QfMBIWehSDBRIwXgPev6UzCCKDUlBkVlZftTXIRF8zeJHR0yJqjZ_IpYuhYaVrZo=s64-c-k-c0x00ffffff-no-rj",
+      "count": 1,
+      "lastAt": 1788463869222
     }
   },
   "recentVotes": [
+    {
+      "voter": "@reddo_YT",
+      "voterId": "yt:UC_Dmoq6NjdjHgMY5C_s4k1Q",
+      "code": "al",
+      "name": "Albania",
+      "img": "https://flagcdn.com/w40/al.png",
+      "avatar": "https://yt4.ggpht.com/lb19cE9QfMBIWehSDBRIwXgPev6UzCCKDUlBkVlZftTXIRF8zeJHR0yJqjZ_IpYuhYaVrZo=s64-c-k-c0x00ffffff-no-rj",
+      "at": 1788463869222
+    },
     {
       "voter": "@GelatinshouldhavewonBFB",
       "voterId": "yt:UCEE1RlIBaPsjtvUG-ksSS-w",
@@ -1225,15 +1241,6 @@
       "img": "https://flagcdn.com/w40/et.png",
       "avatar": "https://yt4.ggpht.com/NbdFNidqnE-nkjalmU2UQah-dPE12ov1GsdgHIrJ0IqBClDaMHBVz1A2Ie93pl3eztVT3tugoA=s64-c-k-c0x00ffffff-no-rj",
       "at": 1788460517519
-    },
-    {
-      "voter": "@GelatinshouldhavewonBFB",
-      "voterId": "yt:UCEE1RlIBaPsjtvUG-ksSS-w",
-      "code": "et",
-      "name": "Ethiopia",
-      "img": "https://flagcdn.com/w40/et.png",
-      "avatar": "https://yt4.ggpht.com/NbdFNidqnE-nkjalmU2UQah-dPE12ov1GsdgHIrJ0IqBClDaMHBVz1A2Ie93pl3eztVT3tugoA=s64-c-k-c0x00ffffff-no-rj",
-      "at": 1788460316166
     }
   ]
 }
