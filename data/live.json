@@ -21,9 +21,9 @@
       "name": "Romania",
       "img": "https://flagcdn.com/w80/ro.png"
     },
-    "streamStatus": "winner_hold",
-    "endedAt": null,
-    "winnerHoldRemainingMs": 1493.0999999996275,
+    "streamStatus": "finished",
+    "endedAt": "2026-09-03T12:49:37.735Z",
+    "winnerHoldRemainingMs": 0,
     "qualifyingRemainingMs": 0,
     "sprintRemainingMs": 0,
     "mainRemainingMs": 0,
@@ -303,7 +303,7 @@
       }
     ],
     "finalLiveAt": null,
-    "updatedAt": 1788439776234
+    "updatedAt": 1788439777736
   },
   "streams": [
     {
@@ -70390,5 +70390,5 @@
     }
   ],
   "api": "https://cnet-reducing-shows-frozen.trycloudflare.com",
-  "updatedAt": 1788439777862
+  "updatedAt": 1788439777986
 }
