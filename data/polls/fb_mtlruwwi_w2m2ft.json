@@ -1091,7 +1091,7 @@
     "mn": 0,
     "me": 0,
     "ma": 0,
-    "mz": 0,
+    "mz": 1,
     "mm": 0,
     "na": 1,
     "nr": 0,
@@ -1170,11 +1170,11 @@
   },
   "voters": {
     "yt:UCV2nEmGZV0khtJVC7CWQHag": "na",
-    "yt:UCEE1RlIBaPsjtvUG-ksSS-w": "et"
+    "yt:UCEE1RlIBaPsjtvUG-ksSS-w": "mz"
   },
   "closed": false,
   "closedAt": null,
-  "updatedAt": 1788460688702,
+  "updatedAt": 1788461853475,
   "voterStats": {
     "yt:UCV2nEmGZV0khtJVC7CWQHag": {
       "name": "@Raaziafahim1975",
@@ -1185,11 +1185,20 @@
     "yt:UCEE1RlIBaPsjtvUG-ksSS-w": {
       "name": "@GelatinshouldhavewonBFB",
       "avatar": "https://yt4.ggpht.com/NbdFNidqnE-nkjalmU2UQah-dPE12ov1GsdgHIrJ0IqBClDaMHBVz1A2Ie93pl3eztVT3tugoA=s64-c-k-c0x00ffffff-no-rj",
-      "count": 13,
-      "lastAt": 1788460688702
+      "count": 14,
+      "lastAt": 1788461853475
     }
   },
   "recentVotes": [
+    {
+      "voter": "@GelatinshouldhavewonBFB",
+      "voterId": "yt:UCEE1RlIBaPsjtvUG-ksSS-w",
+      "code": "mz",
+      "name": "Mozambique",
+      "img": "https://flagcdn.com/w40/mz.png",
+      "avatar": "https://yt4.ggpht.com/NbdFNidqnE-nkjalmU2UQah-dPE12ov1GsdgHIrJ0IqBClDaMHBVz1A2Ie93pl3eztVT3tugoA=s64-c-k-c0x00ffffff-no-rj",
+      "at": 1788461853475
+    },
     {
       "voter": "@GelatinshouldhavewonBFB",
       "voterId": "yt:UCEE1RlIBaPsjtvUG-ksSS-w",
@@ -1225,15 +1234,6 @@
       "img": "https://flagcdn.com/w40/et.png",
       "avatar": "https://yt4.ggpht.com/NbdFNidqnE-nkjalmU2UQah-dPE12ov1GsdgHIrJ0IqBClDaMHBVz1A2Ie93pl3eztVT3tugoA=s64-c-k-c0x00ffffff-no-rj",
       "at": 1788460316166
-    },
-    {
-      "voter": "@GelatinshouldhavewonBFB",
-      "voterId": "yt:UCEE1RlIBaPsjtvUG-ksSS-w",
-      "code": "et",
-      "name": "Ethiopia",
-      "img": "https://flagcdn.com/w40/et.png",
-      "avatar": "https://yt4.ggpht.com/NbdFNidqnE-nkjalmU2UQah-dPE12ov1GsdgHIrJ0IqBClDaMHBVz1A2Ie93pl3eztVT3tugoA=s64-c-k-c0x00ffffff-no-rj",
-      "at": 1788460235479
     }
   ]
 }
