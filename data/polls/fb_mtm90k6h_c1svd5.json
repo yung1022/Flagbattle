@@ -990,7 +990,7 @@
     "bb": 0,
     "by": 0,
     "be": 0,
-    "bz": 2,
+    "bz": 3,
     "bj": 0,
     "bt": 0,
     "bo": 0,
@@ -1053,7 +1053,7 @@
     "id": 0,
     "ir": 0,
     "iq": 0,
-    "ie": 0,
+    "ie": 1,
     "il": 0,
     "it": 0,
     "jm": 1,
@@ -1114,8 +1114,8 @@
     "pl": 0,
     "pt": 0,
     "qa": 0,
-    "ro": 1,
-    "ru": 1,
+    "ro": 2,
+    "ru": 2,
     "rw": 0,
     "kn": 0,
     "lc": 0,
@@ -1174,11 +1174,11 @@
     "yt:UC3PvdfAclarnqkUCJlWECOA": "lr",
     "yt:UCdEz89IvfMnqs1NSx1cbqAw": "es",
     "yt:UCWm7-Vn_NNH7_CrZYUETPQg": "ph",
-    "yt:UCEE1RlIBaPsjtvUG-ksSS-w": "bz"
+    "yt:UCEE1RlIBaPsjtvUG-ksSS-w": "ie"
   },
   "closed": false,
   "closedAt": null,
-  "updatedAt": 1788495672333,
+  "updatedAt": 1788496007051,
   "voterStats": {
     "yt:UC2U83ROZc-MX282S-PzT1Yg": {
       "name": "@nauru-ph",
@@ -1213,11 +1213,29 @@
     "yt:UCEE1RlIBaPsjtvUG-ksSS-w": {
       "name": "@GelatinshouldhavewonBFB",
       "avatar": "https://yt4.ggpht.com/NbdFNidqnE-nkjalmU2UQah-dPE12ov1GsdgHIrJ0IqBClDaMHBVz1A2Ie93pl3eztVT3tugoA=s64-c-k-c0x00ffffff-no-rj",
-      "count": 2,
-      "lastAt": 1788495672333
+      "count": 6,
+      "lastAt": 1788496007051
     }
   },
   "recentVotes": [
+    {
+      "voter": "@GelatinshouldhavewonBFB",
+      "voterId": "yt:UCEE1RlIBaPsjtvUG-ksSS-w",
+      "code": "ie",
+      "name": "Ireland",
+      "img": "https://flagcdn.com/w40/ie.png",
+      "avatar": "https://yt4.ggpht.com/NbdFNidqnE-nkjalmU2UQah-dPE12ov1GsdgHIrJ0IqBClDaMHBVz1A2Ie93pl3eztVT3tugoA=s64-c-k-c0x00ffffff-no-rj",
+      "at": 1788496007051
+    },
+    {
+      "voter": "@GelatinshouldhavewonBFB",
+      "voterId": "yt:UCEE1RlIBaPsjtvUG-ksSS-w",
+      "code": "ru",
+      "name": "Russia",
+      "img": "https://flagcdn.com/w40/ru.png",
+      "avatar": "https://yt4.ggpht.com/NbdFNidqnE-nkjalmU2UQah-dPE12ov1GsdgHIrJ0IqBClDaMHBVz1A2Ie93pl3eztVT3tugoA=s64-c-k-c0x00ffffff-no-rj",
+      "at": 1788495936101
+    },
     {
       "voter": "@GelatinshouldhavewonBFB",
       "voterId": "yt:UCEE1RlIBaPsjtvUG-ksSS-w",
@@ -1225,7 +1243,7 @@
       "name": "Belize",
       "img": "https://flagcdn.com/w40/bz.png",
       "avatar": "https://yt4.ggpht.com/NbdFNidqnE-nkjalmU2UQah-dPE12ov1GsdgHIrJ0IqBClDaMHBVz1A2Ie93pl3eztVT3tugoA=s64-c-k-c0x00ffffff-no-rj",
-      "at": 1788495672333
+      "at": 1788495925712
     },
     {
       "voter": "@GelatinshouldhavewonBFB",
@@ -1234,34 +1252,16 @@
       "name": "Romania",
       "img": "https://flagcdn.com/w40/ro.png",
       "avatar": "https://yt4.ggpht.com/NbdFNidqnE-nkjalmU2UQah-dPE12ov1GsdgHIrJ0IqBClDaMHBVz1A2Ie93pl3eztVT3tugoA=s64-c-k-c0x00ffffff-no-rj",
-      "at": 1788495601334
+      "at": 1788495874984
     },
     {
-      "voter": "@MelodyCamelion",
-      "voterId": "yt:UCWm7-Vn_NNH7_CrZYUETPQg",
-      "code": "ph",
-      "name": "Philippines",
-      "img": "https://flagcdn.com/w40/ph.png",
-      "avatar": "https://yt4.ggpht.com/hSc9JvagxwP23ZpyB0A2fUH-VdGK1KoEKRFdXuOJ6ajmmGg496IfaUsNEX59TSDyGZDWy7xhBVA=s64-c-k-c0x00ffffff-no-rj",
-      "at": 1788493862211
-    },
-    {
-      "voter": "@1serialdesignationN1",
-      "voterId": "yt:UCdEz89IvfMnqs1NSx1cbqAw",
-      "code": "es",
-      "name": "Spain",
-      "img": "https://flagcdn.com/w40/es.png",
-      "avatar": "https://yt4.ggpht.com/Q1QFz8eO7YnfFjnwjpXBwIo_ex0s8xaYUwMlZJR_vN_CUFiXvHOiEsijsHNsfb__78buhCHjKTM=s64-c-k-c0x00ffffff-no-rj",
-      "at": 1788491748994
-    },
-    {
-      "voter": "@1serialdesignationN1",
-      "voterId": "yt:UCdEz89IvfMnqs1NSx1cbqAw",
-      "code": "es",
-      "name": "Spain",
-      "img": "https://flagcdn.com/w40/es.png",
-      "avatar": "https://yt4.ggpht.com/Q1QFz8eO7YnfFjnwjpXBwIo_ex0s8xaYUwMlZJR_vN_CUFiXvHOiEsijsHNsfb__78buhCHjKTM=s64-c-k-c0x00ffffff-no-rj",
-      "at": 1788491728664
+      "voter": "@GelatinshouldhavewonBFB",
+      "voterId": "yt:UCEE1RlIBaPsjtvUG-ksSS-w",
+      "code": "bz",
+      "name": "Belize",
+      "img": "https://flagcdn.com/w40/bz.png",
+      "avatar": "https://yt4.ggpht.com/NbdFNidqnE-nkjalmU2UQah-dPE12ov1GsdgHIrJ0IqBClDaMHBVz1A2Ie93pl3eztVT3tugoA=s64-c-k-c0x00ffffff-no-rj",
+      "at": 1788495672333
     }
   ]
 }
