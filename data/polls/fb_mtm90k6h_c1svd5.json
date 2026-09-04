@@ -1110,7 +1110,7 @@
     "pg": 0,
     "py": 0,
     "pe": 1,
-    "ph": 0,
+    "ph": 1,
     "pl": 0,
     "pt": 0,
     "qa": 0,
@@ -1172,11 +1172,12 @@
     "yt:UC2U83ROZc-MX282S-PzT1Yg": "si",
     "yt:UCEpyqo9si5TW75YritS60dA": "ru",
     "yt:UC3PvdfAclarnqkUCJlWECOA": "lr",
-    "yt:UCdEz89IvfMnqs1NSx1cbqAw": "es"
+    "yt:UCdEz89IvfMnqs1NSx1cbqAw": "es",
+    "yt:UCWm7-Vn_NNH7_CrZYUETPQg": "ph"
   },
   "closed": false,
   "closedAt": null,
-  "updatedAt": 1788491748994,
+  "updatedAt": 1788493862211,
   "voterStats": {
     "yt:UC2U83ROZc-MX282S-PzT1Yg": {
       "name": "@nauru-ph",
@@ -1201,9 +1202,24 @@
       "avatar": "https://yt4.ggpht.com/Q1QFz8eO7YnfFjnwjpXBwIo_ex0s8xaYUwMlZJR_vN_CUFiXvHOiEsijsHNsfb__78buhCHjKTM=s64-c-k-c0x00ffffff-no-rj",
       "count": 2,
       "lastAt": 1788491748994
+    },
+    "yt:UCWm7-Vn_NNH7_CrZYUETPQg": {
+      "name": "@MelodyCamelion",
+      "avatar": "https://yt4.ggpht.com/hSc9JvagxwP23ZpyB0A2fUH-VdGK1KoEKRFdXuOJ6ajmmGg496IfaUsNEX59TSDyGZDWy7xhBVA=s64-c-k-c0x00ffffff-no-rj",
+      "count": 1,
+      "lastAt": 1788493862211
     }
   },
   "recentVotes": [
+    {
+      "voter": "@MelodyCamelion",
+      "voterId": "yt:UCWm7-Vn_NNH7_CrZYUETPQg",
+      "code": "ph",
+      "name": "Philippines",
+      "img": "https://flagcdn.com/w40/ph.png",
+      "avatar": "https://yt4.ggpht.com/hSc9JvagxwP23ZpyB0A2fUH-VdGK1KoEKRFdXuOJ6ajmmGg496IfaUsNEX59TSDyGZDWy7xhBVA=s64-c-k-c0x00ffffff-no-rj",
+      "at": 1788493862211
+    },
     {
       "voter": "@1serialdesignationN1",
       "voterId": "yt:UCdEz89IvfMnqs1NSx1cbqAw",
@@ -1239,15 +1255,6 @@
       "img": "https://flagcdn.com/w40/jm.png",
       "avatar": "https://yt4.ggpht.com/F483c8cwhbkVdxm9o9RCQx5kVEtXckpLIf00-LhPZvgyJ2A4rwqmhcH476JC08wmVG5AIfBU_HE=s64-c-k-c0x00ffffff-no-rj",
       "at": 1788488280308
-    },
-    {
-      "voter": "@juju-jy3rc-j2u",
-      "voterId": "yt:UC3PvdfAclarnqkUCJlWECOA",
-      "code": "pe",
-      "name": "Peru",
-      "img": "https://flagcdn.com/w40/pe.png",
-      "avatar": "https://yt4.ggpht.com/F483c8cwhbkVdxm9o9RCQx5kVEtXckpLIf00-LhPZvgyJ2A4rwqmhcH476JC08wmVG5AIfBU_HE=s64-c-k-c0x00ffffff-no-rj",
-      "at": 1788488189129
     }
   ]
 }
