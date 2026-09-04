@@ -1053,7 +1053,7 @@
     "id": 0,
     "ir": 0,
     "iq": 0,
-    "ie": 1,
+    "ie": 2,
     "il": 0,
     "it": 0,
     "jm": 1,
@@ -1178,7 +1178,7 @@
   },
   "closed": false,
   "closedAt": null,
-  "updatedAt": 1788496007051,
+  "updatedAt": 1788496714843,
   "voterStats": {
     "yt:UC2U83ROZc-MX282S-PzT1Yg": {
       "name": "@nauru-ph",
@@ -1213,11 +1213,20 @@
     "yt:UCEE1RlIBaPsjtvUG-ksSS-w": {
       "name": "@GelatinshouldhavewonBFB",
       "avatar": "https://yt4.ggpht.com/NbdFNidqnE-nkjalmU2UQah-dPE12ov1GsdgHIrJ0IqBClDaMHBVz1A2Ie93pl3eztVT3tugoA=s64-c-k-c0x00ffffff-no-rj",
-      "count": 6,
-      "lastAt": 1788496007051
+      "count": 7,
+      "lastAt": 1788496714843
     }
   },
   "recentVotes": [
+    {
+      "voter": "@GelatinshouldhavewonBFB",
+      "voterId": "yt:UCEE1RlIBaPsjtvUG-ksSS-w",
+      "code": "ie",
+      "name": "Ireland",
+      "img": "https://flagcdn.com/w40/ie.png",
+      "avatar": "https://yt4.ggpht.com/NbdFNidqnE-nkjalmU2UQah-dPE12ov1GsdgHIrJ0IqBClDaMHBVz1A2Ie93pl3eztVT3tugoA=s64-c-k-c0x00ffffff-no-rj",
+      "at": 1788496714843
+    },
     {
       "voter": "@GelatinshouldhavewonBFB",
       "voterId": "yt:UCEE1RlIBaPsjtvUG-ksSS-w",
@@ -1253,15 +1262,6 @@
       "img": "https://flagcdn.com/w40/ro.png",
       "avatar": "https://yt4.ggpht.com/NbdFNidqnE-nkjalmU2UQah-dPE12ov1GsdgHIrJ0IqBClDaMHBVz1A2Ie93pl3eztVT3tugoA=s64-c-k-c0x00ffffff-no-rj",
       "at": 1788495874984
-    },
-    {
-      "voter": "@GelatinshouldhavewonBFB",
-      "voterId": "yt:UCEE1RlIBaPsjtvUG-ksSS-w",
-      "code": "bz",
-      "name": "Belize",
-      "img": "https://flagcdn.com/w40/bz.png",
-      "avatar": "https://yt4.ggpht.com/NbdFNidqnE-nkjalmU2UQah-dPE12ov1GsdgHIrJ0IqBClDaMHBVz1A2Ie93pl3eztVT3tugoA=s64-c-k-c0x00ffffff-no-rj",
-      "at": 1788495672333
     }
   ]
 }
