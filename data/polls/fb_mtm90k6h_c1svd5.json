@@ -981,7 +981,7 @@
     "ag": 0,
     "ar": 0,
     "am": 0,
-    "au": 0,
+    "au": 1,
     "at": 0,
     "az": 0,
     "bs": 0,
@@ -1103,7 +1103,7 @@
     "ng": 0,
     "mk": 0,
     "no": 0,
-    "om": 0,
+    "om": 1,
     "pk": 0,
     "pw": 0,
     "pa": 0,
@@ -1174,11 +1174,12 @@
     "yt:UC3PvdfAclarnqkUCJlWECOA": "lr",
     "yt:UCdEz89IvfMnqs1NSx1cbqAw": "es",
     "yt:UCWm7-Vn_NNH7_CrZYUETPQg": "ph",
-    "yt:UCEE1RlIBaPsjtvUG-ksSS-w": "ie"
+    "yt:UCEE1RlIBaPsjtvUG-ksSS-w": "ie",
+    "yt:UCGg2D7JODadew6PlIA9xkhw": "au"
   },
   "closed": false,
   "closedAt": null,
-  "updatedAt": 1788496714843,
+  "updatedAt": 1788497897292,
   "voterStats": {
     "yt:UC2U83ROZc-MX282S-PzT1Yg": {
       "name": "@nauru-ph",
@@ -1215,9 +1216,33 @@
       "avatar": "https://yt4.ggpht.com/NbdFNidqnE-nkjalmU2UQah-dPE12ov1GsdgHIrJ0IqBClDaMHBVz1A2Ie93pl3eztVT3tugoA=s64-c-k-c0x00ffffff-no-rj",
       "count": 7,
       "lastAt": 1788496714843
+    },
+    "yt:UCGg2D7JODadew6PlIA9xkhw": {
+      "name": "@Senegal-l9b",
+      "avatar": "https://yt4.ggpht.com/9duys2HmW1NgtCfRIO_BRXt_d-QJdH9SXBOts6cCyNk0GGPqj6Ngbhxi2XLHQTV84rR142oJlw=s64-c-k-c0x00ffffff-no-rj",
+      "count": 2,
+      "lastAt": 1788497897292
     }
   },
   "recentVotes": [
+    {
+      "voter": "@Senegal-l9b",
+      "voterId": "yt:UCGg2D7JODadew6PlIA9xkhw",
+      "code": "au",
+      "name": "Australia",
+      "img": "https://flagcdn.com/w40/au.png",
+      "avatar": "https://yt4.ggpht.com/9duys2HmW1NgtCfRIO_BRXt_d-QJdH9SXBOts6cCyNk0GGPqj6Ngbhxi2XLHQTV84rR142oJlw=s64-c-k-c0x00ffffff-no-rj",
+      "at": 1788497897292
+    },
+    {
+      "voter": "@Senegal-l9b",
+      "voterId": "yt:UCGg2D7JODadew6PlIA9xkhw",
+      "code": "om",
+      "name": "Oman",
+      "img": "https://flagcdn.com/w40/om.png",
+      "avatar": "https://yt4.ggpht.com/9duys2HmW1NgtCfRIO_BRXt_d-QJdH9SXBOts6cCyNk0GGPqj6Ngbhxi2XLHQTV84rR142oJlw=s64-c-k-c0x00ffffff-no-rj",
+      "at": 1788497836501
+    },
     {
       "voter": "@GelatinshouldhavewonBFB",
       "voterId": "yt:UCEE1RlIBaPsjtvUG-ksSS-w",
@@ -1244,24 +1269,6 @@
       "img": "https://flagcdn.com/w40/ru.png",
       "avatar": "https://yt4.ggpht.com/NbdFNidqnE-nkjalmU2UQah-dPE12ov1GsdgHIrJ0IqBClDaMHBVz1A2Ie93pl3eztVT3tugoA=s64-c-k-c0x00ffffff-no-rj",
       "at": 1788495936101
-    },
-    {
-      "voter": "@GelatinshouldhavewonBFB",
-      "voterId": "yt:UCEE1RlIBaPsjtvUG-ksSS-w",
-      "code": "bz",
-      "name": "Belize",
-      "img": "https://flagcdn.com/w40/bz.png",
-      "avatar": "https://yt4.ggpht.com/NbdFNidqnE-nkjalmU2UQah-dPE12ov1GsdgHIrJ0IqBClDaMHBVz1A2Ie93pl3eztVT3tugoA=s64-c-k-c0x00ffffff-no-rj",
-      "at": 1788495925712
-    },
-    {
-      "voter": "@GelatinshouldhavewonBFB",
-      "voterId": "yt:UCEE1RlIBaPsjtvUG-ksSS-w",
-      "code": "ro",
-      "name": "Romania",
-      "img": "https://flagcdn.com/w40/ro.png",
-      "avatar": "https://yt4.ggpht.com/NbdFNidqnE-nkjalmU2UQah-dPE12ov1GsdgHIrJ0IqBClDaMHBVz1A2Ie93pl3eztVT3tugoA=s64-c-k-c0x00ffffff-no-rj",
-      "at": 1788495874984
     }
   ]
 }
