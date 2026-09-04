@@ -1135,7 +1135,7 @@
     "so": 0,
     "za": 0,
     "ss": 0,
-    "es": 0,
+    "es": 2,
     "lk": 0,
     "sd": 0,
     "sr": 0,
@@ -1171,11 +1171,12 @@
   "voters": {
     "yt:UC2U83ROZc-MX282S-PzT1Yg": "si",
     "yt:UCEpyqo9si5TW75YritS60dA": "ru",
-    "yt:UC3PvdfAclarnqkUCJlWECOA": "lr"
+    "yt:UC3PvdfAclarnqkUCJlWECOA": "lr",
+    "yt:UCdEz89IvfMnqs1NSx1cbqAw": "es"
   },
   "closed": false,
   "closedAt": null,
-  "updatedAt": 1788488331019,
+  "updatedAt": 1788491748994,
   "voterStats": {
     "yt:UC2U83ROZc-MX282S-PzT1Yg": {
       "name": "@nauru-ph",
@@ -1194,9 +1195,33 @@
       "avatar": "https://yt4.ggpht.com/F483c8cwhbkVdxm9o9RCQx5kVEtXckpLIf00-LhPZvgyJ2A4rwqmhcH476JC08wmVG5AIfBU_HE=s64-c-k-c0x00ffffff-no-rj",
       "count": 5,
       "lastAt": 1788488331019
+    },
+    "yt:UCdEz89IvfMnqs1NSx1cbqAw": {
+      "name": "@1serialdesignationN1",
+      "avatar": "https://yt4.ggpht.com/Q1QFz8eO7YnfFjnwjpXBwIo_ex0s8xaYUwMlZJR_vN_CUFiXvHOiEsijsHNsfb__78buhCHjKTM=s64-c-k-c0x00ffffff-no-rj",
+      "count": 2,
+      "lastAt": 1788491748994
     }
   },
   "recentVotes": [
+    {
+      "voter": "@1serialdesignationN1",
+      "voterId": "yt:UCdEz89IvfMnqs1NSx1cbqAw",
+      "code": "es",
+      "name": "Spain",
+      "img": "https://flagcdn.com/w40/es.png",
+      "avatar": "https://yt4.ggpht.com/Q1QFz8eO7YnfFjnwjpXBwIo_ex0s8xaYUwMlZJR_vN_CUFiXvHOiEsijsHNsfb__78buhCHjKTM=s64-c-k-c0x00ffffff-no-rj",
+      "at": 1788491748994
+    },
+    {
+      "voter": "@1serialdesignationN1",
+      "voterId": "yt:UCdEz89IvfMnqs1NSx1cbqAw",
+      "code": "es",
+      "name": "Spain",
+      "img": "https://flagcdn.com/w40/es.png",
+      "avatar": "https://yt4.ggpht.com/Q1QFz8eO7YnfFjnwjpXBwIo_ex0s8xaYUwMlZJR_vN_CUFiXvHOiEsijsHNsfb__78buhCHjKTM=s64-c-k-c0x00ffffff-no-rj",
+      "at": 1788491728664
+    },
     {
       "voter": "@juju-jy3rc-j2u",
       "voterId": "yt:UC3PvdfAclarnqkUCJlWECOA",
@@ -1223,24 +1248,6 @@
       "img": "https://flagcdn.com/w40/pe.png",
       "avatar": "https://yt4.ggpht.com/F483c8cwhbkVdxm9o9RCQx5kVEtXckpLIf00-LhPZvgyJ2A4rwqmhcH476JC08wmVG5AIfBU_HE=s64-c-k-c0x00ffffff-no-rj",
       "at": 1788488189129
-    },
-    {
-      "voter": "@juju-jy3rc-j2u",
-      "voterId": "yt:UC3PvdfAclarnqkUCJlWECOA",
-      "code": "bz",
-      "name": "Belize",
-      "img": "https://flagcdn.com/w40/bz.png",
-      "avatar": "https://yt4.ggpht.com/F483c8cwhbkVdxm9o9RCQx5kVEtXckpLIf00-LhPZvgyJ2A4rwqmhcH476JC08wmVG5AIfBU_HE=s64-c-k-c0x00ffffff-no-rj",
-      "at": 1788488138394
-    },
-    {
-      "voter": "@juju-jy3rc-j2u",
-      "voterId": "yt:UC3PvdfAclarnqkUCJlWECOA",
-      "code": "tv",
-      "name": "Tuvalu",
-      "img": "https://flagcdn.com/w40/tv.png",
-      "avatar": "https://yt4.ggpht.com/F483c8cwhbkVdxm9o9RCQx5kVEtXckpLIf00-LhPZvgyJ2A4rwqmhcH476JC08wmVG5AIfBU_HE=s64-c-k-c0x00ffffff-no-rj",
-      "at": 1788488087704
     }
   ]
 }
