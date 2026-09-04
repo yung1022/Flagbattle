@@ -1,7 +1,148 @@
 {
-  "updatedAt": "2026-09-01T12:57:36.746Z",
-  "api": "https://subsidiaries-folks-shoulder-phi.trycloudflare.com",
+  "updatedAt": "2026-09-04T10:23:59.071Z",
+  "api": "https://province-changed-circus-habits.trycloudflare.com",
   "streams": [
+    {
+      "id": "fb_mtmq5lcs_vw968p",
+      "mode": "final",
+      "startedAt": "2026-09-04T09:01:24.700Z",
+      "endedAt": null,
+      "winner": null,
+      "qualified": [],
+      "rounds": []
+    },
+    {
+      "id": "fb_mtm90k6h_c1svd5",
+      "mode": "final",
+      "startedAt": "2026-09-04T01:01:36.425Z",
+      "endedAt": null,
+      "winner": null,
+      "qualified": [],
+      "rounds": []
+    },
+    {
+      "id": "fb_mtlruwwi_w2m2ft",
+      "mode": "final",
+      "startedAt": "2026-09-03T17:01:19.506Z",
+      "endedAt": null,
+      "winner": null,
+      "qualified": [],
+      "rounds": []
+    },
+    {
+      "id": "fb_mtlaplym_izbauo",
+      "mode": "final",
+      "startedAt": "2026-09-03T09:01:18.574Z",
+      "endedAt": "2026-09-03T12:49:37.735Z",
+      "winner": {
+        "code": "ro",
+        "name": "Romania",
+        "img": "https://flagcdn.com/w80/ro.png"
+      },
+      "qualified": [],
+      "rounds": [],
+      "final": {
+        "at": "2026-09-03T12:48:37.727Z",
+        "ranking": [
+          {}
+        ],
+        "winner": {
+          "code": "ro",
+          "name": "Romania",
+          "img": "https://flagcdn.com/w80/ro.png"
+        }
+      }
+    },
+    {
+      "id": "fb_mtktlh5t_hvtuqi",
+      "mode": "final",
+      "startedAt": "2026-09-03T01:02:12.257Z",
+      "endedAt": "2026-09-03T04:49:42.130Z",
+      "winner": {
+        "code": "ro",
+        "name": "Romania",
+        "img": "https://flagcdn.com/w80/ro.png"
+      },
+      "qualified": [],
+      "rounds": [],
+      "final": {
+        "at": "2026-09-03T04:48:42.116Z",
+        "ranking": [
+          {}
+        ],
+        "winner": {
+          "code": "ro",
+          "name": "Romania",
+          "img": "https://flagcdn.com/w80/ro.png"
+        }
+      }
+    },
+    {
+      "id": "fb_mtkcg7vx_fou9bc",
+      "mode": "final",
+      "startedAt": "2026-09-02T17:02:13.485Z",
+      "endedAt": null,
+      "winner": null,
+      "qualified": [],
+      "rounds": []
+    },
+    {
+      "id": "fb_mtjv9xy7_su2guu",
+      "mode": "final",
+      "startedAt": "2026-09-02T09:01:27.199Z",
+      "endedAt": "2026-09-02T12:49:10.496Z",
+      "winner": {
+        "code": "us",
+        "name": "United States",
+        "img": "https://flagcdn.com/w80/us.png"
+      },
+      "qualified": [],
+      "rounds": [],
+      "final": {
+        "at": "2026-09-02T12:48:10.470Z",
+        "ranking": [
+          {}
+        ],
+        "winner": {
+          "code": "us",
+          "name": "United States",
+          "img": "https://flagcdn.com/w80/us.png"
+        }
+      }
+    },
+    {
+      "id": "fb_mtje4otw_2nuqar",
+      "mode": "final",
+      "startedAt": "2026-09-02T01:01:28.628Z",
+      "endedAt": "2026-09-02T04:59:56.862Z",
+      "winner": {
+        "code": "ki",
+        "name": "Kiribati",
+        "img": "https://flagcdn.com/w80/ki.png"
+      },
+      "qualified": [],
+      "rounds": [],
+      "final": {
+        "at": "2026-09-02T04:58:56.842Z",
+        "ranking": [
+          {}
+        ],
+        "winner": {
+          "code": "ki",
+          "name": "Kiribati",
+          "img": "https://flagcdn.com/w80/ki.png"
+        }
+      }
+    },
+    {
+      "id": "fb_mtiwz942_cgcqhd",
+      "mode": "final",
+      "startedAt": "2026-09-01T17:01:21.506Z",
+      "endedAt": null,
+      "winner": null,
+      "qualified": [],
+      "rounds": []
+    },
     {
       "id": "fb_mtiftvdj_vb2iis",
       "mode": "final",
@@ -655,237 +796,17 @@
           "img": "https://flagcdn.com/w80/bg.png"
         }
       }
-    },
-    {
-      "id": "fb_mt3oa8hs_u1xr5a",
-      "mode": "final",
-      "startedAt": "2026-08-22T01:01:24.736Z",
-      "endedAt": "2026-08-22T05:02:37.643Z",
-      "winner": {
-        "code": "hu",
-        "name": "Hungary",
-        "img": "https://flagcdn.com/w80/hu.png"
-      },
-      "qualified": [],
-      "rounds": [],
-      "final": {
-        "at": "2026-08-22T05:01:37.623Z",
-        "ranking": [
-          {}
-        ],
-        "winner": {
-          "code": "hu",
-          "name": "Hungary",
-          "img": "https://flagcdn.com/w80/hu.png"
-        }
-      }
-    },
-    {
-      "id": "fb_mt375a0z_pnvh4q",
-      "mode": "final",
-      "startedAt": "2026-08-21T17:01:39.971Z",
-      "endedAt": "2026-08-21T21:02:29.772Z",
-      "winner": {
-        "code": "lb",
-        "name": "Lebanon",
-        "img": "https://flagcdn.com/w80/lb.png"
-      },
-      "qualified": [],
-      "rounds": [],
-      "final": {
-        "at": "2026-08-21T21:01:29.758Z",
-        "ranking": [
-          {}
-        ],
-        "winner": {
-          "code": "lb",
-          "name": "Lebanon",
-          "img": "https://flagcdn.com/w80/lb.png"
-        }
-      }
-    },
-    {
-      "id": "fb_mt2pzvef_xn5mdo",
-      "mode": "final",
-      "startedAt": "2026-08-21T09:01:34.263Z",
-      "endedAt": "2026-08-21T12:58:03.407Z",
-      "winner": {
-        "code": "gm",
-        "name": "Gambia",
-        "img": "https://flagcdn.com/w80/gm.png"
-      },
-      "qualified": [],
-      "rounds": [],
-      "final": {
-        "at": "2026-08-21T12:57:03.393Z",
-        "ranking": [
-          {}
-        ],
-        "winner": {
-          "code": "gm",
-          "name": "Gambia",
-          "img": "https://flagcdn.com/w80/gm.png"
-        }
-      }
-    },
-    {
-      "id": "fb_mt28ue2z_4ka077",
-      "mode": "final",
-      "startedAt": "2026-08-21T01:01:25.067Z",
-      "endedAt": "2026-08-21T04:55:16.258Z",
-      "winner": {
-        "code": "kz",
-        "name": "Kazakhstan",
-        "img": "https://flagcdn.com/w80/kz.png"
-      },
-      "qualified": [],
-      "rounds": [],
-      "final": {
-        "at": "2026-08-21T04:54:16.226Z",
-        "ranking": [
-          {}
-        ],
-        "winner": {
-          "code": "kz",
-          "name": "Kazakhstan",
-          "img": "https://flagcdn.com/w80/kz.png"
-        }
-      }
-    },
-    {
-      "id": "fb_mt1rp23c_39phjs",
-      "mode": "final",
-      "startedAt": "2026-08-20T17:01:22.776Z",
-      "endedAt": "2026-08-20T21:01:53.070Z",
-      "winner": {
-        "code": "bg",
-        "name": "Bulgaria",
-        "img": "https://flagcdn.com/w80/bg.png"
-      },
-      "qualified": [],
-      "rounds": [],
-      "final": {
-        "at": "2026-08-20T21:00:53.037Z",
-        "ranking": [
-          {}
-        ],
-        "winner": {
-          "code": "bg",
-          "name": "Bulgaria",
-          "img": "https://flagcdn.com/w80/bg.png"
-        }
-      }
-    },
-    {
-      "id": "fb_mt1ajrlp_2yvgne",
-      "mode": "final",
-      "startedAt": "2026-08-20T09:01:22.429Z",
-      "endedAt": "2026-08-20T13:01:05.203Z",
-      "winner": {
-        "code": "iq",
-        "name": "Iraq",
-        "img": "https://flagcdn.com/w80/iq.png"
-      },
-      "qualified": [],
-      "rounds": [],
-      "final": {
-        "at": "2026-08-20T13:00:05.175Z",
-        "ranking": [
-          {}
-        ],
-        "winner": {
-          "code": "iq",
-          "name": "Iraq",
-          "img": "https://flagcdn.com/w80/iq.png"
-        }
-      }
-    },
-    {
-      "id": "fb_mt0tfb9x_sxv2t3",
-      "mode": "final",
-      "startedAt": "2026-08-20T01:02:01.173Z",
-      "endedAt": "2026-08-20T04:52:27.460Z",
-      "winner": {
-        "code": "ki",
-        "name": "Kiribati",
-        "img": "https://flagcdn.com/w80/ki.png"
-      },
-      "qualified": [],
-      "rounds": [],
-      "final": {
-        "at": "2026-08-20T04:51:27.433Z",
-        "ranking": [
-          {}
-        ],
-        "winner": {
-          "code": "ki",
-          "name": "Kiribati",
-          "img": "https://flagcdn.com/w80/ki.png"
-        }
-      }
-    },
-    {
-      "id": "fb_mt0cgvxv_449a9h",
-      "mode": "final",
-      "startedAt": "2026-08-19T17:07:21.139Z",
-      "endedAt": "2026-08-19T21:07:48.583Z",
-      "winner": {
-        "code": "cg",
-        "name": "Congo",
-        "img": "https://flagcdn.com/w80/cg.png"
-      },
-      "qualified": [],
-      "rounds": [],
-      "final": {
-        "at": "2026-08-19T21:06:48.558Z",
-        "ranking": [
-          {}
-        ],
-        "winner": {
-          "code": "cg",
-          "name": "Congo",
-          "img": "https://flagcdn.com/w80/cg.png"
-        }
-      }
-    },
-    {
-      "id": "fb_mszwlkpk_840g28",
-      "mode": "final",
-      "startedAt": "2026-08-19T09:43:06.008Z",
-      "endedAt": "2026-08-19T13:38:56.663Z",
-      "winner": {
-        "code": "km",
-        "name": "Comoros",
-        "img": "https://flagcdn.com/w80/km.png"
-      },
-      "qualified": [],
-      "rounds": [],
-      "final": {
-        "at": "2026-08-19T13:37:56.638Z",
-        "ranking": [
-          {}
-        ],
-        "winner": {
-          "code": "km",
-          "name": "Comoros",
-          "img": "https://flagcdn.com/w80/km.png"
-        }
-      }
     }
   ],
   "live": {
-    "streamId": "fb_mtiftvdj_vb2iis",
+    "streamId": "fb_mtmq5lcs_vw968p",
     "title": null,
     "mode": "final",
-    "phase": "finished",
+    "phase": "between_rounds",
     "startedAt": null,
     "qualifyingRemainingMs": 0,
     "qualified": [],
-    "winner": {
-      "code": "tj",
-      "name": "Tajikistan",
-      "img": "https://flagcdn.com/w80/tj.png"
-    },
-    "updatedAt": 1788267456412
+    "winner": null,
+    "updatedAt": 1788517436940
   }
 }
