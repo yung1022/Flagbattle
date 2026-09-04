@@ -1690,11 +1690,16 @@ export class FlagBattleGame {
   _startLoop() {
     this.stopLoop();
     const tick = (ts) => {
-      if (!this._lastTs) this._lastTs = ts;
-      const dt = Math.min(0.05, (ts - this._lastTs) / 1000);
-      this._lastTs = ts;
-      this.update(dt, ts);
-      this._raf = requestAnimationFrame(tick);
+      try {
+        if (!this._lastTs) this._lastTs = ts;
+        const dt = Math.min(0.05, (ts - this._lastTs) / 1000);
+        this._lastTs = ts;
+        this.update(dt, ts);
+      } catch (err) {
+        console.error("FlagBattle frame error; continuing animation loop", err);
+      } finally {
+        this._raf = requestAnimationFrame(tick);
+      }
     };
     this._raf = requestAnimationFrame(tick);
   }
@@ -2958,33 +2963,41 @@ export class FlagBattleGame {
 
   /** After the champion hold: freeze poll, mark stream ended, stop the loop. */
   _completeWinnerHold() {
-    this._winnerHoldDone = true;
+    if (this._winnerHoldDone || this._winnerHoldCompleting) return;
+    this._winnerHoldCompleting = true;
     this._winnerHoldUntil = 0;
     this.rankReveal = null;
     this._winRevealUntil = 0;
-    if (this.stream && this.winner) {
-      const poll = getLocalPoll(this.stream.id);
-      const pollPlaces = rankPollPlaces(poll);
-      closeLocalPoll(this.stream.id);
-      this.stream.status = "finished";
-      this.stream.endedAt = new Date().toISOString();
-      if (this.stream.final) {
-        this.stream.final.pollPlaces = pollPlaces;
-        this.stream.final.heldAt = this.stream.endedAt;
+    try {
+      if (this.stream && this.winner) {
+        const poll = getLocalPoll(this.stream.id);
+        const pollPlaces = rankPollPlaces(poll);
+        closeLocalPoll(this.stream.id);
+        this.stream.status = "finished";
+        this.stream.endedAt = new Date().toISOString();
+        if (this.stream.final) {
+          this.stream.final.pollPlaces = pollPlaces;
+          this.stream.final.heldAt = this.stream.endedAt;
+        }
+        saveStream(this.stream);
+        this._publishLive();
+        if (pollPlaces.length) {
+          const top = pollPlaces
+            .map((p) => `${p.rank}.${p.name}(+${p.points})`)
+            .join(" · ");
+          this._emit("phase", `Poll bonus locked — ${top}`);
+        }
       }
-      saveStream(this.stream);
-      this._publishLive();
-      if (pollPlaces.length) {
-        const top = pollPlaces
-          .map((p) => `${p.rank}.${p.name}(+${p.points})`)
-          .join(" · ");
-        this._emit("phase", `Poll bonus locked — ${top}`);
-      }
+      this._emit("phase", "Stream ending — thanks for watching!");
+      this._winnerHoldDone = true;
+      this._uiDirty = true;
+      this._flushUi(true);
+      this.stopLoop();
+    } catch (err) {
+      console.error("Stream finalization failed; will retry", err);
+      this._winnerHoldCompleting = false;
+      this._winnerHoldUntil = performance.now() + 1000;
     }
-    this._emit("phase", "Stream ending — thanks for watching!");
-    this._uiDirty = true;
-    this._flushUi(true);
-    this.stopLoop();
   }
 
   _qualify(flag) {

@@ -111,6 +111,18 @@ function ensureFighterEl(f) {
     <img alt="${f.name}" src="${f.img}" loading="lazy" decoding="async" />
     <div class="hp-bar" hidden><i></i></div>
   `;
+  const image = el.querySelector("img");
+  if (image) {
+    image.addEventListener("error", () => {
+      if (image.dataset.fallbackTried !== "1" && f.code) {
+        image.dataset.fallbackTried = "1";
+        image.src = `https://flagcdn.com/${String(f.code).toLowerCase()}.svg`;
+        return;
+      }
+      image.hidden = true;
+      el.classList.add("flag-image-failed");
+    });
+  }
   els.arena.appendChild(el);
   fighterEls.set(f.id, el);
   return el;
@@ -1412,8 +1424,12 @@ async function refreshStreamPoll() {
     if (els.streamRecentVotes) els.streamRecentVotes.hidden = true;
     return;
   }
-  const poll = await fetchPoll(game.stream.id);
-  renderStreamPoll(poll);
+  try {
+    const poll = await fetchPoll(game.stream.id);
+    renderStreamPoll(poll);
+  } catch (err) {
+    console.error("Stream poll refresh failed", err);
+  }
 }
 
 function renderChrome() {
