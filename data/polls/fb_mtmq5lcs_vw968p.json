@@ -1114,7 +1114,7 @@
     "pl": 0,
     "pt": 1,
     "qa": 0,
-    "ro": 4,
+    "ro": 6,
     "ru": 0,
     "rw": 0,
     "kn": 0,
@@ -1178,7 +1178,7 @@
   },
   "closed": false,
   "closedAt": null,
-  "updatedAt": 1788519592479,
+  "updatedAt": 1788519753859,
   "voterStats": {
     "yt:UCqAZytitUXu6kmax7ZVeofw": {
       "name": "@TheoThea-q5t",
@@ -1213,11 +1213,29 @@
     "yt:UCEE1RlIBaPsjtvUG-ksSS-w": {
       "name": "@GelatinshouldhavewonBFB",
       "avatar": "https://yt4.ggpht.com/NbdFNidqnE-nkjalmU2UQah-dPE12ov1GsdgHIrJ0IqBClDaMHBVz1A2Ie93pl3eztVT3tugoA=s64-c-k-c0x00ffffff-no-rj",
-      "count": 1,
-      "lastAt": 1788519592479
+      "count": 3,
+      "lastAt": 1788519753859
     }
   },
   "recentVotes": [
+    {
+      "voter": "@GelatinshouldhavewonBFB",
+      "voterId": "yt:UCEE1RlIBaPsjtvUG-ksSS-w",
+      "code": "ro",
+      "name": "Romania",
+      "img": "https://flagcdn.com/w40/ro.png",
+      "avatar": "https://yt4.ggpht.com/NbdFNidqnE-nkjalmU2UQah-dPE12ov1GsdgHIrJ0IqBClDaMHBVz1A2Ie93pl3eztVT3tugoA=s64-c-k-c0x00ffffff-no-rj",
+      "at": 1788519753859
+    },
+    {
+      "voter": "@GelatinshouldhavewonBFB",
+      "voterId": "yt:UCEE1RlIBaPsjtvUG-ksSS-w",
+      "code": "ro",
+      "name": "Romania",
+      "img": "https://flagcdn.com/w40/ro.png",
+      "avatar": "https://yt4.ggpht.com/NbdFNidqnE-nkjalmU2UQah-dPE12ov1GsdgHIrJ0IqBClDaMHBVz1A2Ie93pl3eztVT3tugoA=s64-c-k-c0x00ffffff-no-rj",
+      "at": 1788519743731
+    },
     {
       "voter": "@GelatinshouldhavewonBFB",
       "voterId": "yt:UCEE1RlIBaPsjtvUG-ksSS-w",
@@ -1244,24 +1262,6 @@
       "img": "https://flagcdn.com/w40/au.png",
       "avatar": "https://yt4.ggpht.com/qUGgQH30XE9URSXWJqJKg9_sVespYYU5arC1fMyYrOID1iA0v1K2cWGaE2TjNpptTUm0UPGkjg=s64-c-k-c0x00ffffff-no-rj",
       "at": 1788516270082
-    },
-    {
-      "voter": "@yoimlluke",
-      "voterId": "yt:UCJhuFXHM6KfMHgJKIcpgjoQ",
-      "code": "au",
-      "name": "Australia",
-      "img": "https://flagcdn.com/w40/au.png",
-      "avatar": "https://yt4.ggpht.com/qUGgQH30XE9URSXWJqJKg9_sVespYYU5arC1fMyYrOID1iA0v1K2cWGaE2TjNpptTUm0UPGkjg=s64-c-k-c0x00ffffff-no-rj",
-      "at": 1788516259976
-    },
-    {
-      "voter": "@yoimlluke",
-      "voterId": "yt:UCJhuFXHM6KfMHgJKIcpgjoQ",
-      "code": "au",
-      "name": "Australia",
-      "img": "https://flagcdn.com/w40/au.png",
-      "avatar": "https://yt4.ggpht.com/qUGgQH30XE9URSXWJqJKg9_sVespYYU5arC1fMyYrOID1iA0v1K2cWGaE2TjNpptTUm0UPGkjg=s64-c-k-c0x00ffffff-no-rj",
-      "at": 1788516209544
     }
   ]
 }
