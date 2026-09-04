@@ -982,7 +982,7 @@
     "ar": 0,
     "am": 0,
     "au": 13,
-    "at": 0,
+    "at": 1,
     "az": 0,
     "bs": 0,
     "bh": 0,
@@ -1175,11 +1175,12 @@
     "yt:UC78H3194ZZyTKXi_CCOtcxw": "ro",
     "yt:UC-gC58GwfJy5aS7X3KD_vUA": "my",
     "yt:UCEE1RlIBaPsjtvUG-ksSS-w": "ro",
-    "yt:UCBNcbecDp39HkM_uIuNRUhQ": "it"
+    "yt:UCBNcbecDp39HkM_uIuNRUhQ": "it",
+    "yt:UCLSfc8TBcjsTW1CW1Ark8JA": "at"
   },
   "closed": false,
   "closedAt": null,
-  "updatedAt": 1788532305747,
+  "updatedAt": 1788534029326,
   "voterStats": {
     "yt:UCqAZytitUXu6kmax7ZVeofw": {
       "name": "@TheoThea-q5t",
@@ -1222,9 +1223,24 @@
       "avatar": "https://yt4.ggpht.com/kFT3Ui0KYWdHPCCrPJEUBHJWrCCUT7MNDArQ8WoRx5x4x9v5PO4IM48Ow7LfktmzXaPRjnMLSA=s64-c-k-c0x00ffffff-no-rj",
       "count": 1,
       "lastAt": 1788532305747
+    },
+    "yt:UCLSfc8TBcjsTW1CW1Ark8JA": {
+      "name": "@MisterHanna",
+      "avatar": "https://yt4.ggpht.com/ytc/AIdro_mhD_uBtCD8mWdT0iitBx_Q8bq0TyRBWRZE2sXdp1oZwUfg1sZvctK6tZ7r4kqP-KS8-A=s64-c-k-c0x00ffffff-no-rj",
+      "count": 1,
+      "lastAt": 1788534029326
     }
   },
   "recentVotes": [
+    {
+      "voter": "@MisterHanna",
+      "voterId": "yt:UCLSfc8TBcjsTW1CW1Ark8JA",
+      "code": "at",
+      "name": "Austria",
+      "img": "https://flagcdn.com/w40/at.png",
+      "avatar": "https://yt4.ggpht.com/ytc/AIdro_mhD_uBtCD8mWdT0iitBx_Q8bq0TyRBWRZE2sXdp1oZwUfg1sZvctK6tZ7r4kqP-KS8-A=s64-c-k-c0x00ffffff-no-rj",
+      "at": 1788534029326
+    },
     {
       "voter": "@AdnanAlmohammad-b6f",
       "voterId": "yt:UCBNcbecDp39HkM_uIuNRUhQ",
@@ -1260,15 +1276,6 @@
       "img": "https://flagcdn.com/w40/ro.png",
       "avatar": "https://yt4.ggpht.com/NbdFNidqnE-nkjalmU2UQah-dPE12ov1GsdgHIrJ0IqBClDaMHBVz1A2Ie93pl3eztVT3tugoA=s64-c-k-c0x00ffffff-no-rj",
       "at": 1788519743731
-    },
-    {
-      "voter": "@GelatinshouldhavewonBFB",
-      "voterId": "yt:UCEE1RlIBaPsjtvUG-ksSS-w",
-      "code": "ro",
-      "name": "Romania",
-      "img": "https://flagcdn.com/w40/ro.png",
-      "avatar": "https://yt4.ggpht.com/NbdFNidqnE-nkjalmU2UQah-dPE12ov1GsdgHIrJ0IqBClDaMHBVz1A2Ie93pl3eztVT3tugoA=s64-c-k-c0x00ffffff-no-rj",
-      "at": 1788519592479
     }
   ]
 }
