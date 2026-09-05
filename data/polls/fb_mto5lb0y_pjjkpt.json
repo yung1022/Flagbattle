@@ -981,7 +981,7 @@
     "ag": 0,
     "ar": 0,
     "am": 0,
-    "au": 7,
+    "au": 8,
     "at": 1,
     "az": 0,
     "bs": 1,
@@ -1175,11 +1175,12 @@
     "yt:UCbibRo7Vot-wnpnozHnNaEQ": "mt",
     "yt:UCJhuFXHM6KfMHgJKIcpgjoQ": "au",
     "yt:UCDfBZmI2rpzy51VA_wsX3JA": "ph",
-    "yt:UCloZixCc_IMiLgSdAKKaprA": "es"
+    "yt:UCloZixCc_IMiLgSdAKKaprA": "es",
+    "yt:UCs3QkgG62T3C_4puomxyL5Q": "au"
   },
   "closed": false,
   "closedAt": null,
-  "updatedAt": 1788602449647,
+  "updatedAt": 1788607557044,
   "voterStats": {
     "yt:UCMsCuoX8sZ7MDf285Ze6Mwg": {
       "name": "@Countryballs.com67",
@@ -1222,9 +1223,24 @@
       "avatar": "https://yt4.ggpht.com/ytc/AIdro_nSqZe_RepjfH5WT-qOf2TRVoLHz122n0zV5omNkQ=s64-c-k-c0x00ffffff-no-rj",
       "count": 2,
       "lastAt": 1788602449647
+    },
+    "yt:UCs3QkgG62T3C_4puomxyL5Q": {
+      "name": "@deanmccarthy2736",
+      "avatar": "https://yt4.ggpht.com/qAnAU-cgQprFQ3iXoYFz4t7tfiU-UM9S1tSWQkIIDgLGHu0cXhvIu4_04sAAOWaIl7Tv6KE9=s64-c-k-c0x00ffffff-no-rj",
+      "count": 1,
+      "lastAt": 1788607557044
     }
   },
   "recentVotes": [
+    {
+      "voter": "@deanmccarthy2736",
+      "voterId": "yt:UCs3QkgG62T3C_4puomxyL5Q",
+      "code": "au",
+      "name": "Australia",
+      "img": "https://flagcdn.com/w40/au.png",
+      "avatar": "https://yt4.ggpht.com/qAnAU-cgQprFQ3iXoYFz4t7tfiU-UM9S1tSWQkIIDgLGHu0cXhvIu4_04sAAOWaIl7Tv6KE9=s64-c-k-c0x00ffffff-no-rj",
+      "at": 1788607557044
+    },
     {
       "voter": "@angelescobedoquiros98",
       "voterId": "yt:UCloZixCc_IMiLgSdAKKaprA",
@@ -1260,15 +1276,6 @@
       "img": "https://flagcdn.com/w40/mt.png",
       "avatar": "https://yt4.ggpht.com/ytc/AIdro_k18TQOefWzLa5SvdJmEE0dDZLfk4am4CaTqv-UUpCP4ll3lucs6Ttsxlbnh6UOy4Y8dw=s64-c-k-c0x00ffffff-no-rj",
       "at": 1788600807201
-    },
-    {
-      "voter": "@mohdhafizulmusa6045",
-      "voterId": "yt:UCbibRo7Vot-wnpnozHnNaEQ",
-      "code": "ee",
-      "name": "Estonia",
-      "img": "https://flagcdn.com/w40/ee.png",
-      "avatar": "https://yt4.ggpht.com/ytc/AIdro_k18TQOefWzLa5SvdJmEE0dDZLfk4am4CaTqv-UUpCP4ll3lucs6Ttsxlbnh6UOy4Y8dw=s64-c-k-c0x00ffffff-no-rj",
-      "at": 1788600766812
     }
   ]
 }
