@@ -1,640 +1,17 @@
 {
   "live": {
-    "streamId": "fb_mtnofvlh_dy1hcu",
+    "streamId": "fb_mto5lb0y_pjjkpt",
     "mode": "final",
     "phase": "main",
     "finalStage": "main",
-    "round": 552,
+    "round": 643,
     "swissRound": 0,
     "qualified": [],
     "standing": [
       {
-        "code": "ro",
-        "name": "Romania",
-        "img": "https://flagcdn.com/w80/ro.png",
-        "hp": 100,
-        "points": 0
-      },
-      {
-        "code": "ke",
-        "name": "Kenya",
-        "img": "https://flagcdn.com/w80/ke.png",
-        "hp": 100,
-        "points": 0
-      },
-      {
-        "code": "si",
-        "name": "Slovenia",
-        "img": "https://flagcdn.com/w80/si.png",
-        "hp": 100,
-        "points": 0
-      },
-      {
-        "code": "py",
-        "name": "Paraguay",
-        "img": "https://flagcdn.com/w80/py.png",
-        "hp": 100,
-        "points": 0
-      },
-      {
-        "code": "lr",
-        "name": "Liberia",
-        "img": "https://flagcdn.com/w80/lr.png",
-        "hp": 100,
-        "points": 0
-      },
-      {
-        "code": "cv",
-        "name": "Cabo Verde",
-        "img": "https://flagcdn.com/w80/cv.png",
-        "hp": 100,
-        "points": 0
-      },
-      {
-        "code": "ni",
-        "name": "Nicaragua",
-        "img": "https://flagcdn.com/w80/ni.png",
-        "hp": 100,
-        "points": 0
-      },
-      {
-        "code": "mv",
-        "name": "Maldives",
-        "img": "https://flagcdn.com/w80/mv.png",
-        "hp": 100,
-        "points": 0
-      },
-      {
-        "code": "gw",
-        "name": "Guinea-Bissau",
-        "img": "https://flagcdn.com/w80/gw.png",
-        "hp": 100,
-        "points": 0
-      },
-      {
-        "code": "ad",
-        "name": "Andorra",
-        "img": "https://flagcdn.com/w80/ad.png",
-        "hp": 100,
-        "points": 0
-      },
-      {
-        "code": "is",
-        "name": "Iceland",
-        "img": "https://flagcdn.com/w80/is.png",
-        "hp": 100,
-        "points": 0
-      },
-      {
-        "code": "sz",
-        "name": "Eswatini",
-        "img": "https://flagcdn.com/w80/sz.png",
-        "hp": 100,
-        "points": 0
-      },
-      {
-        "code": "mr",
-        "name": "Mauritania",
-        "img": "https://flagcdn.com/w80/mr.png",
-        "hp": 100,
-        "points": 0
-      },
-      {
-        "code": "tt",
-        "name": "Trinidad and Tobago",
-        "img": "https://flagcdn.com/w80/tt.png",
-        "hp": 100,
-        "points": 0
-      },
-      {
-        "code": "az",
-        "name": "Azerbaijan",
-        "img": "https://flagcdn.com/w80/az.png",
-        "hp": 100,
-        "points": 0
-      },
-      {
-        "code": "pg",
-        "name": "Papua New Guinea",
-        "img": "https://flagcdn.com/w80/pg.png",
-        "hp": 100,
-        "points": 0
-      },
-      {
-        "code": "et",
-        "name": "Ethiopia",
-        "img": "https://flagcdn.com/w80/et.png",
-        "hp": 100,
-        "points": 0
-      },
-      {
-        "code": "ml",
-        "name": "Mali",
-        "img": "https://flagcdn.com/w80/ml.png",
-        "hp": 100,
-        "points": 0
-      },
-      {
-        "code": "hr",
-        "name": "Croatia",
-        "img": "https://flagcdn.com/w80/hr.png",
-        "hp": 100,
-        "points": 0
-      },
-      {
-        "code": "na",
-        "name": "Namibia",
-        "img": "https://flagcdn.com/w80/na.png",
-        "hp": 100,
-        "points": 0
-      },
-      {
-        "code": "ph",
-        "name": "Philippines",
-        "img": "https://flagcdn.com/w80/ph.png",
-        "hp": 100,
-        "points": 0
-      },
-      {
-        "code": "mk",
-        "name": "North Macedonia",
-        "img": "https://flagcdn.com/w80/mk.png",
-        "hp": 100,
-        "points": 0
-      },
-      {
-        "code": "fj",
-        "name": "Fiji",
-        "img": "https://flagcdn.com/w80/fj.png",
-        "hp": 100,
-        "points": 0
-      },
-      {
-        "code": "so",
-        "name": "Somalia",
-        "img": "https://flagcdn.com/w80/so.png",
-        "hp": 100,
-        "points": 0
-      },
-      {
-        "code": "be",
-        "name": "Belgium",
-        "img": "https://flagcdn.com/w80/be.png",
-        "hp": 100,
-        "points": 0
-      },
-      {
-        "code": "sg",
-        "name": "Singapore",
-        "img": "https://flagcdn.com/w80/sg.png",
-        "hp": 100,
-        "points": 0
-      },
-      {
-        "code": "jp",
-        "name": "Japan",
-        "img": "https://flagcdn.com/w80/jp.png",
-        "hp": 100,
-        "points": 0
-      },
-      {
-        "code": "zm",
-        "name": "Zambia",
-        "img": "https://flagcdn.com/w80/zm.png",
-        "hp": 100,
-        "points": 0
-      },
-      {
-        "code": "lu",
-        "name": "Luxembourg",
-        "img": "https://flagcdn.com/w80/lu.png",
-        "hp": 100,
-        "points": 0
-      },
-      {
-        "code": "sv",
-        "name": "El Salvador",
-        "img": "https://flagcdn.com/w80/sv.png",
-        "hp": 100,
-        "points": 0
-      },
-      {
-        "code": "tn",
-        "name": "Tunisia",
-        "img": "https://flagcdn.com/w80/tn.png",
-        "hp": 100,
-        "points": 0
-      },
-      {
-        "code": "gd",
-        "name": "Grenada",
-        "img": "https://flagcdn.com/w80/gd.png",
-        "hp": 100,
-        "points": 0
-      },
-      {
-        "code": "st",
-        "name": "Sao Tome and Principe",
-        "img": "https://flagcdn.com/w80/st.png",
-        "hp": 100,
-        "points": 0
-      },
-      {
-        "code": "cr",
-        "name": "Costa Rica",
-        "img": "https://flagcdn.com/w80/cr.png",
-        "hp": 100,
-        "points": 0
-      },
-      {
-        "code": "cd",
-        "name": "DR Congo",
-        "img": "https://flagcdn.com/w80/cd.png",
-        "hp": 100,
-        "points": 0
-      },
-      {
-        "code": "ie",
-        "name": "Ireland",
-        "img": "https://flagcdn.com/w80/ie.png",
-        "hp": 100,
-        "points": 0
-      },
-      {
-        "code": "bo",
-        "name": "Bolivia",
-        "img": "https://flagcdn.com/w80/bo.png",
-        "hp": 100,
-        "points": 0
-      },
-      {
-        "code": "sy",
-        "name": "Syria",
-        "img": "https://flagcdn.com/w80/sy.png",
-        "hp": 100,
-        "points": 0
-      },
-      {
-        "code": "mt",
-        "name": "Malta",
-        "img": "https://flagcdn.com/w80/mt.png",
-        "hp": 100,
-        "points": 0
-      },
-      {
-        "code": "mn",
-        "name": "Mongolia",
-        "img": "https://flagcdn.com/w80/mn.png",
-        "hp": 100,
-        "points": 0
-      },
-      {
-        "code": "uy",
-        "name": "Uruguay",
-        "img": "https://flagcdn.com/w80/uy.png",
-        "hp": 100,
-        "points": 0
-      },
-      {
-        "code": "to",
-        "name": "Tonga",
-        "img": "https://flagcdn.com/w80/to.png",
-        "hp": 100,
-        "points": 0
-      },
-      {
-        "code": "ar",
-        "name": "Argentina",
-        "img": "https://flagcdn.com/w80/ar.png",
-        "hp": 100,
-        "points": 0
-      },
-      {
-        "code": "sb",
-        "name": "Solomon Islands",
-        "img": "https://flagcdn.com/w80/sb.png",
-        "hp": 100,
-        "points": 0
-      },
-      {
-        "code": "gq",
-        "name": "Equatorial Guinea",
-        "img": "https://flagcdn.com/w80/gq.png",
-        "hp": 100,
-        "points": 0
-      },
-      {
-        "code": "lc",
-        "name": "Saint Lucia",
-        "img": "https://flagcdn.com/w80/lc.png",
-        "hp": 100,
-        "points": 0
-      },
-      {
-        "code": "kr",
-        "name": "South Korea",
-        "img": "https://flagcdn.com/w80/kr.png",
-        "hp": 100,
-        "points": 0
-      },
-      {
-        "code": "th",
-        "name": "Thailand",
-        "img": "https://flagcdn.com/w80/th.png",
-        "hp": 100,
-        "points": 0
-      },
-      {
-        "code": "au",
-        "name": "Australia",
-        "img": "https://flagcdn.com/w80/au.png",
-        "hp": 100,
-        "points": 0
-      },
-      {
-        "code": "tj",
-        "name": "Tajikistan",
-        "img": "https://flagcdn.com/w80/tj.png",
-        "hp": 100,
-        "points": 0
-      },
-      {
-        "code": "bb",
-        "name": "Barbados",
-        "img": "https://flagcdn.com/w80/bb.png",
-        "hp": 100,
-        "points": 0
-      },
-      {
-        "code": "il",
-        "name": "Israel",
-        "img": "https://flagcdn.com/w80/il.png",
-        "hp": 100,
-        "points": 0
-      },
-      {
-        "code": "mg",
-        "name": "Madagascar",
-        "img": "https://flagcdn.com/w80/mg.png",
-        "hp": 100,
-        "points": 0
-      },
-      {
-        "code": "ma",
-        "name": "Morocco",
-        "img": "https://flagcdn.com/w80/ma.png",
-        "hp": 100,
-        "points": 0
-      },
-      {
-        "code": "tv",
-        "name": "Tuvalu",
-        "img": "https://flagcdn.com/w80/tv.png",
-        "hp": 100,
-        "points": 0
-      },
-      {
-        "code": "td",
-        "name": "Chad",
-        "img": "https://flagcdn.com/w80/td.png",
-        "hp": 100,
-        "points": 0
-      },
-      {
-        "code": "ye",
-        "name": "Yemen",
-        "img": "https://flagcdn.com/w80/ye.png",
-        "hp": 100,
-        "points": 0
-      },
-      {
-        "code": "dj",
-        "name": "Djibouti",
-        "img": "https://flagcdn.com/w80/dj.png",
-        "hp": 100,
-        "points": 0
-      },
-      {
-        "code": "kn",
-        "name": "Saint Kitts and Nevis",
-        "img": "https://flagcdn.com/w80/kn.png",
-        "hp": 100,
-        "points": 0
-      },
-      {
-        "code": "at",
-        "name": "Austria",
-        "img": "https://flagcdn.com/w80/at.png",
-        "hp": 100,
-        "points": 0
-      },
-      {
-        "code": "kg",
-        "name": "Kyrgyzstan",
-        "img": "https://flagcdn.com/w80/kg.png",
-        "hp": 100,
-        "points": 0
-      },
-      {
-        "code": "tg",
-        "name": "Togo",
-        "img": "https://flagcdn.com/w80/tg.png",
-        "hp": 100,
-        "points": 0
-      },
-      {
-        "code": "sk",
-        "name": "Slovakia",
-        "img": "https://flagcdn.com/w80/sk.png",
-        "hp": 100,
-        "points": 0
-      },
-      {
-        "code": "mm",
-        "name": "Myanmar",
-        "img": "https://flagcdn.com/w80/mm.png",
-        "hp": 100,
-        "points": 0
-      },
-      {
-        "code": "li",
-        "name": "Liechtenstein",
-        "img": "https://flagcdn.com/w80/li.png",
-        "hp": 100,
-        "points": 0
-      },
-      {
-        "code": "np",
-        "name": "Nepal",
-        "img": "https://flagcdn.com/w80/np.png",
-        "hp": 100,
-        "points": 0
-      },
-      {
-        "code": "vc",
-        "name": "Saint Vincent and the Grenadines",
-        "img": "https://flagcdn.com/w80/vc.png",
-        "hp": 100,
-        "points": 0
-      },
-      {
-        "code": "gh",
-        "name": "Ghana",
-        "img": "https://flagcdn.com/w80/gh.png",
-        "hp": 100,
-        "points": 0
-      },
-      {
-        "code": "by",
-        "name": "Belarus",
-        "img": "https://flagcdn.com/w80/by.png",
-        "hp": 100,
-        "points": 0
-      },
-      {
-        "code": "jo",
-        "name": "Jordan",
-        "img": "https://flagcdn.com/w80/jo.png",
-        "hp": 100,
-        "points": 0
-      },
-      {
-        "code": "no",
-        "name": "Norway",
-        "img": "https://flagcdn.com/w80/no.png",
-        "hp": 100,
-        "points": 0
-      },
-      {
-        "code": "ba",
-        "name": "Bosnia and Herzegovina",
-        "img": "https://flagcdn.com/w80/ba.png",
-        "hp": 100,
-        "points": 0
-      },
-      {
-        "code": "ge",
-        "name": "Georgia",
-        "img": "https://flagcdn.com/w80/ge.png",
-        "hp": 100,
-        "points": 0
-      },
-      {
-        "code": "br",
-        "name": "Brazil",
-        "img": "https://flagcdn.com/w80/br.png",
-        "hp": 100,
-        "points": 0
-      },
-      {
-        "code": "bn",
-        "name": "Brunei",
-        "img": "https://flagcdn.com/w80/bn.png",
-        "hp": 100,
-        "points": 0
-      },
-      {
-        "code": "ec",
-        "name": "Ecuador",
-        "img": "https://flagcdn.com/w80/ec.png",
-        "hp": 100,
-        "points": 0
-      },
-      {
-        "code": "bs",
-        "name": "Bahamas",
-        "img": "https://flagcdn.com/w80/bs.png",
-        "hp": 100,
-        "points": 0
-      },
-      {
-        "code": "pe",
-        "name": "Peru",
-        "img": "https://flagcdn.com/w80/pe.png",
-        "hp": 100,
-        "points": 0
-      },
-      {
-        "code": "cl",
-        "name": "Chile",
-        "img": "https://flagcdn.com/w80/cl.png",
-        "hp": 100,
-        "points": 0
-      },
-      {
-        "code": "in",
-        "name": "India",
-        "img": "https://flagcdn.com/w80/in.png",
-        "hp": 100,
-        "points": 0
-      },
-      {
-        "code": "mh",
-        "name": "Marshall Islands",
-        "img": "https://flagcdn.com/w80/mh.png",
-        "hp": 100,
-        "points": 0
-      },
-      {
-        "code": "ls",
-        "name": "Lesotho",
-        "img": "https://flagcdn.com/w80/ls.png",
-        "hp": 100,
-        "points": 0
-      },
-      {
-        "code": "tz",
-        "name": "Tanzania",
-        "img": "https://flagcdn.com/w80/tz.png",
-        "hp": 100,
-        "points": 0
-      },
-      {
-        "code": "sd",
-        "name": "Sudan",
-        "img": "https://flagcdn.com/w80/sd.png",
-        "hp": 100,
-        "points": 0
-      },
-      {
-        "code": "iq",
-        "name": "Iraq",
-        "img": "https://flagcdn.com/w80/iq.png",
-        "hp": 100,
-        "points": 0
-      },
-      {
-        "code": "do",
-        "name": "Dominican Republic",
-        "img": "https://flagcdn.com/w80/do.png",
-        "hp": 100,
-        "points": 0
-      },
-      {
-        "code": "it",
-        "name": "Italy",
-        "img": "https://flagcdn.com/w80/it.png",
-        "hp": 100,
-        "points": 0
-      },
-      {
-        "code": "am",
-        "name": "Armenia",
-        "img": "https://flagcdn.com/w80/am.png",
-        "hp": 100,
-        "points": 0
-      },
-      {
-        "code": "ch",
-        "name": "Switzerland",
-        "img": "https://flagcdn.com/w80/ch.png",
-        "hp": 100,
-        "points": 0
-      },
-      {
-        "code": "gm",
-        "name": "Gambia",
-        "img": "https://flagcdn.com/w80/gm.png",
+        "code": "jm",
+        "name": "Jamaica",
+        "img": "https://flagcdn.com/w80/jm.png",
         "hp": 100,
         "points": 0
       },
@@ -646,114 +23,23 @@
         "points": 0
       },
       {
-        "code": "lt",
-        "name": "Lithuania",
-        "img": "https://flagcdn.com/w80/lt.png",
+        "code": "me",
+        "name": "Montenegro",
+        "img": "https://flagcdn.com/w80/me.png",
         "hp": 100,
         "points": 0
       },
       {
-        "code": "cz",
-        "name": "Czechia",
-        "img": "https://flagcdn.com/w80/cz.png",
+        "code": "co",
+        "name": "Colombia",
+        "img": "https://flagcdn.com/w80/co.png",
         "hp": 100,
         "points": 0
       },
       {
-        "code": "ir",
-        "name": "Iran",
-        "img": "https://flagcdn.com/w80/ir.png",
-        "hp": 100,
-        "points": 0
-      },
-      {
-        "code": "ca",
-        "name": "Canada",
-        "img": "https://flagcdn.com/w80/ca.png",
-        "hp": 100,
-        "points": 0
-      },
-      {
-        "code": "bg",
-        "name": "Bulgaria",
-        "img": "https://flagcdn.com/w80/bg.png",
-        "hp": 100,
-        "points": 0
-      },
-      {
-        "code": "ss",
-        "name": "South Sudan",
-        "img": "https://flagcdn.com/w80/ss.png",
-        "hp": 100,
-        "points": 0
-      },
-      {
-        "code": "mc",
-        "name": "Monaco",
-        "img": "https://flagcdn.com/w80/mc.png",
-        "hp": 100,
-        "points": 0
-      },
-      {
-        "code": "de",
-        "name": "Germany",
-        "img": "https://flagcdn.com/w80/de.png",
-        "hp": 100,
-        "points": 0
-      },
-      {
-        "code": "rs",
-        "name": "Serbia",
-        "img": "https://flagcdn.com/w80/rs.png",
-        "hp": 100,
-        "points": 0
-      },
-      {
-        "code": "cf",
-        "name": "Central African Republic",
-        "img": "https://flagcdn.com/w80/cf.png",
-        "hp": 100,
-        "points": 0
-      },
-      {
-        "code": "kz",
-        "name": "Kazakhstan",
-        "img": "https://flagcdn.com/w80/kz.png",
-        "hp": 100,
-        "points": 0
-      },
-      {
-        "code": "tm",
-        "name": "Turkmenistan",
-        "img": "https://flagcdn.com/w80/tm.png",
-        "hp": 100,
-        "points": 0
-      },
-      {
-        "code": "uz",
-        "name": "Uzbekistan",
-        "img": "https://flagcdn.com/w80/uz.png",
-        "hp": 100,
-        "points": 0
-      },
-      {
-        "code": "dm",
-        "name": "Dominica",
-        "img": "https://flagcdn.com/w80/dm.png",
-        "hp": 100,
-        "points": 0
-      },
-      {
-        "code": "qa",
-        "name": "Qatar",
-        "img": "https://flagcdn.com/w80/qa.png",
-        "hp": 100,
-        "points": 0
-      },
-      {
-        "code": "bw",
-        "name": "Botswana",
-        "img": "https://flagcdn.com/w80/bw.png",
+        "code": "bj",
+        "name": "Benin",
+        "img": "https://flagcdn.com/w80/bj.png",
         "hp": 100,
         "points": 0
       },
@@ -765,149 +51,30 @@
         "points": 0
       },
       {
+        "code": "et",
+        "name": "Ethiopia",
+        "img": "https://flagcdn.com/w80/et.png",
+        "hp": 100,
+        "points": 0
+      },
+      {
+        "code": "bs",
+        "name": "Bahamas",
+        "img": "https://flagcdn.com/w80/bs.png",
+        "hp": 100,
+        "points": 0
+      },
+      {
+        "code": "tg",
+        "name": "Togo",
+        "img": "https://flagcdn.com/w80/tg.png",
+        "hp": 100,
+        "points": 0
+      },
+      {
         "code": "pa",
         "name": "Panama",
         "img": "https://flagcdn.com/w80/pa.png",
-        "hp": 100,
-        "points": 0
-      },
-      {
-        "code": "my",
-        "name": "Malaysia",
-        "img": "https://flagcdn.com/w80/my.png",
-        "hp": 100,
-        "points": 0
-      },
-      {
-        "code": "zw",
-        "name": "Zimbabwe",
-        "img": "https://flagcdn.com/w80/zw.png",
-        "hp": 100,
-        "points": 0
-      },
-      {
-        "code": "bz",
-        "name": "Belize",
-        "img": "https://flagcdn.com/w80/bz.png",
-        "hp": 100,
-        "points": 0
-      },
-      {
-        "code": "md",
-        "name": "Moldova",
-        "img": "https://flagcdn.com/w80/md.png",
-        "hp": 100,
-        "points": 0
-      },
-      {
-        "code": "vu",
-        "name": "Vanuatu",
-        "img": "https://flagcdn.com/w80/vu.png",
-        "hp": 100,
-        "points": 0
-      },
-      {
-        "code": "sm",
-        "name": "San Marino",
-        "img": "https://flagcdn.com/w80/sm.png",
-        "hp": 100,
-        "points": 0
-      },
-      {
-        "code": "fr",
-        "name": "France",
-        "img": "https://flagcdn.com/w80/fr.png",
-        "hp": 100,
-        "points": 0
-      },
-      {
-        "code": "cu",
-        "name": "Cuba",
-        "img": "https://flagcdn.com/w80/cu.png",
-        "hp": 100,
-        "points": 0
-      },
-      {
-        "code": "ee",
-        "name": "Estonia",
-        "img": "https://flagcdn.com/w80/ee.png",
-        "hp": 100,
-        "points": 0
-      },
-      {
-        "code": "id",
-        "name": "Indonesia",
-        "img": "https://flagcdn.com/w80/id.png",
-        "hp": 100,
-        "points": 0
-      },
-      {
-        "code": "mw",
-        "name": "Malawi",
-        "img": "https://flagcdn.com/w80/mw.png",
-        "hp": 100,
-        "points": 0
-      },
-      {
-        "code": "bi",
-        "name": "Burundi",
-        "img": "https://flagcdn.com/w80/bi.png",
-        "hp": 100,
-        "points": 0
-      },
-      {
-        "code": "ne",
-        "name": "Niger",
-        "img": "https://flagcdn.com/w80/ne.png",
-        "hp": 100,
-        "points": 0
-      },
-      {
-        "code": "cn",
-        "name": "China",
-        "img": "https://flagcdn.com/w80/cn.png",
-        "hp": 100,
-        "points": 0
-      },
-      {
-        "code": "er",
-        "name": "Eritrea",
-        "img": "https://flagcdn.com/w80/er.png",
-        "hp": 100,
-        "points": 0
-      },
-      {
-        "code": "rw",
-        "name": "Rwanda",
-        "img": "https://flagcdn.com/w80/rw.png",
-        "hp": 100,
-        "points": 0
-      },
-      {
-        "code": "fi",
-        "name": "Finland",
-        "img": "https://flagcdn.com/w80/fi.png",
-        "hp": 100,
-        "points": 0
-      },
-      {
-        "code": "gy",
-        "name": "Guyana",
-        "img": "https://flagcdn.com/w80/gy.png",
-        "hp": 100,
-        "points": 0
-      },
-      {
-        "code": "ae",
-        "name": "United Arab Emirates",
-        "img": "https://flagcdn.com/w80/ae.png",
-        "hp": 100,
-        "points": 0
-      },
-      {
-        "code": "pt",
-        "name": "Portugal",
-        "img": "https://flagcdn.com/w80/pt.png",
         "hp": 100,
         "points": 0
       },
@@ -919,30 +86,9 @@
         "points": 0
       },
       {
-        "code": "vn",
-        "name": "Vietnam",
-        "img": "https://flagcdn.com/w80/vn.png",
-        "hp": 100,
-        "points": 0
-      },
-      {
-        "code": "ru",
-        "name": "Russia",
-        "img": "https://flagcdn.com/w80/ru.png",
-        "hp": 100,
-        "points": 0
-      },
-      {
-        "code": "us",
-        "name": "United States",
-        "img": "https://flagcdn.com/w80/us.png",
-        "hp": 100,
-        "points": 0
-      },
-      {
-        "code": "mu",
-        "name": "Mauritius",
-        "img": "https://flagcdn.com/w80/mu.png",
+        "code": "mh",
+        "name": "Marshall Islands",
+        "img": "https://flagcdn.com/w80/mh.png",
         "hp": 100,
         "points": 0
       },
@@ -950,6 +96,41 @@
         "code": "kh",
         "name": "Cambodia",
         "img": "https://flagcdn.com/w80/kh.png",
+        "hp": 100,
+        "points": 0
+      },
+      {
+        "code": "id",
+        "name": "Indonesia",
+        "img": "https://flagcdn.com/w80/id.png",
+        "hp": 100,
+        "points": 0
+      },
+      {
+        "code": "gq",
+        "name": "Equatorial Guinea",
+        "img": "https://flagcdn.com/w80/gq.png",
+        "hp": 100,
+        "points": 0
+      },
+      {
+        "code": "mz",
+        "name": "Mozambique",
+        "img": "https://flagcdn.com/w80/mz.png",
+        "hp": 100,
+        "points": 0
+      },
+      {
+        "code": "ly",
+        "name": "Libya",
+        "img": "https://flagcdn.com/w80/ly.png",
+        "hp": 100,
+        "points": 0
+      },
+      {
+        "code": "ni",
+        "name": "Nicaragua",
+        "img": "https://flagcdn.com/w80/ni.png",
         "hp": 100,
         "points": 0
       },
@@ -968,51 +149,30 @@
         "points": 0
       },
       {
-        "code": "mx",
-        "name": "Mexico",
-        "img": "https://flagcdn.com/w80/mx.png",
+        "code": "ie",
+        "name": "Ireland",
+        "img": "https://flagcdn.com/w80/ie.png",
         "hp": 100,
         "points": 0
       },
       {
-        "code": "pk",
-        "name": "Pakistan",
-        "img": "https://flagcdn.com/w80/pk.png",
+        "code": "md",
+        "name": "Moldova",
+        "img": "https://flagcdn.com/w80/md.png",
         "hp": 100,
         "points": 0
       },
       {
-        "code": "lk",
-        "name": "Sri Lanka",
-        "img": "https://flagcdn.com/w80/lk.png",
+        "code": "zm",
+        "name": "Zambia",
+        "img": "https://flagcdn.com/w80/zm.png",
         "hp": 100,
         "points": 0
       },
       {
-        "code": "ci",
-        "name": "Côte d'Ivoire",
-        "img": "https://flagcdn.com/w80/ci.png",
-        "hp": 100,
-        "points": 0
-      },
-      {
-        "code": "al",
-        "name": "Albania",
-        "img": "https://flagcdn.com/w80/al.png",
-        "hp": 100,
-        "points": 0
-      },
-      {
-        "code": "nr",
-        "name": "Nauru",
-        "img": "https://flagcdn.com/w80/nr.png",
-        "hp": 100,
-        "points": 0
-      },
-      {
-        "code": "ve",
-        "name": "Venezuela",
-        "img": "https://flagcdn.com/w80/ve.png",
+        "code": "bo",
+        "name": "Bolivia",
+        "img": "https://flagcdn.com/w80/bo.png",
         "hp": 100,
         "points": 0
       },
@@ -1024,100 +184,51 @@
         "points": 0
       },
       {
-        "code": "om",
-        "name": "Oman",
-        "img": "https://flagcdn.com/w80/om.png",
+        "code": "af",
+        "name": "Afghanistan",
+        "img": "https://flagcdn.com/w80/af.png",
         "hp": 100,
         "points": 0
       },
       {
-        "code": "gr",
-        "name": "Greece",
-        "img": "https://flagcdn.com/w80/gr.png",
+        "code": "jp",
+        "name": "Japan",
+        "img": "https://flagcdn.com/w80/jp.png",
         "hp": 100,
         "points": 0
       },
       {
-        "code": "sn",
-        "name": "Senegal",
-        "img": "https://flagcdn.com/w80/sn.png",
+        "code": "is",
+        "name": "Iceland",
+        "img": "https://flagcdn.com/w80/is.png",
         "hp": 100,
         "points": 0
       },
       {
-        "code": "hn",
-        "name": "Honduras",
-        "img": "https://flagcdn.com/w80/hn.png",
+        "code": "bi",
+        "name": "Burundi",
+        "img": "https://flagcdn.com/w80/bi.png",
         "hp": 100,
         "points": 0
       },
       {
-        "code": "sa",
-        "name": "Saudi Arabia",
-        "img": "https://flagcdn.com/w80/sa.png",
+        "code": "ad",
+        "name": "Andorra",
+        "img": "https://flagcdn.com/w80/ad.png",
         "hp": 100,
         "points": 0
       },
       {
-        "code": "ao",
-        "name": "Angola",
-        "img": "https://flagcdn.com/w80/ao.png",
+        "code": "sd",
+        "name": "Sudan",
+        "img": "https://flagcdn.com/w80/sd.png",
         "hp": 100,
         "points": 0
       },
       {
-        "code": "bj",
-        "name": "Benin",
-        "img": "https://flagcdn.com/w80/bj.png",
-        "hp": 100,
-        "points": 0
-      },
-      {
-        "code": "za",
-        "name": "South Africa",
-        "img": "https://flagcdn.com/w80/za.png",
-        "hp": 100,
-        "points": 0
-      },
-      {
-        "code": "gb",
-        "name": "United Kingdom",
-        "img": "https://flagcdn.com/w80/gb.png",
-        "hp": 100,
-        "points": 0
-      },
-      {
-        "code": "hu",
-        "name": "Hungary",
-        "img": "https://flagcdn.com/w80/hu.png",
-        "hp": 100,
-        "points": 0
-      },
-      {
-        "code": "nz",
-        "name": "New Zealand",
-        "img": "https://flagcdn.com/w80/nz.png",
-        "hp": 100,
-        "points": 0
-      },
-      {
-        "code": "sl",
-        "name": "Sierra Leone",
-        "img": "https://flagcdn.com/w80/sl.png",
-        "hp": 100,
-        "points": 0
-      },
-      {
-        "code": "ki",
-        "name": "Kiribati",
-        "img": "https://flagcdn.com/w80/ki.png",
-        "hp": 100,
-        "points": 0
-      },
-      {
-        "code": "bd",
-        "name": "Bangladesh",
-        "img": "https://flagcdn.com/w80/bd.png",
+        "code": "ba",
+        "name": "Bosnia and Herzegovina",
+        "img": "https://flagcdn.com/w80/ba.png",
         "hp": 100,
         "points": 0
       },
@@ -1129,198 +240,79 @@
         "points": 0
       },
       {
-        "code": "ag",
-        "name": "Antigua and Barbuda",
-        "img": "https://flagcdn.com/w80/ag.png",
+        "code": "td",
+        "name": "Chad",
+        "img": "https://flagcdn.com/w80/td.png",
         "hp": 100,
         "points": 0
       },
       {
-        "code": "bf",
-        "name": "Burkina Faso",
-        "img": "https://flagcdn.com/w80/bf.png",
+        "code": "tz",
+        "name": "Tanzania",
+        "img": "https://flagcdn.com/w80/tz.png",
         "hp": 100,
         "points": 0
       },
       {
-        "code": "sc",
-        "name": "Seychelles",
-        "img": "https://flagcdn.com/w80/sc.png",
+        "code": "cn",
+        "name": "China",
+        "img": "https://flagcdn.com/w80/cn.png",
         "hp": 100,
         "points": 0
       },
       {
-        "code": "tr",
-        "name": "Türkiye",
-        "img": "https://flagcdn.com/w80/tr.png",
+        "code": "hn",
+        "name": "Honduras",
+        "img": "https://flagcdn.com/w80/hn.png",
         "hp": 100,
         "points": 0
       },
       {
-        "code": "cm",
-        "name": "Cameroon",
-        "img": "https://flagcdn.com/w80/cm.png",
+        "code": "bz",
+        "name": "Belize",
+        "img": "https://flagcdn.com/w80/bz.png",
         "hp": 100,
         "points": 0
       },
       {
-        "code": "la",
-        "name": "Laos",
-        "img": "https://flagcdn.com/w80/la.png",
+        "code": "tm",
+        "name": "Turkmenistan",
+        "img": "https://flagcdn.com/w80/tm.png",
         "hp": 100,
         "points": 0
       },
       {
-        "code": "gt",
-        "name": "Guatemala",
-        "img": "https://flagcdn.com/w80/gt.png",
+        "code": "mu",
+        "name": "Mauritius",
+        "img": "https://flagcdn.com/w80/mu.png",
         "hp": 100,
         "points": 0
       },
       {
-        "code": "dk",
-        "name": "Denmark",
-        "img": "https://flagcdn.com/w80/dk.png",
+        "code": "rs",
+        "name": "Serbia",
+        "img": "https://flagcdn.com/w80/rs.png",
         "hp": 100,
         "points": 0
       },
       {
-        "code": "es",
-        "name": "Spain",
-        "img": "https://flagcdn.com/w80/es.png",
+        "code": "si",
+        "name": "Slovenia",
+        "img": "https://flagcdn.com/w80/si.png",
         "hp": 100,
         "points": 0
       },
       {
-        "code": "bh",
-        "name": "Bahrain",
-        "img": "https://flagcdn.com/w80/bh.png",
+        "code": "bg",
+        "name": "Bulgaria",
+        "img": "https://flagcdn.com/w80/bg.png",
         "hp": 100,
         "points": 0
       },
       {
-        "code": "ug",
-        "name": "Uganda",
-        "img": "https://flagcdn.com/w80/ug.png",
-        "hp": 100,
-        "points": 0
-      },
-      {
-        "code": "nl",
-        "name": "Netherlands",
-        "img": "https://flagcdn.com/w80/nl.png",
-        "hp": 100,
-        "points": 0
-      },
-      {
-        "code": "cy",
-        "name": "Cyprus",
-        "img": "https://flagcdn.com/w80/cy.png",
-        "hp": 100,
-        "points": 0
-      },
-      {
-        "code": "me",
-        "name": "Montenegro",
-        "img": "https://flagcdn.com/w80/me.png",
-        "hp": 100,
-        "points": 0
-      },
-      {
-        "code": "fm",
-        "name": "Micronesia",
-        "img": "https://flagcdn.com/w80/fm.png",
-        "hp": 100,
-        "points": 0
-      },
-      {
-        "code": "cg",
-        "name": "Congo",
-        "img": "https://flagcdn.com/w80/cg.png",
-        "hp": 100,
-        "points": 0
-      },
-      {
-        "code": "af",
-        "name": "Afghanistan",
-        "img": "https://flagcdn.com/w80/af.png",
-        "hp": 100,
-        "points": 0
-      },
-      {
-        "code": "lb",
-        "name": "Lebanon",
-        "img": "https://flagcdn.com/w80/lb.png",
-        "hp": 100,
-        "points": 0
-      },
-      {
-        "code": "ga",
-        "name": "Gabon",
-        "img": "https://flagcdn.com/w80/ga.png",
-        "hp": 100,
-        "points": 0
-      },
-      {
-        "code": "mz",
-        "name": "Mozambique",
-        "img": "https://flagcdn.com/w80/mz.png",
-        "hp": 100,
-        "points": 0
-      },
-      {
-        "code": "jm",
-        "name": "Jamaica",
-        "img": "https://flagcdn.com/w80/jm.png",
-        "hp": 100,
-        "points": 0
-      },
-      {
-        "code": "kw",
-        "name": "Kuwait",
-        "img": "https://flagcdn.com/w80/kw.png",
-        "hp": 100,
-        "points": 0
-      },
-      {
-        "code": "sr",
-        "name": "Suriname",
-        "img": "https://flagcdn.com/w80/sr.png",
-        "hp": 100,
-        "points": 0
-      },
-      {
-        "code": "va",
-        "name": "Vatican City",
-        "img": "https://flagcdn.com/w80/va.png",
-        "hp": 100,
-        "points": 0
-      },
-      {
-        "code": "se",
-        "name": "Sweden",
-        "img": "https://flagcdn.com/w80/se.png",
-        "hp": 100,
-        "points": 0
-      },
-      {
-        "code": "ht",
-        "name": "Haiti",
-        "img": "https://flagcdn.com/w80/ht.png",
-        "hp": 100,
-        "points": 0
-      },
-      {
-        "code": "eg",
-        "name": "Egypt",
-        "img": "https://flagcdn.com/w80/eg.png",
-        "hp": 100,
-        "points": 0
-      },
-      {
-        "code": "bt",
-        "name": "Bhutan",
-        "img": "https://flagcdn.com/w80/bt.png",
+        "code": "cv",
+        "name": "Cabo Verde",
+        "img": "https://flagcdn.com/w80/cv.png",
         "hp": 100,
         "points": 0
       },
@@ -1332,9 +324,226 @@
         "points": 0
       },
       {
-        "code": "co",
-        "name": "Colombia",
-        "img": "https://flagcdn.com/w80/co.png",
+        "code": "st",
+        "name": "Sao Tome and Principe",
+        "img": "https://flagcdn.com/w80/st.png",
+        "hp": 100,
+        "points": 0
+      },
+      {
+        "code": "la",
+        "name": "Laos",
+        "img": "https://flagcdn.com/w80/la.png",
+        "hp": 100,
+        "points": 0
+      },
+      {
+        "code": "ca",
+        "name": "Canada",
+        "img": "https://flagcdn.com/w80/ca.png",
+        "hp": 100,
+        "points": 0
+      },
+      {
+        "code": "kg",
+        "name": "Kyrgyzstan",
+        "img": "https://flagcdn.com/w80/kg.png",
+        "hp": 100,
+        "points": 0
+      },
+      {
+        "code": "mn",
+        "name": "Mongolia",
+        "img": "https://flagcdn.com/w80/mn.png",
+        "hp": 100,
+        "points": 0
+      },
+      {
+        "code": "fm",
+        "name": "Micronesia",
+        "img": "https://flagcdn.com/w80/fm.png",
+        "hp": 100,
+        "points": 0
+      },
+      {
+        "code": "ga",
+        "name": "Gabon",
+        "img": "https://flagcdn.com/w80/ga.png",
+        "hp": 100,
+        "points": 0
+      },
+      {
+        "code": "mg",
+        "name": "Madagascar",
+        "img": "https://flagcdn.com/w80/mg.png",
+        "hp": 100,
+        "points": 0
+      },
+      {
+        "code": "hr",
+        "name": "Croatia",
+        "img": "https://flagcdn.com/w80/hr.png",
+        "hp": 100,
+        "points": 0
+      },
+      {
+        "code": "ve",
+        "name": "Venezuela",
+        "img": "https://flagcdn.com/w80/ve.png",
+        "hp": 100,
+        "points": 0
+      },
+      {
+        "code": "so",
+        "name": "Somalia",
+        "img": "https://flagcdn.com/w80/so.png",
+        "hp": 100,
+        "points": 0
+      },
+      {
+        "code": "lr",
+        "name": "Liberia",
+        "img": "https://flagcdn.com/w80/lr.png",
+        "hp": 100,
+        "points": 0
+      },
+      {
+        "code": "uz",
+        "name": "Uzbekistan",
+        "img": "https://flagcdn.com/w80/uz.png",
+        "hp": 100,
+        "points": 0
+      },
+      {
+        "code": "sz",
+        "name": "Eswatini",
+        "img": "https://flagcdn.com/w80/sz.png",
+        "hp": 100,
+        "points": 0
+      },
+      {
+        "code": "bh",
+        "name": "Bahrain",
+        "img": "https://flagcdn.com/w80/bh.png",
+        "hp": 100,
+        "points": 0
+      },
+      {
+        "code": "qa",
+        "name": "Qatar",
+        "img": "https://flagcdn.com/w80/qa.png",
+        "hp": 100,
+        "points": 0
+      },
+      {
+        "code": "mk",
+        "name": "North Macedonia",
+        "img": "https://flagcdn.com/w80/mk.png",
+        "hp": 100,
+        "points": 0
+      },
+      {
+        "code": "lb",
+        "name": "Lebanon",
+        "img": "https://flagcdn.com/w80/lb.png",
+        "hp": 100,
+        "points": 0
+      },
+      {
+        "code": "va",
+        "name": "Vatican City",
+        "img": "https://flagcdn.com/w80/va.png",
+        "hp": 100,
+        "points": 0
+      },
+      {
+        "code": "in",
+        "name": "India",
+        "img": "https://flagcdn.com/w80/in.png",
+        "hp": 100,
+        "points": 0
+      },
+      {
+        "code": "ee",
+        "name": "Estonia",
+        "img": "https://flagcdn.com/w80/ee.png",
+        "hp": 100,
+        "points": 0
+      },
+      {
+        "code": "lu",
+        "name": "Luxembourg",
+        "img": "https://flagcdn.com/w80/lu.png",
+        "hp": 100,
+        "points": 0
+      },
+      {
+        "code": "vu",
+        "name": "Vanuatu",
+        "img": "https://flagcdn.com/w80/vu.png",
+        "hp": 100,
+        "points": 0
+      },
+      {
+        "code": "bt",
+        "name": "Bhutan",
+        "img": "https://flagcdn.com/w80/bt.png",
+        "hp": 100,
+        "points": 0
+      },
+      {
+        "code": "ml",
+        "name": "Mali",
+        "img": "https://flagcdn.com/w80/ml.png",
+        "hp": 100,
+        "points": 0
+      },
+      {
+        "code": "sm",
+        "name": "San Marino",
+        "img": "https://flagcdn.com/w80/sm.png",
+        "hp": 100,
+        "points": 0
+      },
+      {
+        "code": "gt",
+        "name": "Guatemala",
+        "img": "https://flagcdn.com/w80/gt.png",
+        "hp": 100,
+        "points": 0
+      },
+      {
+        "code": "cr",
+        "name": "Costa Rica",
+        "img": "https://flagcdn.com/w80/cr.png",
+        "hp": 100,
+        "points": 0
+      },
+      {
+        "code": "am",
+        "name": "Armenia",
+        "img": "https://flagcdn.com/w80/am.png",
+        "hp": 100,
+        "points": 0
+      },
+      {
+        "code": "sb",
+        "name": "Solomon Islands",
+        "img": "https://flagcdn.com/w80/sb.png",
+        "hp": 100,
+        "points": 0
+      },
+      {
+        "code": "bn",
+        "name": "Brunei",
+        "img": "https://flagcdn.com/w80/bn.png",
+        "hp": 100,
+        "points": 0
+      },
+      {
+        "code": "kw",
+        "name": "Kuwait",
+        "img": "https://flagcdn.com/w80/kw.png",
         "hp": 100,
         "points": 0
       },
@@ -1346,9 +555,450 @@
         "points": 0
       },
       {
-        "code": "ly",
-        "name": "Libya",
-        "img": "https://flagcdn.com/w80/ly.png",
+        "code": "az",
+        "name": "Azerbaijan",
+        "img": "https://flagcdn.com/w80/az.png",
+        "hp": 100,
+        "points": 0
+      },
+      {
+        "code": "rw",
+        "name": "Rwanda",
+        "img": "https://flagcdn.com/w80/rw.png",
+        "hp": 100,
+        "points": 0
+      },
+      {
+        "code": "to",
+        "name": "Tonga",
+        "img": "https://flagcdn.com/w80/to.png",
+        "hp": 100,
+        "points": 0
+      },
+      {
+        "code": "fi",
+        "name": "Finland",
+        "img": "https://flagcdn.com/w80/fi.png",
+        "hp": 100,
+        "points": 0
+      },
+      {
+        "code": "bw",
+        "name": "Botswana",
+        "img": "https://flagcdn.com/w80/bw.png",
+        "hp": 100,
+        "points": 0
+      },
+      {
+        "code": "ke",
+        "name": "Kenya",
+        "img": "https://flagcdn.com/w80/ke.png",
+        "hp": 100,
+        "points": 0
+      },
+      {
+        "code": "ao",
+        "name": "Angola",
+        "img": "https://flagcdn.com/w80/ao.png",
+        "hp": 100,
+        "points": 0
+      },
+      {
+        "code": "ci",
+        "name": "Côte d'Ivoire",
+        "img": "https://flagcdn.com/w80/ci.png",
+        "hp": 100,
+        "points": 0
+      },
+      {
+        "code": "il",
+        "name": "Israel",
+        "img": "https://flagcdn.com/w80/il.png",
+        "hp": 100,
+        "points": 0
+      },
+      {
+        "code": "gb",
+        "name": "United Kingdom",
+        "img": "https://flagcdn.com/w80/gb.png",
+        "hp": 100,
+        "points": 0
+      },
+      {
+        "code": "ar",
+        "name": "Argentina",
+        "img": "https://flagcdn.com/w80/ar.png",
+        "hp": 100,
+        "points": 0
+      },
+      {
+        "code": "pk",
+        "name": "Pakistan",
+        "img": "https://flagcdn.com/w80/pk.png",
+        "hp": 100,
+        "points": 0
+      },
+      {
+        "code": "cd",
+        "name": "DR Congo",
+        "img": "https://flagcdn.com/w80/cd.png",
+        "hp": 100,
+        "points": 0
+      },
+      {
+        "code": "sg",
+        "name": "Singapore",
+        "img": "https://flagcdn.com/w80/sg.png",
+        "hp": 100,
+        "points": 0
+      },
+      {
+        "code": "ae",
+        "name": "United Arab Emirates",
+        "img": "https://flagcdn.com/w80/ae.png",
+        "hp": 100,
+        "points": 0
+      },
+      {
+        "code": "dm",
+        "name": "Dominica",
+        "img": "https://flagcdn.com/w80/dm.png",
+        "hp": 100,
+        "points": 0
+      },
+      {
+        "code": "ug",
+        "name": "Uganda",
+        "img": "https://flagcdn.com/w80/ug.png",
+        "hp": 100,
+        "points": 0
+      },
+      {
+        "code": "cf",
+        "name": "Central African Republic",
+        "img": "https://flagcdn.com/w80/cf.png",
+        "hp": 100,
+        "points": 0
+      },
+      {
+        "code": "mm",
+        "name": "Myanmar",
+        "img": "https://flagcdn.com/w80/mm.png",
+        "hp": 100,
+        "points": 0
+      },
+      {
+        "code": "es",
+        "name": "Spain",
+        "img": "https://flagcdn.com/w80/es.png",
+        "hp": 100,
+        "points": 0
+      },
+      {
+        "code": "my",
+        "name": "Malaysia",
+        "img": "https://flagcdn.com/w80/my.png",
+        "hp": 100,
+        "points": 0
+      },
+      {
+        "code": "pe",
+        "name": "Peru",
+        "img": "https://flagcdn.com/w80/pe.png",
+        "hp": 100,
+        "points": 0
+      },
+      {
+        "code": "cg",
+        "name": "Congo",
+        "img": "https://flagcdn.com/w80/cg.png",
+        "hp": 100,
+        "points": 0
+      },
+      {
+        "code": "kr",
+        "name": "South Korea",
+        "img": "https://flagcdn.com/w80/kr.png",
+        "hp": 100,
+        "points": 0
+      },
+      {
+        "code": "li",
+        "name": "Liechtenstein",
+        "img": "https://flagcdn.com/w80/li.png",
+        "hp": 100,
+        "points": 0
+      },
+      {
+        "code": "gw",
+        "name": "Guinea-Bissau",
+        "img": "https://flagcdn.com/w80/gw.png",
+        "hp": 100,
+        "points": 0
+      },
+      {
+        "code": "bf",
+        "name": "Burkina Faso",
+        "img": "https://flagcdn.com/w80/bf.png",
+        "hp": 100,
+        "points": 0
+      },
+      {
+        "code": "py",
+        "name": "Paraguay",
+        "img": "https://flagcdn.com/w80/py.png",
+        "hp": 100,
+        "points": 0
+      },
+      {
+        "code": "ge",
+        "name": "Georgia",
+        "img": "https://flagcdn.com/w80/ge.png",
+        "hp": 100,
+        "points": 0
+      },
+      {
+        "code": "tj",
+        "name": "Tajikistan",
+        "img": "https://flagcdn.com/w80/tj.png",
+        "hp": 100,
+        "points": 0
+      },
+      {
+        "code": "tn",
+        "name": "Tunisia",
+        "img": "https://flagcdn.com/w80/tn.png",
+        "hp": 100,
+        "points": 0
+      },
+      {
+        "code": "br",
+        "name": "Brazil",
+        "img": "https://flagcdn.com/w80/br.png",
+        "hp": 100,
+        "points": 0
+      },
+      {
+        "code": "uy",
+        "name": "Uruguay",
+        "img": "https://flagcdn.com/w80/uy.png",
+        "hp": 100,
+        "points": 0
+      },
+      {
+        "code": "ls",
+        "name": "Lesotho",
+        "img": "https://flagcdn.com/w80/ls.png",
+        "hp": 100,
+        "points": 0
+      },
+      {
+        "code": "ir",
+        "name": "Iran",
+        "img": "https://flagcdn.com/w80/ir.png",
+        "hp": 100,
+        "points": 0
+      },
+      {
+        "code": "ma",
+        "name": "Morocco",
+        "img": "https://flagcdn.com/w80/ma.png",
+        "hp": 100,
+        "points": 0
+      },
+      {
+        "code": "ag",
+        "name": "Antigua and Barbuda",
+        "img": "https://flagcdn.com/w80/ag.png",
+        "hp": 100,
+        "points": 0
+      },
+      {
+        "code": "bd",
+        "name": "Bangladesh",
+        "img": "https://flagcdn.com/w80/bd.png",
+        "hp": 100,
+        "points": 0
+      },
+      {
+        "code": "sn",
+        "name": "Senegal",
+        "img": "https://flagcdn.com/w80/sn.png",
+        "hp": 100,
+        "points": 0
+      },
+      {
+        "code": "de",
+        "name": "Germany",
+        "img": "https://flagcdn.com/w80/de.png",
+        "hp": 100,
+        "points": 0
+      },
+      {
+        "code": "ru",
+        "name": "Russia",
+        "img": "https://flagcdn.com/w80/ru.png",
+        "hp": 100,
+        "points": 0
+      },
+      {
+        "code": "ch",
+        "name": "Switzerland",
+        "img": "https://flagcdn.com/w80/ch.png",
+        "hp": 100,
+        "points": 0
+      },
+      {
+        "code": "fj",
+        "name": "Fiji",
+        "img": "https://flagcdn.com/w80/fj.png",
+        "hp": 100,
+        "points": 0
+      },
+      {
+        "code": "fr",
+        "name": "France",
+        "img": "https://flagcdn.com/w80/fr.png",
+        "hp": 100,
+        "points": 0
+      },
+      {
+        "code": "sc",
+        "name": "Seychelles",
+        "img": "https://flagcdn.com/w80/sc.png",
+        "hp": 100,
+        "points": 0
+      },
+      {
+        "code": "ye",
+        "name": "Yemen",
+        "img": "https://flagcdn.com/w80/ye.png",
+        "hp": 100,
+        "points": 0
+      },
+      {
+        "code": "hu",
+        "name": "Hungary",
+        "img": "https://flagcdn.com/w80/hu.png",
+        "hp": 100,
+        "points": 0
+      },
+      {
+        "code": "jo",
+        "name": "Jordan",
+        "img": "https://flagcdn.com/w80/jo.png",
+        "hp": 100,
+        "points": 0
+      },
+      {
+        "code": "sa",
+        "name": "Saudi Arabia",
+        "img": "https://flagcdn.com/w80/sa.png",
+        "hp": 100,
+        "points": 0
+      },
+      {
+        "code": "ec",
+        "name": "Ecuador",
+        "img": "https://flagcdn.com/w80/ec.png",
+        "hp": 100,
+        "points": 0
+      },
+      {
+        "code": "gm",
+        "name": "Gambia",
+        "img": "https://flagcdn.com/w80/gm.png",
+        "hp": 100,
+        "points": 0
+      },
+      {
+        "code": "sv",
+        "name": "El Salvador",
+        "img": "https://flagcdn.com/w80/sv.png",
+        "hp": 100,
+        "points": 0
+      },
+      {
+        "code": "np",
+        "name": "Nepal",
+        "img": "https://flagcdn.com/w80/np.png",
+        "hp": 100,
+        "points": 0
+      },
+      {
+        "code": "no",
+        "name": "Norway",
+        "img": "https://flagcdn.com/w80/no.png",
+        "hp": 100,
+        "points": 0
+      },
+      {
+        "code": "kn",
+        "name": "Saint Kitts and Nevis",
+        "img": "https://flagcdn.com/w80/kn.png",
+        "hp": 100,
+        "points": 0
+      },
+      {
+        "code": "it",
+        "name": "Italy",
+        "img": "https://flagcdn.com/w80/it.png",
+        "hp": 100,
+        "points": 0
+      },
+      {
+        "code": "by",
+        "name": "Belarus",
+        "img": "https://flagcdn.com/w80/by.png",
+        "hp": 100,
+        "points": 0
+      },
+      {
+        "code": "mw",
+        "name": "Malawi",
+        "img": "https://flagcdn.com/w80/mw.png",
+        "hp": 100,
+        "points": 0
+      },
+      {
+        "code": "ph",
+        "name": "Philippines",
+        "img": "https://flagcdn.com/w80/ph.png",
+        "hp": 100,
+        "points": 0
+      },
+      {
+        "code": "mr",
+        "name": "Mauritania",
+        "img": "https://flagcdn.com/w80/mr.png",
+        "hp": 100,
+        "points": 0
+      },
+      {
+        "code": "ss",
+        "name": "South Sudan",
+        "img": "https://flagcdn.com/w80/ss.png",
+        "hp": 100,
+        "points": 0
+      },
+      {
+        "code": "bb",
+        "name": "Barbados",
+        "img": "https://flagcdn.com/w80/bb.png",
+        "hp": 100,
+        "points": 0
+      },
+      {
+        "code": "er",
+        "name": "Eritrea",
+        "img": "https://flagcdn.com/w80/er.png",
+        "hp": 100,
+        "points": 0
+      },
+      {
+        "code": "eg",
+        "name": "Egypt",
+        "img": "https://flagcdn.com/w80/eg.png",
         "hp": 100,
         "points": 0
       },
@@ -1360,9 +1010,359 @@
         "points": 0
       },
       {
+        "code": "nz",
+        "name": "New Zealand",
+        "img": "https://flagcdn.com/w80/nz.png",
+        "hp": 100,
+        "points": 0
+      },
+      {
+        "code": "dk",
+        "name": "Denmark",
+        "img": "https://flagcdn.com/w80/dk.png",
+        "hp": 100,
+        "points": 0
+      },
+      {
         "code": "dz",
         "name": "Algeria",
         "img": "https://flagcdn.com/w80/dz.png",
+        "hp": 100,
+        "points": 0
+      },
+      {
+        "code": "ki",
+        "name": "Kiribati",
+        "img": "https://flagcdn.com/w80/ki.png",
+        "hp": 100,
+        "points": 0
+      },
+      {
+        "code": "za",
+        "name": "South Africa",
+        "img": "https://flagcdn.com/w80/za.png",
+        "hp": 100,
+        "points": 0
+      },
+      {
+        "code": "sy",
+        "name": "Syria",
+        "img": "https://flagcdn.com/w80/sy.png",
+        "hp": 100,
+        "points": 0
+      },
+      {
+        "code": "mv",
+        "name": "Maldives",
+        "img": "https://flagcdn.com/w80/mv.png",
+        "hp": 100,
+        "points": 0
+      },
+      {
+        "code": "dj",
+        "name": "Djibouti",
+        "img": "https://flagcdn.com/w80/dj.png",
+        "hp": 100,
+        "points": 0
+      },
+      {
+        "code": "sk",
+        "name": "Slovakia",
+        "img": "https://flagcdn.com/w80/sk.png",
+        "hp": 100,
+        "points": 0
+      },
+      {
+        "code": "sr",
+        "name": "Suriname",
+        "img": "https://flagcdn.com/w80/sr.png",
+        "hp": 100,
+        "points": 0
+      },
+      {
+        "code": "nr",
+        "name": "Nauru",
+        "img": "https://flagcdn.com/w80/nr.png",
+        "hp": 100,
+        "points": 0
+      },
+      {
+        "code": "om",
+        "name": "Oman",
+        "img": "https://flagcdn.com/w80/om.png",
+        "hp": 100,
+        "points": 0
+      },
+      {
+        "code": "ro",
+        "name": "Romania",
+        "img": "https://flagcdn.com/w80/ro.png",
+        "hp": 100,
+        "points": 0
+      },
+      {
+        "code": "al",
+        "name": "Albania",
+        "img": "https://flagcdn.com/w80/al.png",
+        "hp": 100,
+        "points": 0
+      },
+      {
+        "code": "gh",
+        "name": "Ghana",
+        "img": "https://flagcdn.com/w80/gh.png",
+        "hp": 100,
+        "points": 0
+      },
+      {
+        "code": "be",
+        "name": "Belgium",
+        "img": "https://flagcdn.com/w80/be.png",
+        "hp": 100,
+        "points": 0
+      },
+      {
+        "code": "do",
+        "name": "Dominican Republic",
+        "img": "https://flagcdn.com/w80/do.png",
+        "hp": 100,
+        "points": 0
+      },
+      {
+        "code": "th",
+        "name": "Thailand",
+        "img": "https://flagcdn.com/w80/th.png",
+        "hp": 100,
+        "points": 0
+      },
+      {
+        "code": "ht",
+        "name": "Haiti",
+        "img": "https://flagcdn.com/w80/ht.png",
+        "hp": 100,
+        "points": 0
+      },
+      {
+        "code": "mt",
+        "name": "Malta",
+        "img": "https://flagcdn.com/w80/mt.png",
+        "hp": 100,
+        "points": 0
+      },
+      {
+        "code": "cu",
+        "name": "Cuba",
+        "img": "https://flagcdn.com/w80/cu.png",
+        "hp": 100,
+        "points": 0
+      },
+      {
+        "code": "cm",
+        "name": "Cameroon",
+        "img": "https://flagcdn.com/w80/cm.png",
+        "hp": 100,
+        "points": 0
+      },
+      {
+        "code": "tt",
+        "name": "Trinidad and Tobago",
+        "img": "https://flagcdn.com/w80/tt.png",
+        "hp": 100,
+        "points": 0
+      },
+      {
+        "code": "mc",
+        "name": "Monaco",
+        "img": "https://flagcdn.com/w80/mc.png",
+        "hp": 100,
+        "points": 0
+      },
+      {
+        "code": "gd",
+        "name": "Grenada",
+        "img": "https://flagcdn.com/w80/gd.png",
+        "hp": 100,
+        "points": 0
+      },
+      {
+        "code": "mx",
+        "name": "Mexico",
+        "img": "https://flagcdn.com/w80/mx.png",
+        "hp": 100,
+        "points": 0
+      },
+      {
+        "code": "zw",
+        "name": "Zimbabwe",
+        "img": "https://flagcdn.com/w80/zw.png",
+        "hp": 100,
+        "points": 0
+      },
+      {
+        "code": "gy",
+        "name": "Guyana",
+        "img": "https://flagcdn.com/w80/gy.png",
+        "hp": 100,
+        "points": 0
+      },
+      {
+        "code": "nl",
+        "name": "Netherlands",
+        "img": "https://flagcdn.com/w80/nl.png",
+        "hp": 100,
+        "points": 0
+      },
+      {
+        "code": "na",
+        "name": "Namibia",
+        "img": "https://flagcdn.com/w80/na.png",
+        "hp": 100,
+        "points": 0
+      },
+      {
+        "code": "vc",
+        "name": "Saint Vincent and the Grenadines",
+        "img": "https://flagcdn.com/w80/vc.png",
+        "hp": 100,
+        "points": 0
+      },
+      {
+        "code": "cl",
+        "name": "Chile",
+        "img": "https://flagcdn.com/w80/cl.png",
+        "hp": 100,
+        "points": 0
+      },
+      {
+        "code": "lc",
+        "name": "Saint Lucia",
+        "img": "https://flagcdn.com/w80/lc.png",
+        "hp": 100,
+        "points": 0
+      },
+      {
+        "code": "gr",
+        "name": "Greece",
+        "img": "https://flagcdn.com/w80/gr.png",
+        "hp": 100,
+        "points": 0
+      },
+      {
+        "code": "cz",
+        "name": "Czechia",
+        "img": "https://flagcdn.com/w80/cz.png",
+        "hp": 100,
+        "points": 0
+      },
+      {
+        "code": "pg",
+        "name": "Papua New Guinea",
+        "img": "https://flagcdn.com/w80/pg.png",
+        "hp": 100,
+        "points": 0
+      },
+      {
+        "code": "ne",
+        "name": "Niger",
+        "img": "https://flagcdn.com/w80/ne.png",
+        "hp": 100,
+        "points": 0
+      },
+      {
+        "code": "pt",
+        "name": "Portugal",
+        "img": "https://flagcdn.com/w80/pt.png",
+        "hp": 100,
+        "points": 0
+      },
+      {
+        "code": "vn",
+        "name": "Vietnam",
+        "img": "https://flagcdn.com/w80/vn.png",
+        "hp": 100,
+        "points": 0
+      },
+      {
+        "code": "kz",
+        "name": "Kazakhstan",
+        "img": "https://flagcdn.com/w80/kz.png",
+        "hp": 100,
+        "points": 0
+      },
+      {
+        "code": "us",
+        "name": "United States",
+        "img": "https://flagcdn.com/w80/us.png",
+        "hp": 100,
+        "points": 0
+      },
+      {
+        "code": "tv",
+        "name": "Tuvalu",
+        "img": "https://flagcdn.com/w80/tv.png",
+        "hp": 100,
+        "points": 0
+      },
+      {
+        "code": "tr",
+        "name": "Türkiye",
+        "img": "https://flagcdn.com/w80/tr.png",
+        "hp": 100,
+        "points": 0
+      },
+      {
+        "code": "au",
+        "name": "Australia",
+        "img": "https://flagcdn.com/w80/au.png",
+        "hp": 100,
+        "points": 0
+      },
+      {
+        "code": "lk",
+        "name": "Sri Lanka",
+        "img": "https://flagcdn.com/w80/lk.png",
+        "hp": 100,
+        "points": 0
+      },
+      {
+        "code": "cy",
+        "name": "Cyprus",
+        "img": "https://flagcdn.com/w80/cy.png",
+        "hp": 100,
+        "points": 0
+      },
+      {
+        "code": "sl",
+        "name": "Sierra Leone",
+        "img": "https://flagcdn.com/w80/sl.png",
+        "hp": 100,
+        "points": 0
+      },
+      {
+        "code": "iq",
+        "name": "Iraq",
+        "img": "https://flagcdn.com/w80/iq.png",
+        "hp": 100,
+        "points": 0
+      },
+      {
+        "code": "lt",
+        "name": "Lithuania",
+        "img": "https://flagcdn.com/w80/lt.png",
+        "hp": 100,
+        "points": 0
+      },
+      {
+        "code": "se",
+        "name": "Sweden",
+        "img": "https://flagcdn.com/w80/se.png",
+        "hp": 100,
+        "points": 0
+      },
+      {
+        "code": "at",
+        "name": "Austria",
+        "img": "https://flagcdn.com/w80/at.png",
         "hp": 100,
         "points": 0
       }
@@ -1373,289 +1373,786 @@
     "winnerHoldRemainingMs": 0,
     "qualifyingRemainingMs": 0,
     "sprintRemainingMs": 0,
-    "mainRemainingMs": 266803.4575253073,
+    "mainRemainingMs": 23141.277950985357,
     "invasionRemainingMs": 0,
-    "arenaEvent": {
-      "type": "blackhole",
-      "label": "BLACK HOLE",
-      "endsAt": 13266877.4,
-      "hunterCode": null
-    },
-    "nextEventAt": 13236820.145162176,
+    "arenaEvent": null,
+    "nextEventAt": 13938686.782341747,
     "sprintActive": false,
     "mainRoundPoints": {
-      "sa": 4,
-      "sm": 3,
-      "zm": 5,
-      "gd": 6,
-      "cz": 3,
-      "cl": 7,
-      "it": 3,
-      "pg": 4,
-      "ne": 6,
-      "nr": 6,
-      "bg": 2,
-      "ru": 7,
-      "mx": 2,
-      "zw": 4,
-      "cu": 5,
-      "ni": 2,
-      "bi": 3,
-      "bz": 5,
-      "ma": 4,
-      "py": 2,
-      "uz": 3,
-      "mu": 1,
-      "sy": 2,
-      "pw": 3,
-      "hn": 4,
-      "td": 1,
-      "ae": 3,
-      "bt": 2,
-      "ht": 4,
-      "rw": 8,
-      "km": 3,
-      "ge": 3,
-      "kw": 5,
-      "kg": 2,
-      "mn": 3,
-      "ph": 2,
-      "pl": 2,
-      "lt": 5,
-      "al": 2,
-      "ws": 2,
-      "ss": 2,
-      "mg": 3,
-      "so": 5,
-      "lr": 3,
-      "dm": 6,
-      "au": 3,
-      "es": 4,
-      "si": 1,
-      "bw": 3,
-      "kr": 5,
-      "cg": 3,
-      "fi": 7,
-      "mt": 1,
-      "tl": 5,
-      "bo": 4,
-      "hr": 2,
-      "ba": 5,
-      "tz": 2,
-      "by": 3,
-      "ga": 2,
-      "kn": 3,
-      "bd": 1,
-      "vc": 6,
-      "gm": 2,
-      "br": 6,
-      "kh": 1,
+      "cf": 5,
+      "ug": 3,
+      "qa": 4,
       "ad": 4,
-      "cf": 1,
-      "cv": 6,
-      "za": 4,
-      "fj": 2,
-      "uy": 1,
       "do": 3,
-      "ly": 1,
-      "sg": 2,
-      "li": 1,
-      "no": 2,
-      "pt": 3,
-      "tj": 3,
-      "ir": 3,
-      "ve": 5,
-      "kz": 2,
-      "ki": 5,
-      "fr": 5,
-      "ci": 2,
-      "mv": 2,
-      "il": 2,
-      "cy": 3,
-      "lc": 5,
-      "pa": 1,
-      "tn": 4,
-      "sd": 3,
-      "gw": 4,
-      "iq": 1,
-      "sb": 2,
-      "er": 1,
-      "mh": 4,
-      "qa": 1,
-      "us": 5,
-      "af": 7,
-      "ye": 4,
-      "az": 5,
-      "bs": 2,
-      "nz": 4,
-      "vu": 5,
-      "gh": 3,
-      "tv": 4,
-      "jm": 2,
-      "om": 2,
-      "am": 5,
-      "jo": 2,
-      "mm": 2,
-      "ca": 3,
-      "mc": 3,
-      "sz": 4,
-      "th": 3,
+      "mm": 4,
+      "kg": 7,
+      "ie": 3,
+      "sz": 12,
+      "gb": 5,
+      "de": 3,
+      "au": 9,
+      "sc": 5,
+      "ee": 5,
+      "om": 3,
       "jp": 2,
-      "ie": 4,
-      "ug": 5,
-      "co": 3,
-      "na": 5,
-      "lk": 2,
-      "tr": 4,
-      "ng": 2,
-      "pe": 2,
-      "nl": 2,
-      "mk": 1,
-      "eg": 4,
-      "md": 2,
-      "me": 2,
-      "ao": 1,
-      "vn": 6,
-      "fm": 2,
-      "sc": 2,
-      "in": 3,
-      "st": 4,
-      "gr": 5,
-      "sl": 1,
-      "tg": 1,
-      "is": 1,
-      "lu": 2,
-      "ke": 3,
-      "mr": 2,
-      "et": 1,
-      "sk": 3,
-      "pk": 2,
-      "hu": 2,
-      "bb": 3,
-      "to": 2,
-      "ls": 1,
-      "ml": 2,
-      "dj": 1,
-      "de": 2,
-      "sr": 4,
-      "cn": 2,
-      "tm": 4,
-      "mz": 3,
-      "mw": 4,
-      "cd": 2,
-      "gt": 1,
-      "lb": 1,
-      "va": 1,
-      "ua": 6,
-      "be": 2,
+      "ht": 6,
+      "tv": 1,
+      "ke": 4,
+      "th": 5,
+      "bw": 2,
+      "cz": 8,
+      "sk": 4,
+      "nz": 2,
+      "cu": 4,
+      "nl": 8,
+      "md": 4,
+      "mr": 3,
+      "pe": 6,
+      "eg": 5,
+      "mx": 3,
+      "ly": 1,
+      "bz": 2,
       "cr": 3,
-      "la": 2,
-      "bh": 2,
-      "lv": 2,
-      "ar": 1,
-      "sn": 3,
-      "ch": 1,
-      "gy": 1,
-      "at": 1,
-      "rs": 2,
-      "kp": 1,
-      "gq": 2,
+      "cy": 7,
+      "br": 7,
+      "me": 2,
+      "vc": 5,
+      "ua": 2,
+      "so": 2,
+      "am": 4,
+      "tt": 3,
+      "bs": 3,
+      "my": 5,
+      "ru": 2,
+      "ma": 7,
+      "vu": 4,
+      "by": 5,
+      "pa": 2,
+      "mu": 3,
+      "sr": 5,
+      "no": 5,
+      "ws": 4,
+      "kz": 3,
+      "sm": 3,
+      "cl": 4,
+      "lc": 3,
+      "ar": 6,
+      "uz": 3,
+      "li": 5,
+      "pt": 4,
+      "mz": 5,
+      "pk": 3,
+      "bg": 4,
+      "ch": 4,
+      "zw": 3,
+      "kh": 7,
+      "bf": 1,
+      "mt": 6,
+      "gw": 2,
+      "tr": 4,
+      "ni": 2,
+      "cn": 4,
+      "cg": 5,
+      "mv": 4,
+      "ae": 8,
+      "lr": 7,
+      "mk": 3,
+      "pg": 3,
+      "ml": 4,
+      "lb": 4,
+      "kw": 3,
+      "km": 5,
+      "jo": 5,
+      "gn": 1,
+      "lv": 3,
+      "bn": 4,
+      "sv": 3,
+      "er": 2,
+      "tz": 4,
+      "ga": 2,
+      "ag": 2,
+      "dm": 6,
+      "nr": 3,
+      "jm": 6,
+      "fj": 5,
+      "gr": 3,
+      "pw": 3,
+      "tl": 3,
+      "ro": 3,
+      "bd": 3,
+      "sb": 2,
+      "fi": 4,
+      "lu": 3,
+      "bi": 4,
+      "fm": 3,
+      "se": 3,
+      "gh": 3,
+      "tn": 4,
+      "bh": 1,
+      "at": 5,
+      "ci": 3,
+      "lk": 2,
+      "tg": 3,
+      "sa": 3,
+      "dz": 2,
+      "et": 3,
+      "sd": 4,
+      "uy": 5,
+      "va": 4,
+      "dj": 4,
+      "us": 3,
+      "bb": 4,
+      "bo": 2,
+      "si": 7,
+      "st": 2,
+      "gm": 1,
+      "it": 2,
+      "sy": 5,
+      "ir": 2,
+      "hu": 4,
+      "ao": 4,
+      "dk": 3,
+      "ec": 1,
+      "es": 3,
+      "be": 5,
+      "ba": 2,
+      "sl": 5,
+      "kn": 3,
+      "rs": 1,
+      "kp": 4,
+      "hn": 2,
+      "ca": 3,
+      "ng": 3,
+      "ne": 1,
+      "gy": 2,
+      "sg": 4,
+      "td": 1,
+      "cv": 3,
+      "il": 4,
+      "mg": 2,
+      "hr": 1,
+      "al": 3,
       "np": 1,
-      "dz": 1,
-      "bj": 3,
-      "id": 1,
-      "bf": 1
+      "lt": 2,
+      "cm": 1,
+      "ki": 2,
+      "na": 4,
+      "is": 4,
+      "zm": 3,
+      "py": 2,
+      "pl": 2,
+      "af": 2,
+      "mh": 3,
+      "az": 3,
+      "gq": 1,
+      "sn": 1,
+      "id": 2,
+      "vn": 2,
+      "kr": 3,
+      "gd": 1,
+      "bt": 1,
+      "mn": 2,
+      "rw": 2,
+      "in": 1,
+      "ss": 1,
+      "ge": 2,
+      "la": 4,
+      "gt": 2,
+      "tm": 1,
+      "ph": 1,
+      "tj": 1,
+      "cd": 1,
+      "ye": 1,
+      "za": 1
     },
     "recentMainWins": [
       {
-        "code": "ye",
-        "name": "Yemen",
-        "img": "https://flagcdn.com/w80/ye.png",
-        "at": 1788583328726,
+        "code": "ae",
+        "name": "United Arab Emirates",
+        "img": "https://flagcdn.com/w80/ae.png",
+        "at": 1788612607114,
+        "points": 8
+      },
+      {
+        "code": "uy",
+        "name": "Uruguay",
+        "img": "https://flagcdn.com/w80/uy.png",
+        "at": 1788612567616,
+        "points": 5
+      },
+      {
+        "code": "tg",
+        "name": "Togo",
+        "img": "https://flagcdn.com/w80/tg.png",
+        "at": 1788612546801,
+        "points": 3
+      },
+      {
+        "code": "bi",
+        "name": "Burundi",
+        "img": "https://flagcdn.com/w80/bi.png",
+        "at": 1788612526100,
         "points": 4
       },
       {
-        "code": "cl",
-        "name": "Chile",
-        "img": "https://flagcdn.com/w80/cl.png",
-        "at": 1788583286620,
+        "code": "jm",
+        "name": "Jamaica",
+        "img": "https://flagcdn.com/w80/jm.png",
+        "at": 1788612502957,
+        "points": 6
+      },
+      {
+        "code": "ae",
+        "name": "United Arab Emirates",
+        "img": "https://flagcdn.com/w80/ae.png",
+        "at": 1788612486219,
         "points": 7
-      },
-      {
-        "code": "mz",
-        "name": "Mozambique",
-        "img": "https://flagcdn.com/w80/mz.png",
-        "at": 1788583267197,
-        "points": 3
-      },
-      {
-        "code": "ht",
-        "name": "Haiti",
-        "img": "https://flagcdn.com/w80/ht.png",
-        "at": 1788583243129,
-        "points": 4
-      },
-      {
-        "code": "sd",
-        "name": "Sudan",
-        "img": "https://flagcdn.com/w80/sd.png",
-        "at": 1788583224701,
-        "points": 3
-      },
-      {
-        "code": "bf",
-        "name": "Burkina Faso",
-        "img": "https://flagcdn.com/w80/bf.png",
-        "at": 1788583198973,
-        "points": 1
       },
       {
         "code": "cg",
         "name": "Congo",
         "img": "https://flagcdn.com/w80/cg.png",
-        "at": 1788583182405,
-        "points": 3
+        "at": 1788612469108,
+        "points": 5
       },
       {
-        "code": "md",
-        "name": "Moldova",
-        "img": "https://flagcdn.com/w80/md.png",
-        "at": 1788583161086,
-        "points": 2
+        "code": "cy",
+        "name": "Cyprus",
+        "img": "https://flagcdn.com/w80/cy.png",
+        "at": 1788612447634,
+        "points": 7
       },
       {
-        "code": "la",
-        "name": "Laos",
-        "img": "https://flagcdn.com/w80/la.png",
-        "at": 1788583137324,
-        "points": 2
-      },
-      {
-        "code": "lk",
-        "name": "Sri Lanka",
-        "img": "https://flagcdn.com/w80/lk.png",
-        "at": 1788583107141,
-        "points": 2
+        "code": "kp",
+        "name": "North Korea",
+        "img": "https://flagcdn.com/w80/kp.png",
+        "at": 1788612427789,
+        "points": 4
       },
       {
         "code": "vc",
         "name": "Saint Vincent and the Grenadines",
         "img": "https://flagcdn.com/w80/vc.png",
-        "at": 1788583074004,
-        "points": 6
+        "at": 1788612407925,
+        "points": 5
       },
       {
-        "code": "th",
-        "name": "Thailand",
-        "img": "https://flagcdn.com/w80/th.png",
-        "at": 1788583054406,
-        "points": 3
+        "code": "kh",
+        "name": "Cambodia",
+        "img": "https://flagcdn.com/w80/kh.png",
+        "at": 1788612391617,
+        "points": 7
+      },
+      {
+        "code": "sg",
+        "name": "Singapore",
+        "img": "https://flagcdn.com/w80/sg.png",
+        "at": 1788612369610,
+        "points": 4
       }
     ],
     "finalLiveAt": null,
-    "updatedAt": 1788583333151
+    "updatedAt": 1788612611531
   },
   "streams": [
+    {
+      "id": "fb_mto5lb0y_pjjkpt",
+      "mode": "final",
+      "status": "live",
+      "startedAt": "2026-09-05T09:01:18.226Z",
+      "endedAt": null,
+      "scheduledAt": null,
+      "rounds": [],
+      "final": null,
+      "qualified": [],
+      "winner": null,
+      "sourceStreamId": null,
+      "format": "opening_main_invasion",
+      "mainRoundPoints": {
+        "cf": 4,
+        "ug": 3,
+        "qa": 4,
+        "ad": 4,
+        "do": 3,
+        "mm": 4,
+        "kg": 6,
+        "ie": 3,
+        "sz": 12,
+        "gb": 5,
+        "de": 3,
+        "au": 9,
+        "sc": 5,
+        "ee": 5,
+        "om": 3,
+        "jp": 2,
+        "ht": 6,
+        "tv": 1,
+        "ke": 4,
+        "th": 5,
+        "bw": 2,
+        "cz": 8,
+        "sk": 4,
+        "nz": 2,
+        "cu": 4,
+        "nl": 8,
+        "md": 4,
+        "mr": 3,
+        "pe": 6,
+        "eg": 5,
+        "mx": 2,
+        "ly": 1,
+        "bz": 2,
+        "cr": 3,
+        "cy": 5,
+        "br": 7,
+        "me": 2,
+        "vc": 3,
+        "ua": 2,
+        "so": 2,
+        "am": 4,
+        "tt": 3,
+        "bs": 3,
+        "my": 5,
+        "ru": 2,
+        "ma": 7,
+        "vu": 4,
+        "by": 5,
+        "pa": 2,
+        "mu": 3,
+        "sr": 5,
+        "no": 5,
+        "ws": 3,
+        "kz": 3,
+        "sm": 3,
+        "cl": 4,
+        "lc": 3,
+        "ar": 6,
+        "uz": 3,
+        "li": 5,
+        "pt": 4,
+        "mz": 5,
+        "pk": 3,
+        "bg": 4,
+        "ch": 4,
+        "zw": 3,
+        "kh": 6,
+        "bf": 1,
+        "mt": 6,
+        "gw": 1,
+        "tr": 4,
+        "ni": 2,
+        "cn": 4,
+        "cg": 4,
+        "mv": 4,
+        "ae": 6,
+        "lr": 6,
+        "mk": 3,
+        "pg": 3,
+        "ml": 4,
+        "lb": 4,
+        "kw": 3,
+        "km": 5,
+        "jo": 5,
+        "gn": 1,
+        "lv": 3,
+        "bn": 4,
+        "sv": 3,
+        "er": 2,
+        "tz": 4,
+        "ga": 2,
+        "ag": 2,
+        "dm": 6,
+        "nr": 3,
+        "jm": 5,
+        "fj": 5,
+        "gr": 3,
+        "pw": 3,
+        "tl": 3,
+        "ro": 3,
+        "bd": 3,
+        "sb": 1,
+        "fi": 4,
+        "lu": 2,
+        "bi": 3,
+        "fm": 3,
+        "se": 3,
+        "gh": 3,
+        "tn": 4,
+        "bh": 1,
+        "at": 5,
+        "ci": 3,
+        "lk": 2,
+        "tg": 2,
+        "sa": 3,
+        "dz": 2,
+        "et": 3,
+        "sd": 4,
+        "uy": 4,
+        "va": 4,
+        "dj": 4,
+        "us": 3,
+        "bb": 4,
+        "bo": 2,
+        "si": 7,
+        "st": 2,
+        "gm": 1,
+        "it": 2,
+        "sy": 5,
+        "ir": 1,
+        "hu": 4,
+        "ao": 4,
+        "dk": 3,
+        "ec": 1,
+        "es": 3,
+        "be": 5,
+        "ba": 2,
+        "sl": 5,
+        "kn": 3,
+        "rs": 1,
+        "kp": 3,
+        "hn": 1,
+        "ca": 3,
+        "ng": 3,
+        "ne": 1,
+        "gy": 2,
+        "sg": 3,
+        "td": 1,
+        "cv": 3,
+        "il": 4,
+        "mg": 2,
+        "hr": 1,
+        "al": 3,
+        "np": 1,
+        "lt": 2,
+        "cm": 1,
+        "ki": 1,
+        "na": 4,
+        "is": 4,
+        "zm": 3,
+        "py": 2,
+        "pl": 2,
+        "af": 2,
+        "mh": 3,
+        "az": 3,
+        "gq": 1,
+        "sn": 1,
+        "id": 2,
+        "vn": 2,
+        "kr": 3,
+        "gd": 1,
+        "bt": 1,
+        "mn": 2,
+        "rw": 2,
+        "in": 1,
+        "ss": 1,
+        "ge": 1,
+        "la": 4,
+        "gt": 2,
+        "tm": 1,
+        "ph": 1,
+        "tj": 1,
+        "cd": 1
+      },
+      "mainPointAt": {
+        "cf": "2026-09-05T09:16:35.238Z",
+        "ug": "2026-09-05T09:16:58.948Z",
+        "qa": "2026-09-05T09:17:18.367Z",
+        "ad": "2026-09-05T09:17:36.411Z",
+        "do": "2026-09-05T09:17:59.507Z",
+        "mm": "2026-09-05T09:18:21.679Z",
+        "kg": "2026-09-05T09:18:41.141Z",
+        "ie": "2026-09-05T09:19:01.699Z",
+        "sz": "2026-09-05T09:19:20.336Z",
+        "gb": "2026-09-05T09:20:08.648Z",
+        "de": "2026-09-05T09:20:24.390Z",
+        "au": "2026-09-05T09:20:51.084Z",
+        "sc": "2026-09-05T09:21:17.641Z",
+        "ee": "2026-09-05T09:21:38.385Z",
+        "om": "2026-09-05T09:22:20.110Z",
+        "jp": "2026-09-05T09:22:45.100Z",
+        "ht": "2026-09-05T09:23:07.536Z",
+        "tv": "2026-09-05T09:24:14.740Z",
+        "ke": "2026-09-05T09:24:36.222Z",
+        "th": "2026-09-05T09:24:57.262Z",
+        "bw": "2026-09-05T09:25:34.771Z",
+        "cz": "2026-09-05T09:25:51.571Z",
+        "sk": "2026-09-05T09:26:07.654Z",
+        "nz": "2026-09-05T09:26:20.910Z",
+        "cu": "2026-09-05T09:26:38.407Z",
+        "nl": "2026-09-05T09:27:39.151Z",
+        "md": "2026-09-05T09:28:00.107Z",
+        "mr": "2026-09-05T09:28:21.315Z",
+        "pe": "2026-09-05T09:28:38.583Z",
+        "eg": "2026-09-05T09:29:21.883Z",
+        "mx": "2026-09-05T09:29:42.656Z",
+        "ly": "2026-09-05T09:30:06.360Z",
+        "bz": "2026-09-05T09:30:29.987Z",
+        "cr": "2026-09-05T09:30:43.935Z",
+        "cy": "2026-09-05T09:30:59.498Z",
+        "br": "2026-09-05T09:31:28.055Z",
+        "me": "2026-09-05T09:31:45.407Z",
+        "vc": "2026-09-05T09:32:24.526Z",
+        "ua": "2026-09-05T09:32:52.020Z",
+        "so": "2026-09-05T09:33:16.173Z",
+        "am": "2026-09-05T09:33:36.837Z",
+        "tt": "2026-09-05T09:33:53.545Z",
+        "bs": "2026-09-05T09:34:39.100Z",
+        "my": "2026-09-05T09:35:14.463Z",
+        "ru": "2026-09-05T09:35:45.737Z",
+        "ma": "2026-09-05T09:36:13.938Z",
+        "vu": "2026-09-05T09:36:32.668Z",
+        "by": "2026-09-05T09:36:54.023Z",
+        "pa": "2026-09-05T09:37:11.411Z",
+        "mu": "2026-09-05T09:37:32.351Z",
+        "sr": "2026-09-05T09:37:55.081Z",
+        "no": "2026-09-05T09:38:41.816Z",
+        "ws": "2026-09-05T09:38:59.141Z",
+        "kz": "2026-09-05T09:39:17.997Z",
+        "sm": "2026-09-05T09:39:39.626Z",
+        "cl": "2026-09-05T09:40:16.323Z",
+        "lc": "2026-09-05T09:40:48.595Z",
+        "ar": "2026-09-05T09:41:09.249Z",
+        "uz": "2026-09-05T09:41:35.466Z",
+        "li": "2026-09-05T09:41:57.513Z",
+        "pt": "2026-09-05T09:42:25.155Z",
+        "mz": "2026-09-05T09:43:02.937Z",
+        "pk": "2026-09-05T09:43:20.579Z",
+        "bg": "2026-09-05T09:43:59.640Z",
+        "ch": "2026-09-05T09:44:53.313Z",
+        "zw": "2026-09-05T09:46:07.898Z",
+        "kh": "2026-09-05T09:46:52.026Z",
+        "bf": "2026-09-05T09:48:06.502Z",
+        "mt": "2026-09-05T09:49:46.389Z",
+        "gw": "2026-09-05T09:50:07.838Z",
+        "tr": "2026-09-05T09:51:19.545Z",
+        "ni": "2026-09-05T09:51:35.969Z",
+        "cn": "2026-09-05T09:51:51.828Z",
+        "cg": "2026-09-05T09:52:26.473Z",
+        "mv": "2026-09-05T09:54:00.237Z",
+        "ae": "2026-09-05T09:54:16.786Z",
+        "lr": "2026-09-05T09:54:47.039Z",
+        "mk": "2026-09-05T09:56:12.404Z",
+        "pg": "2026-09-05T09:57:00.662Z",
+        "ml": "2026-09-05T09:57:17.229Z",
+        "lb": "2026-09-05T09:57:33.612Z",
+        "kw": "2026-09-05T09:57:49.378Z",
+        "km": "2026-09-05T09:58:37.622Z",
+        "jo": "2026-09-05T09:58:57.329Z",
+        "gn": "2026-09-05T09:59:14.738Z",
+        "lv": "2026-09-05T09:59:37.095Z",
+        "bn": "2026-09-05T10:00:15.710Z",
+        "sv": "2026-09-05T10:01:59.402Z",
+        "er": "2026-09-05T10:02:17.680Z",
+        "tz": "2026-09-05T10:04:14.941Z",
+        "ga": "2026-09-05T10:04:34.004Z",
+        "ag": "2026-09-05T10:05:26.675Z",
+        "dm": "2026-09-05T10:06:06.241Z",
+        "nr": "2026-09-05T10:06:42.284Z",
+        "jm": "2026-09-05T10:07:02.852Z",
+        "fj": "2026-09-05T10:08:07.326Z",
+        "gr": "2026-09-05T10:08:46.368Z",
+        "pw": "2026-09-05T10:09:08.202Z",
+        "tl": "2026-09-05T10:09:26.575Z",
+        "ro": "2026-09-05T10:09:42.652Z",
+        "bd": "2026-09-05T10:10:26.158Z",
+        "sb": "2026-09-05T10:11:10.072Z",
+        "fi": "2026-09-05T10:11:51.708Z",
+        "lu": "2026-09-05T10:12:38.565Z",
+        "bi": "2026-09-05T10:13:07.776Z",
+        "fm": "2026-09-05T10:17:21.390Z",
+        "se": "2026-09-05T10:18:48.449Z",
+        "gh": "2026-09-05T10:19:09.842Z",
+        "tn": "2026-09-05T10:20:06.596Z",
+        "bh": "2026-09-05T10:21:47.924Z",
+        "at": "2026-09-05T10:22:05.859Z",
+        "ci": "2026-09-05T10:23:36.285Z",
+        "lk": "2026-09-05T10:25:12.807Z",
+        "tg": "2026-09-05T10:25:56.756Z",
+        "sa": "2026-09-05T10:26:43.525Z",
+        "dz": "2026-09-05T10:27:23.575Z",
+        "et": "2026-09-05T10:28:08.286Z",
+        "sd": "2026-09-05T10:28:55.635Z",
+        "uy": "2026-09-05T10:29:40.860Z",
+        "va": "2026-09-05T10:30:03.543Z",
+        "dj": "2026-09-05T10:30:24.390Z",
+        "us": "2026-09-05T10:31:22.097Z",
+        "bb": "2026-09-05T10:31:45.399Z",
+        "bo": "2026-09-05T10:32:01.382Z",
+        "si": "2026-09-05T10:33:17.141Z",
+        "st": "2026-09-05T10:35:12.895Z",
+        "gm": "2026-09-05T10:35:59.919Z",
+        "it": "2026-09-05T10:36:14.839Z",
+        "sy": "2026-09-05T10:37:33.669Z",
+        "ir": "2026-09-05T10:39:15.155Z",
+        "hu": "2026-09-05T10:40:01.133Z",
+        "ao": "2026-09-05T10:40:29.876Z",
+        "dk": "2026-09-05T10:41:05.708Z",
+        "ec": "2026-09-05T10:43:06.758Z",
+        "es": "2026-09-05T10:43:25.577Z",
+        "be": "2026-09-05T10:43:53.317Z",
+        "ba": "2026-09-05T10:44:27.349Z",
+        "sl": "2026-09-05T10:47:34.312Z",
+        "kn": "2026-09-05T10:48:21.570Z",
+        "rs": "2026-09-05T10:49:40.991Z",
+        "kp": "2026-09-05T10:50:44.095Z",
+        "hn": "2026-09-05T10:51:49.096Z",
+        "ca": "2026-09-05T10:52:17.669Z",
+        "ng": "2026-09-05T10:55:05.869Z",
+        "ne": "2026-09-05T10:55:57.810Z",
+        "gy": "2026-09-05T10:56:18.581Z",
+        "sg": "2026-09-05T10:58:28.151Z",
+        "td": "2026-09-05T10:59:45.171Z",
+        "cv": "2026-09-05T11:02:26.460Z",
+        "il": "2026-09-05T11:04:00.825Z",
+        "mg": "2026-09-05T11:04:58.862Z",
+        "hr": "2026-09-05T11:05:43.691Z",
+        "al": "2026-09-05T11:07:00.895Z",
+        "np": "2026-09-05T11:10:24.672Z",
+        "lt": "2026-09-05T11:11:07.525Z",
+        "cm": "2026-09-05T11:12:16.996Z",
+        "ki": "2026-09-05T11:14:06.941Z",
+        "na": "2026-09-05T11:16:00.027Z",
+        "is": "2026-09-05T11:16:40.503Z",
+        "zm": "2026-09-05T11:17:18.071Z",
+        "py": "2026-09-05T11:17:36.107Z",
+        "pl": "2026-09-05T11:19:38.370Z",
+        "af": "2026-09-05T11:22:50.174Z",
+        "mh": "2026-09-05T11:24:33.222Z",
+        "az": "2026-09-05T11:25:10.704Z",
+        "gq": "2026-09-05T11:29:57.112Z",
+        "sn": "2026-09-05T11:30:43.087Z",
+        "id": "2026-09-05T11:32:51.455Z",
+        "vn": "2026-09-05T11:37:33.688Z",
+        "kr": "2026-09-05T11:42:03.929Z",
+        "gd": "2026-09-05T11:43:36.761Z",
+        "bt": "2026-09-05T11:52:07.939Z",
+        "mn": "2026-09-05T11:54:02.661Z",
+        "rw": "2026-09-05T11:54:25.239Z",
+        "in": "2026-09-05T12:03:18.912Z",
+        "ss": "2026-09-05T12:03:39.507Z",
+        "ge": "2026-09-05T12:05:04.439Z",
+        "la": "2026-09-05T12:06:23.295Z",
+        "gt": "2026-09-05T12:15:58.113Z",
+        "tm": "2026-09-05T12:17:54.580Z",
+        "ph": "2026-09-05T12:18:34.406Z",
+        "tj": "2026-09-05T12:29:05.604Z",
+        "cd": "2026-09-05T12:30:48.348Z"
+      },
+      "recentMainWins": [
+        {
+          "code": "mg",
+          "name": "Madagascar",
+          "img": "https://flagcdn.com/w80/mg.png",
+          "at": 1788612010822,
+          "points": 2
+        },
+        {
+          "code": "dk",
+          "name": "Denmark",
+          "img": "https://flagcdn.com/w80/dk.png",
+          "at": 1788611993931,
+          "points": 3
+        },
+        {
+          "code": "la",
+          "name": "Laos",
+          "img": "https://flagcdn.com/w80/la.png",
+          "at": 1788611975039,
+          "points": 4
+        },
+        {
+          "code": "no",
+          "name": "Norway",
+          "img": "https://flagcdn.com/w80/no.png",
+          "at": 1788611951775,
+          "points": 5
+        },
+        {
+          "code": "az",
+          "name": "Azerbaijan",
+          "img": "https://flagcdn.com/w80/az.png",
+          "at": 1788611933018,
+          "points": 3
+        },
+        {
+          "code": "af",
+          "name": "Afghanistan",
+          "img": "https://flagcdn.com/w80/af.png",
+          "at": 1788611916646,
+          "points": 2
+        },
+        {
+          "code": "uy",
+          "name": "Uruguay",
+          "img": "https://flagcdn.com/w80/uy.png",
+          "at": 1788611896427,
+          "points": 4
+        },
+        {
+          "code": "jo",
+          "name": "Jordan",
+          "img": "https://flagcdn.com/w80/jo.png",
+          "at": 1788611871176,
+          "points": 5
+        },
+        {
+          "code": "kw",
+          "name": "Kuwait",
+          "img": "https://flagcdn.com/w80/kw.png",
+          "at": 1788611852745,
+          "points": 3
+        },
+        {
+          "code": "mu",
+          "name": "Mauritius",
+          "img": "https://flagcdn.com/w80/mu.png",
+          "at": 1788611825795,
+          "points": 3
+        },
+        {
+          "code": "bi",
+          "name": "Burundi",
+          "img": "https://flagcdn.com/w80/bi.png",
+          "at": 1788611800562,
+          "points": 3
+        },
+        {
+          "code": "dm",
+          "name": "Dominica",
+          "img": "https://flagcdn.com/w80/dm.png",
+          "at": 1788611780780,
+          "points": 6
+        },
+        {
+          "code": "mv",
+          "name": "Maldives",
+          "img": "https://flagcdn.com/w80/mv.png",
+          "at": 1788611759506,
+          "points": 4
+        },
+        {
+          "code": "tz",
+          "name": "Tanzania",
+          "img": "https://flagcdn.com/w80/tz.png",
+          "at": 1788611740171,
+          "points": 4
+        },
+        {
+          "code": "il",
+          "name": "Israel",
+          "img": "https://flagcdn.com/w80/il.png",
+          "at": 1788611723260,
+          "points": 4
+        },
+        {
+          "code": "nl",
+          "name": "Netherlands",
+          "img": "https://flagcdn.com/w80/nl.png",
+          "at": 1788611702269,
+          "points": 8
+        }
+      ]
+    },
     {
       "id": "fb_mtnofvlh_dy1hcu",
       "mode": "final",
@@ -63125,2102 +63622,8 @@
           "points": 3
         }
       ]
-    },
-    {
-      "id": "fb_mt53pzff_78cujr",
-      "mode": "final",
-      "status": "finished",
-      "startedAt": "2026-08-23T01:01:19.899Z",
-      "endedAt": "2026-08-23T04:56:04.501Z",
-      "scheduledAt": null,
-      "rounds": [],
-      "final": {
-        "ranking": [
-          {
-            "rank": 1,
-            "code": "ec",
-            "name": "Ecuador",
-            "img": "https://flagcdn.com/w80/ec.png",
-            "mainPoints": 11
-          },
-          {
-            "rank": 2,
-            "code": "ne",
-            "name": "Niger",
-            "img": "https://flagcdn.com/w80/ne.png",
-            "mainPoints": 9
-          },
-          {
-            "rank": 3,
-            "code": "gy",
-            "name": "Guyana",
-            "img": "https://flagcdn.com/w80/gy.png",
-            "mainPoints": 8
-          },
-          {
-            "rank": 4,
-            "code": "dj",
-            "name": "Djibouti",
-            "img": "https://flagcdn.com/w80/dj.png",
-            "mainPoints": 8
-          },
-          {
-            "rank": 5,
-            "code": "ls",
-            "name": "Lesotho",
-            "img": "https://flagcdn.com/w80/ls.png",
-            "mainPoints": 7
-          },
-          {
-            "rank": 6,
-            "code": "sm",
-            "name": "San Marino",
-            "img": "https://flagcdn.com/w80/sm.png",
-            "mainPoints": 7
-          },
-          {
-            "rank": 7,
-            "code": "rs",
-            "name": "Serbia",
-            "img": "https://flagcdn.com/w80/rs.png",
-            "mainPoints": 7
-          },
-          {
-            "rank": 8,
-            "code": "lc",
-            "name": "Saint Lucia",
-            "img": "https://flagcdn.com/w80/lc.png",
-            "mainPoints": 7
-          },
-          {
-            "rank": 9,
-            "code": "ng",
-            "name": "Nigeria",
-            "img": "https://flagcdn.com/w80/ng.png",
-            "mainPoints": 6
-          },
-          {
-            "rank": 10,
-            "code": "bs",
-            "name": "Bahamas",
-            "img": "https://flagcdn.com/w80/bs.png",
-            "mainPoints": 6
-          },
-          {
-            "rank": 11,
-            "code": "cz",
-            "name": "Czechia",
-            "img": "https://flagcdn.com/w80/cz.png",
-            "mainPoints": 6
-          },
-          {
-            "rank": 12,
-            "code": "np",
-            "name": "Nepal",
-            "img": "https://flagcdn.com/w80/np.png",
-            "mainPoints": 6
-          },
-          {
-            "rank": 13,
-            "code": "hu",
-            "name": "Hungary",
-            "img": "https://flagcdn.com/w80/hu.png",
-            "mainPoints": 6
-          },
-          {
-            "rank": 14,
-            "code": "my",
-            "name": "Malaysia",
-            "img": "https://flagcdn.com/w80/my.png",
-            "mainPoints": 6
-          },
-          {
-            "rank": 15,
-            "code": "am",
-            "name": "Armenia",
-            "img": "https://flagcdn.com/w80/am.png",
-            "mainPoints": 6
-          },
-          {
-            "rank": 16,
-            "code": "sz",
-            "name": "Eswatini",
-            "img": "https://flagcdn.com/w80/sz.png",
-            "mainPoints": 6
-          },
-          {
-            "rank": 17,
-            "code": "bt",
-            "name": "Bhutan",
-            "img": "https://flagcdn.com/w80/bt.png",
-            "mainPoints": 5
-          },
-          {
-            "rank": 18,
-            "code": "pt",
-            "name": "Portugal",
-            "img": "https://flagcdn.com/w80/pt.png",
-            "mainPoints": 5
-          },
-          {
-            "rank": 19,
-            "code": "lu",
-            "name": "Luxembourg",
-            "img": "https://flagcdn.com/w80/lu.png",
-            "mainPoints": 5
-          },
-          {
-            "rank": 20,
-            "code": "mc",
-            "name": "Monaco",
-            "img": "https://flagcdn.com/w80/mc.png",
-            "mainPoints": 5
-          },
-          {
-            "rank": 21,
-            "code": "sv",
-            "name": "El Salvador",
-            "img": "https://flagcdn.com/w80/sv.png",
-            "mainPoints": 5
-          },
-          {
-            "rank": 22,
-            "code": "se",
-            "name": "Sweden",
-            "img": "https://flagcdn.com/w80/se.png",
-            "mainPoints": 5
-          },
-          {
-            "rank": 23,
-            "code": "lv",
-            "name": "Latvia",
-            "img": "https://flagcdn.com/w80/lv.png",
-            "mainPoints": 5
-          },
-          {
-            "rank": 24,
-            "code": "et",
-            "name": "Ethiopia",
-            "img": "https://flagcdn.com/w80/et.png",
-            "mainPoints": 5
-          },
-          {
-            "rank": 25,
-            "code": "pa",
-            "name": "Panama",
-            "img": "https://flagcdn.com/w80/pa.png",
-            "mainPoints": 5
-          },
-          {
-            "rank": 26,
-            "code": "uz",
-            "name": "Uzbekistan",
-            "img": "https://flagcdn.com/w80/uz.png",
-            "mainPoints": 5
-          },
-          {
-            "rank": 27,
-            "code": "ma",
-            "name": "Morocco",
-            "img": "https://flagcdn.com/w80/ma.png",
-            "mainPoints": 5
-          },
-          {
-            "rank": 28,
-            "code": "er",
-            "name": "Eritrea",
-            "img": "https://flagcdn.com/w80/er.png",
-            "mainPoints": 5
-          },
-          {
-            "rank": 29,
-            "code": "gw",
-            "name": "Guinea-Bissau",
-            "img": "https://flagcdn.com/w80/gw.png",
-            "mainPoints": 5
-          },
-          {
-            "rank": 30,
-            "code": "uy",
-            "name": "Uruguay",
-            "img": "https://flagcdn.com/w80/uy.png",
-            "mainPoints": 5
-          },
-          {
-            "rank": 31,
-            "code": "dk",
-            "name": "Denmark",
-            "img": "https://flagcdn.com/w80/dk.png",
-            "mainPoints": 5
-          },
-          {
-            "rank": 32,
-            "code": "gn",
-            "name": "Guinea",
-            "img": "https://flagcdn.com/w80/gn.png",
-            "mainPoints": 5
-          },
-          {
-            "rank": 33,
-            "code": "qa",
-            "name": "Qatar",
-            "img": "https://flagcdn.com/w80/qa.png",
-            "mainPoints": 5
-          },
-          {
-            "rank": 34,
-            "code": "cl",
-            "name": "Chile",
-            "img": "https://flagcdn.com/w80/cl.png",
-            "mainPoints": 4
-          },
-          {
-            "rank": 35,
-            "code": "la",
-            "name": "Laos",
-            "img": "https://flagcdn.com/w80/la.png",
-            "mainPoints": 4
-          },
-          {
-            "rank": 36,
-            "code": "ge",
-            "name": "Georgia",
-            "img": "https://flagcdn.com/w80/ge.png",
-            "mainPoints": 4
-          },
-          {
-            "rank": 37,
-            "code": "co",
-            "name": "Colombia",
-            "img": "https://flagcdn.com/w80/co.png",
-            "mainPoints": 4
-          },
-          {
-            "rank": 38,
-            "code": "mn",
-            "name": "Mongolia",
-            "img": "https://flagcdn.com/w80/mn.png",
-            "mainPoints": 4
-          },
-          {
-            "rank": 39,
-            "code": "ua",
-            "name": "Ukraine",
-            "img": "https://flagcdn.com/w80/ua.png",
-            "mainPoints": 4
-          },
-          {
-            "rank": 40,
-            "code": "ao",
-            "name": "Angola",
-            "img": "https://flagcdn.com/w80/ao.png",
-            "mainPoints": 4
-          },
-          {
-            "rank": 41,
-            "code": "gq",
-            "name": "Equatorial Guinea",
-            "img": "https://flagcdn.com/w80/gq.png",
-            "mainPoints": 4
-          },
-          {
-            "rank": 42,
-            "code": "bg",
-            "name": "Bulgaria",
-            "img": "https://flagcdn.com/w80/bg.png",
-            "mainPoints": 4
-          },
-          {
-            "rank": 43,
-            "code": "vn",
-            "name": "Vietnam",
-            "img": "https://flagcdn.com/w80/vn.png",
-            "mainPoints": 4
-          },
-          {
-            "rank": 44,
-            "code": "mu",
-            "name": "Mauritius",
-            "img": "https://flagcdn.com/w80/mu.png",
-            "mainPoints": 4
-          },
-          {
-            "rank": 45,
-            "code": "kh",
-            "name": "Cambodia",
-            "img": "https://flagcdn.com/w80/kh.png",
-            "mainPoints": 4
-          },
-          {
-            "rank": 46,
-            "code": "gh",
-            "name": "Ghana",
-            "img": "https://flagcdn.com/w80/gh.png",
-            "mainPoints": 4
-          },
-          {
-            "rank": 47,
-            "code": "ke",
-            "name": "Kenya",
-            "img": "https://flagcdn.com/w80/ke.png",
-            "mainPoints": 4
-          },
-          {
-            "rank": 48,
-            "code": "ca",
-            "name": "Canada",
-            "img": "https://flagcdn.com/w80/ca.png",
-            "mainPoints": 4
-          },
-          {
-            "rank": 49,
-            "code": "py",
-            "name": "Paraguay",
-            "img": "https://flagcdn.com/w80/py.png",
-            "mainPoints": 4
-          },
-          {
-            "rank": 50,
-            "code": "fr",
-            "name": "France",
-            "img": "https://flagcdn.com/w80/fr.png",
-            "mainPoints": 4
-          },
-          {
-            "rank": 51,
-            "code": "ae",
-            "name": "United Arab Emirates",
-            "img": "https://flagcdn.com/w80/ae.png",
-            "mainPoints": 4
-          },
-          {
-            "rank": 52,
-            "code": "ad",
-            "name": "Andorra",
-            "img": "https://flagcdn.com/w80/ad.png",
-            "mainPoints": 4
-          },
-          {
-            "rank": 53,
-            "code": "kn",
-            "name": "Saint Kitts and Nevis",
-            "img": "https://flagcdn.com/w80/kn.png",
-            "mainPoints": 4
-          },
-          {
-            "rank": 54,
-            "code": "fm",
-            "name": "Micronesia",
-            "img": "https://flagcdn.com/w80/fm.png",
-            "mainPoints": 4
-          },
-          {
-            "rank": 55,
-            "code": "sr",
-            "name": "Suriname",
-            "img": "https://flagcdn.com/w80/sr.png",
-            "mainPoints": 4
-          },
-          {
-            "rank": 56,
-            "code": "bj",
-            "name": "Benin",
-            "img": "https://flagcdn.com/w80/bj.png",
-            "mainPoints": 4
-          },
-          {
-            "rank": 57,
-            "code": "lt",
-            "name": "Lithuania",
-            "img": "https://flagcdn.com/w80/lt.png",
-            "mainPoints": 4
-          },
-          {
-            "rank": 58,
-            "code": "br",
-            "name": "Brazil",
-            "img": "https://flagcdn.com/w80/br.png",
-            "mainPoints": 4
-          },
-          {
-            "rank": 59,
-            "code": "bf",
-            "name": "Burkina Faso",
-            "img": "https://flagcdn.com/w80/bf.png",
-            "mainPoints": 4
-          },
-          {
-            "rank": 60,
-            "code": "ph",
-            "name": "Philippines",
-            "img": "https://flagcdn.com/w80/ph.png",
-            "mainPoints": 4
-          },
-          {
-            "rank": 61,
-            "code": "ve",
-            "name": "Venezuela",
-            "img": "https://flagcdn.com/w80/ve.png",
-            "mainPoints": 4
-          },
-          {
-            "rank": 62,
-            "code": "bn",
-            "name": "Brunei",
-            "img": "https://flagcdn.com/w80/bn.png",
-            "mainPoints": 4
-          },
-          {
-            "rank": 63,
-            "code": "nr",
-            "name": "Nauru",
-            "img": "https://flagcdn.com/w80/nr.png",
-            "mainPoints": 4
-          },
-          {
-            "rank": 64,
-            "code": "jo",
-            "name": "Jordan",
-            "img": "https://flagcdn.com/w80/jo.png",
-            "mainPoints": 4
-          },
-          {
-            "rank": 65,
-            "code": "td",
-            "name": "Chad",
-            "img": "https://flagcdn.com/w80/td.png",
-            "mainPoints": 4
-          },
-          {
-            "rank": 66,
-            "code": "dz",
-            "name": "Algeria",
-            "img": "https://flagcdn.com/w80/dz.png",
-            "mainPoints": 3
-          },
-          {
-            "rank": 67,
-            "code": "ee",
-            "name": "Estonia",
-            "img": "https://flagcdn.com/w80/ee.png",
-            "mainPoints": 3
-          },
-          {
-            "rank": 68,
-            "code": "id",
-            "name": "Indonesia",
-            "img": "https://flagcdn.com/w80/id.png",
-            "mainPoints": 3
-          },
-          {
-            "rank": 69,
-            "code": "is",
-            "name": "Iceland",
-            "img": "https://flagcdn.com/w80/is.png",
-            "mainPoints": 3
-          },
-          {
-            "rank": 70,
-            "code": "au",
-            "name": "Australia",
-            "img": "https://flagcdn.com/w80/au.png",
-            "mainPoints": 3
-          },
-          {
-            "rank": 71,
-            "code": "lk",
-            "name": "Sri Lanka",
-            "img": "https://flagcdn.com/w80/lk.png",
-            "mainPoints": 3
-          },
-          {
-            "rank": 72,
-            "code": "no",
-            "name": "Norway",
-            "img": "https://flagcdn.com/w80/no.png",
-            "mainPoints": 3
-          },
-          {
-            "rank": 73,
-            "code": "hr",
-            "name": "Croatia",
-            "img": "https://flagcdn.com/w80/hr.png",
-            "mainPoints": 3
-          },
-          {
-            "rank": 74,
-            "code": "tl",
-            "name": "Timor-Leste",
-            "img": "https://flagcdn.com/w80/tl.png",
-            "mainPoints": 3
-          },
-          {
-            "rank": 75,
-            "code": "at",
-            "name": "Austria",
-            "img": "https://flagcdn.com/w80/at.png",
-            "mainPoints": 3
-          },
-          {
-            "rank": 76,
-            "code": "mw",
-            "name": "Malawi",
-            "img": "https://flagcdn.com/w80/mw.png",
-            "mainPoints": 3
-          },
-          {
-            "rank": 77,
-            "code": "th",
-            "name": "Thailand",
-            "img": "https://flagcdn.com/w80/th.png",
-            "mainPoints": 3
-          },
-          {
-            "rank": 78,
-            "code": "ug",
-            "name": "Uganda",
-            "img": "https://flagcdn.com/w80/ug.png",
-            "mainPoints": 3
-          },
-          {
-            "rank": 79,
-            "code": "rw",
-            "name": "Rwanda",
-            "img": "https://flagcdn.com/w80/rw.png",
-            "mainPoints": 3
-          },
-          {
-            "rank": 80,
-            "code": "ga",
-            "name": "Gabon",
-            "img": "https://flagcdn.com/w80/ga.png",
-            "mainPoints": 3
-          },
-          {
-            "rank": 81,
-            "code": "ss",
-            "name": "South Sudan",
-            "img": "https://flagcdn.com/w80/ss.png",
-            "mainPoints": 3
-          },
-          {
-            "rank": 82,
-            "code": "ci",
-            "name": "Côte d'Ivoire",
-            "img": "https://flagcdn.com/w80/ci.png",
-            "mainPoints": 3
-          },
-          {
-            "rank": 83,
-            "code": "be",
-            "name": "Belgium",
-            "img": "https://flagcdn.com/w80/be.png",
-            "mainPoints": 3
-          },
-          {
-            "rank": 84,
-            "code": "mt",
-            "name": "Malta",
-            "img": "https://flagcdn.com/w80/mt.png",
-            "mainPoints": 3
-          },
-          {
-            "rank": 85,
-            "code": "bi",
-            "name": "Burundi",
-            "img": "https://flagcdn.com/w80/bi.png",
-            "mainPoints": 3
-          },
-          {
-            "rank": 86,
-            "code": "sg",
-            "name": "Singapore",
-            "img": "https://flagcdn.com/w80/sg.png",
-            "mainPoints": 3
-          },
-          {
-            "rank": 87,
-            "code": "cr",
-            "name": "Costa Rica",
-            "img": "https://flagcdn.com/w80/cr.png",
-            "mainPoints": 3
-          },
-          {
-            "rank": 88,
-            "code": "mv",
-            "name": "Maldives",
-            "img": "https://flagcdn.com/w80/mv.png",
-            "mainPoints": 3
-          },
-          {
-            "rank": 89,
-            "code": "lr",
-            "name": "Liberia",
-            "img": "https://flagcdn.com/w80/lr.png",
-            "mainPoints": 3
-          },
-          {
-            "rank": 90,
-            "code": "ro",
-            "name": "Romania",
-            "img": "https://flagcdn.com/w80/ro.png",
-            "mainPoints": 3
-          },
-          {
-            "rank": 91,
-            "code": "gb",
-            "name": "United Kingdom",
-            "img": "https://flagcdn.com/w80/gb.png",
-            "mainPoints": 3
-          },
-          {
-            "rank": 92,
-            "code": "tm",
-            "name": "Turkmenistan",
-            "img": "https://flagcdn.com/w80/tm.png",
-            "mainPoints": 3
-          },
-          {
-            "rank": 93,
-            "code": "fi",
-            "name": "Finland",
-            "img": "https://flagcdn.com/w80/fi.png",
-            "mainPoints": 3
-          },
-          {
-            "rank": 94,
-            "code": "tg",
-            "name": "Togo",
-            "img": "https://flagcdn.com/w80/tg.png",
-            "mainPoints": 3
-          },
-          {
-            "rank": 95,
-            "code": "st",
-            "name": "Sao Tome and Principe",
-            "img": "https://flagcdn.com/w80/st.png",
-            "mainPoints": 3
-          },
-          {
-            "rank": 96,
-            "code": "pl",
-            "name": "Poland",
-            "img": "https://flagcdn.com/w80/pl.png",
-            "mainPoints": 3
-          },
-          {
-            "rank": 97,
-            "code": "ye",
-            "name": "Yemen",
-            "img": "https://flagcdn.com/w80/ye.png",
-            "mainPoints": 3
-          },
-          {
-            "rank": 98,
-            "code": "in",
-            "name": "India",
-            "img": "https://flagcdn.com/w80/in.png",
-            "mainPoints": 3
-          },
-          {
-            "rank": 99,
-            "code": "zw",
-            "name": "Zimbabwe",
-            "img": "https://flagcdn.com/w80/zw.png",
-            "mainPoints": 3
-          },
-          {
-            "rank": 100,
-            "code": "cn",
-            "name": "China",
-            "img": "https://flagcdn.com/w80/cn.png",
-            "mainPoints": 3
-          },
-          {
-            "rank": 101,
-            "code": "iq",
-            "name": "Iraq",
-            "img": "https://flagcdn.com/w80/iq.png",
-            "mainPoints": 3
-          },
-          {
-            "rank": 102,
-            "code": "mr",
-            "name": "Mauritania",
-            "img": "https://flagcdn.com/w80/mr.png",
-            "mainPoints": 3
-          },
-          {
-            "rank": 103,
-            "code": "ly",
-            "name": "Libya",
-            "img": "https://flagcdn.com/w80/ly.png",
-            "mainPoints": 3
-          },
-          {
-            "rank": 104,
-            "code": "sk",
-            "name": "Slovakia",
-            "img": "https://flagcdn.com/w80/sk.png",
-            "mainPoints": 3
-          },
-          {
-            "rank": 105,
-            "code": "bh",
-            "name": "Bahrain",
-            "img": "https://flagcdn.com/w80/bh.png",
-            "mainPoints": 3
-          },
-          {
-            "rank": 106,
-            "code": "ws",
-            "name": "Samoa",
-            "img": "https://flagcdn.com/w80/ws.png",
-            "mainPoints": 3
-          },
-          {
-            "rank": 107,
-            "code": "gd",
-            "name": "Grenada",
-            "img": "https://flagcdn.com/w80/gd.png",
-            "mainPoints": 3
-          },
-          {
-            "rank": 108,
-            "code": "za",
-            "name": "South Africa",
-            "img": "https://flagcdn.com/w80/za.png",
-            "mainPoints": 3
-          },
-          {
-            "rank": 109,
-            "code": "kw",
-            "name": "Kuwait",
-            "img": "https://flagcdn.com/w80/kw.png",
-            "mainPoints": 3
-          },
-          {
-            "rank": 110,
-            "code": "bw",
-            "name": "Botswana",
-            "img": "https://flagcdn.com/w80/bw.png",
-            "mainPoints": 3
-          },
-          {
-            "rank": 111,
-            "code": "om",
-            "name": "Oman",
-            "img": "https://flagcdn.com/w80/om.png",
-            "mainPoints": 2
-          },
-          {
-            "rank": 112,
-            "code": "bz",
-            "name": "Belize",
-            "img": "https://flagcdn.com/w80/bz.png",
-            "mainPoints": 2
-          },
-          {
-            "rank": 113,
-            "code": "mh",
-            "name": "Marshall Islands",
-            "img": "https://flagcdn.com/w80/mh.png",
-            "mainPoints": 2
-          },
-          {
-            "rank": 114,
-            "code": "mg",
-            "name": "Madagascar",
-            "img": "https://flagcdn.com/w80/mg.png",
-            "mainPoints": 2
-          },
-          {
-            "rank": 115,
-            "code": "gr",
-            "name": "Greece",
-            "img": "https://flagcdn.com/w80/gr.png",
-            "mainPoints": 2
-          },
-          {
-            "rank": 116,
-            "code": "it",
-            "name": "Italy",
-            "img": "https://flagcdn.com/w80/it.png",
-            "mainPoints": 2
-          },
-          {
-            "rank": 117,
-            "code": "il",
-            "name": "Israel",
-            "img": "https://flagcdn.com/w80/il.png",
-            "mainPoints": 2
-          },
-          {
-            "rank": 118,
-            "code": "nl",
-            "name": "Netherlands",
-            "img": "https://flagcdn.com/w80/nl.png",
-            "mainPoints": 2
-          },
-          {
-            "rank": 119,
-            "code": "sn",
-            "name": "Senegal",
-            "img": "https://flagcdn.com/w80/sn.png",
-            "mainPoints": 2
-          },
-          {
-            "rank": 120,
-            "code": "pk",
-            "name": "Pakistan",
-            "img": "https://flagcdn.com/w80/pk.png",
-            "mainPoints": 2
-          },
-          {
-            "rank": 121,
-            "code": "mm",
-            "name": "Myanmar",
-            "img": "https://flagcdn.com/w80/mm.png",
-            "mainPoints": 2
-          },
-          {
-            "rank": 122,
-            "code": "ml",
-            "name": "Mali",
-            "img": "https://flagcdn.com/w80/ml.png",
-            "mainPoints": 2
-          },
-          {
-            "rank": 123,
-            "code": "do",
-            "name": "Dominican Republic",
-            "img": "https://flagcdn.com/w80/do.png",
-            "mainPoints": 2
-          },
-          {
-            "rank": 124,
-            "code": "sl",
-            "name": "Sierra Leone",
-            "img": "https://flagcdn.com/w80/sl.png",
-            "mainPoints": 2
-          },
-          {
-            "rank": 125,
-            "code": "cf",
-            "name": "Central African Republic",
-            "img": "https://flagcdn.com/w80/cf.png",
-            "mainPoints": 2
-          },
-          {
-            "rank": 126,
-            "code": "pw",
-            "name": "Palau",
-            "img": "https://flagcdn.com/w80/pw.png",
-            "mainPoints": 2
-          },
-          {
-            "rank": 127,
-            "code": "us",
-            "name": "United States",
-            "img": "https://flagcdn.com/w80/us.png",
-            "mainPoints": 2
-          },
-          {
-            "rank": 128,
-            "code": "sc",
-            "name": "Seychelles",
-            "img": "https://flagcdn.com/w80/sc.png",
-            "mainPoints": 2
-          },
-          {
-            "rank": 129,
-            "code": "dm",
-            "name": "Dominica",
-            "img": "https://flagcdn.com/w80/dm.png",
-            "mainPoints": 2
-          },
-          {
-            "rank": 130,
-            "code": "pe",
-            "name": "Peru",
-            "img": "https://flagcdn.com/w80/pe.png",
-            "mainPoints": 2
-          },
-          {
-            "rank": 131,
-            "code": "tn",
-            "name": "Tunisia",
-            "img": "https://flagcdn.com/w80/tn.png",
-            "mainPoints": 2
-          },
-          {
-            "rank": 132,
-            "code": "ch",
-            "name": "Switzerland",
-            "img": "https://flagcdn.com/w80/ch.png",
-            "mainPoints": 2
-          },
-          {
-            "rank": 133,
-            "code": "es",
-            "name": "Spain",
-            "img": "https://flagcdn.com/w80/es.png",
-            "mainPoints": 2
-          },
-          {
-            "rank": 134,
-            "code": "va",
-            "name": "Vatican City",
-            "img": "https://flagcdn.com/w80/va.png",
-            "mainPoints": 2
-          },
-          {
-            "rank": 135,
-            "code": "tv",
-            "name": "Tuvalu",
-            "img": "https://flagcdn.com/w80/tv.png",
-            "mainPoints": 2
-          },
-          {
-            "rank": 136,
-            "code": "me",
-            "name": "Montenegro",
-            "img": "https://flagcdn.com/w80/me.png",
-            "mainPoints": 2
-          },
-          {
-            "rank": 137,
-            "code": "eg",
-            "name": "Egypt",
-            "img": "https://flagcdn.com/w80/eg.png",
-            "mainPoints": 2
-          },
-          {
-            "rank": 138,
-            "code": "cg",
-            "name": "Congo",
-            "img": "https://flagcdn.com/w80/cg.png",
-            "mainPoints": 2
-          },
-          {
-            "rank": 139,
-            "code": "pg",
-            "name": "Papua New Guinea",
-            "img": "https://flagcdn.com/w80/pg.png",
-            "mainPoints": 2
-          },
-          {
-            "rank": 140,
-            "code": "cd",
-            "name": "DR Congo",
-            "img": "https://flagcdn.com/w80/cd.png",
-            "mainPoints": 2
-          },
-          {
-            "rank": 141,
-            "code": "bb",
-            "name": "Barbados",
-            "img": "https://flagcdn.com/w80/bb.png",
-            "mainPoints": 2
-          },
-          {
-            "rank": 142,
-            "code": "kg",
-            "name": "Kyrgyzstan",
-            "img": "https://flagcdn.com/w80/kg.png",
-            "mainPoints": 2
-          },
-          {
-            "rank": 143,
-            "code": "jm",
-            "name": "Jamaica",
-            "img": "https://flagcdn.com/w80/jm.png",
-            "mainPoints": 2
-          },
-          {
-            "rank": 144,
-            "code": "nz",
-            "name": "New Zealand",
-            "img": "https://flagcdn.com/w80/nz.png",
-            "mainPoints": 2
-          },
-          {
-            "rank": 145,
-            "code": "ar",
-            "name": "Argentina",
-            "img": "https://flagcdn.com/w80/ar.png",
-            "mainPoints": 2
-          },
-          {
-            "rank": 146,
-            "code": "kp",
-            "name": "North Korea",
-            "img": "https://flagcdn.com/w80/kp.png",
-            "mainPoints": 2
-          },
-          {
-            "rank": 147,
-            "code": "jp",
-            "name": "Japan",
-            "img": "https://flagcdn.com/w80/jp.png",
-            "mainPoints": 2
-          },
-          {
-            "rank": 148,
-            "code": "cy",
-            "name": "Cyprus",
-            "img": "https://flagcdn.com/w80/cy.png",
-            "mainPoints": 2
-          },
-          {
-            "rank": 149,
-            "code": "zm",
-            "name": "Zambia",
-            "img": "https://flagcdn.com/w80/zm.png",
-            "mainPoints": 2
-          },
-          {
-            "rank": 150,
-            "code": "tt",
-            "name": "Trinidad and Tobago",
-            "img": "https://flagcdn.com/w80/tt.png",
-            "mainPoints": 2
-          },
-          {
-            "rank": 151,
-            "code": "tr",
-            "name": "Türkiye",
-            "img": "https://flagcdn.com/w80/tr.png",
-            "mainPoints": 2
-          },
-          {
-            "rank": 152,
-            "code": "al",
-            "name": "Albania",
-            "img": "https://flagcdn.com/w80/al.png",
-            "mainPoints": 2
-          },
-          {
-            "rank": 153,
-            "code": "li",
-            "name": "Liechtenstein",
-            "img": "https://flagcdn.com/w80/li.png",
-            "mainPoints": 1
-          },
-          {
-            "rank": 154,
-            "code": "mx",
-            "name": "Mexico",
-            "img": "https://flagcdn.com/w80/mx.png",
-            "mainPoints": 1
-          },
-          {
-            "rank": 155,
-            "code": "ie",
-            "name": "Ireland",
-            "img": "https://flagcdn.com/w80/ie.png",
-            "mainPoints": 1
-          },
-          {
-            "rank": 156,
-            "code": "by",
-            "name": "Belarus",
-            "img": "https://flagcdn.com/w80/by.png",
-            "mainPoints": 1
-          },
-          {
-            "rank": 157,
-            "code": "mk",
-            "name": "North Macedonia",
-            "img": "https://flagcdn.com/w80/mk.png",
-            "mainPoints": 1
-          },
-          {
-            "rank": 158,
-            "code": "sb",
-            "name": "Solomon Islands",
-            "img": "https://flagcdn.com/w80/sb.png",
-            "mainPoints": 1
-          },
-          {
-            "rank": 159,
-            "code": "mz",
-            "name": "Mozambique",
-            "img": "https://flagcdn.com/w80/mz.png",
-            "mainPoints": 1
-          },
-          {
-            "rank": 160,
-            "code": "az",
-            "name": "Azerbaijan",
-            "img": "https://flagcdn.com/w80/az.png",
-            "mainPoints": 1
-          },
-          {
-            "rank": 161,
-            "code": "cu",
-            "name": "Cuba",
-            "img": "https://flagcdn.com/w80/cu.png",
-            "mainPoints": 1
-          },
-          {
-            "rank": 162,
-            "code": "vc",
-            "name": "Saint Vincent and the Grenadines",
-            "img": "https://flagcdn.com/w80/vc.png",
-            "mainPoints": 1
-          },
-          {
-            "rank": 163,
-            "code": "bo",
-            "name": "Bolivia",
-            "img": "https://flagcdn.com/w80/bo.png",
-            "mainPoints": 1
-          },
-          {
-            "rank": 164,
-            "code": "ag",
-            "name": "Antigua and Barbuda",
-            "img": "https://flagcdn.com/w80/ag.png",
-            "mainPoints": 1
-          },
-          {
-            "rank": 165,
-            "code": "md",
-            "name": "Moldova",
-            "img": "https://flagcdn.com/w80/md.png",
-            "mainPoints": 1
-          },
-          {
-            "rank": 166,
-            "code": "tz",
-            "name": "Tanzania",
-            "img": "https://flagcdn.com/w80/tz.png",
-            "mainPoints": 1
-          },
-          {
-            "rank": 167,
-            "code": "vu",
-            "name": "Vanuatu",
-            "img": "https://flagcdn.com/w80/vu.png",
-            "mainPoints": 1
-          },
-          {
-            "rank": 168,
-            "code": "sy",
-            "name": "Syria",
-            "img": "https://flagcdn.com/w80/sy.png",
-            "mainPoints": 1
-          },
-          {
-            "rank": 169,
-            "code": "de",
-            "name": "Germany",
-            "img": "https://flagcdn.com/w80/de.png",
-            "mainPoints": 1
-          },
-          {
-            "rank": 170,
-            "code": "kz",
-            "name": "Kazakhstan",
-            "img": "https://flagcdn.com/w80/kz.png",
-            "mainPoints": 1
-          },
-          {
-            "rank": 171,
-            "code": "so",
-            "name": "Somalia",
-            "img": "https://flagcdn.com/w80/so.png",
-            "mainPoints": 1
-          },
-          {
-            "rank": 172,
-            "code": "gt",
-            "name": "Guatemala",
-            "img": "https://flagcdn.com/w80/gt.png",
-            "mainPoints": 1
-          },
-          {
-            "rank": 173,
-            "code": "ki",
-            "name": "Kiribati",
-            "img": "https://flagcdn.com/w80/ki.png",
-            "mainPoints": 1
-          },
-          {
-            "rank": 174,
-            "code": "kr",
-            "name": "South Korea",
-            "img": "https://flagcdn.com/w80/kr.png",
-            "mainPoints": 1
-          },
-          {
-            "rank": 175,
-            "code": "ht",
-            "name": "Haiti",
-            "img": "https://flagcdn.com/w80/ht.png",
-            "mainPoints": 1
-          },
-          {
-            "rank": 176,
-            "code": "bd",
-            "name": "Bangladesh",
-            "img": "https://flagcdn.com/w80/bd.png",
-            "mainPoints": 1
-          },
-          {
-            "rank": 177,
-            "code": "ni",
-            "name": "Nicaragua",
-            "img": "https://flagcdn.com/w80/ni.png",
-            "mainPoints": 1
-          },
-          {
-            "rank": 178,
-            "code": "lb",
-            "name": "Lebanon",
-            "img": "https://flagcdn.com/w80/lb.png",
-            "mainPoints": 1
-          },
-          {
-            "rank": 179,
-            "code": "hn",
-            "name": "Honduras",
-            "img": "https://flagcdn.com/w80/hn.png",
-            "mainPoints": 1
-          },
-          {
-            "rank": 180,
-            "code": "cv",
-            "name": "Cabo Verde",
-            "img": "https://flagcdn.com/w80/cv.png",
-            "mainPoints": 1
-          },
-          {
-            "rank": 181,
-            "code": "sa",
-            "name": "Saudi Arabia",
-            "img": "https://flagcdn.com/w80/sa.png",
-            "mainPoints": 1
-          },
-          {
-            "rank": 182,
-            "code": "cm",
-            "name": "Cameroon",
-            "img": "https://flagcdn.com/w80/cm.png",
-            "mainPoints": 1
-          },
-          {
-            "rank": 183,
-            "code": "af",
-            "name": "Afghanistan",
-            "img": "https://flagcdn.com/w80/af.png",
-            "mainPoints": 1
-          },
-          {
-            "rank": 184,
-            "code": "fj",
-            "name": "Fiji",
-            "img": "https://flagcdn.com/w80/fj.png",
-            "mainPoints": 1
-          },
-          {
-            "rank": 185,
-            "code": "sd",
-            "name": "Sudan",
-            "img": "https://flagcdn.com/w80/sd.png",
-            "mainPoints": 1
-          },
-          {
-            "rank": 186,
-            "code": "ru",
-            "name": "Russia",
-            "img": "https://flagcdn.com/w80/ru.png"
-          },
-          {
-            "rank": 187,
-            "code": "gm",
-            "name": "Gambia",
-            "img": "https://flagcdn.com/w80/gm.png"
-          },
-          {
-            "rank": 188,
-            "code": "km",
-            "name": "Comoros",
-            "img": "https://flagcdn.com/w80/km.png"
-          },
-          {
-            "rank": 189,
-            "code": "to",
-            "name": "Tonga",
-            "img": "https://flagcdn.com/w80/to.png"
-          },
-          {
-            "rank": 190,
-            "code": "na",
-            "name": "Namibia",
-            "img": "https://flagcdn.com/w80/na.png"
-          },
-          {
-            "rank": 191,
-            "code": "ba",
-            "name": "Bosnia and Herzegovina",
-            "img": "https://flagcdn.com/w80/ba.png"
-          },
-          {
-            "rank": 192,
-            "code": "si",
-            "name": "Slovenia",
-            "img": "https://flagcdn.com/w80/si.png"
-          },
-          {
-            "rank": 193,
-            "code": "tj",
-            "name": "Tajikistan",
-            "img": "https://flagcdn.com/w80/tj.png"
-          }
-        ],
-        "winner": {
-          "code": "ec",
-          "name": "Ecuador",
-          "img": "https://flagcdn.com/w80/ec.png"
-        },
-        "at": "2026-08-23T04:55:04.486Z",
-        "pointAt": "2026-08-23T04:55:04.486Z",
-        "rules": "opening_main_invasion",
-        "rankingRules": {
-          "primary": "main_round_points",
-          "note": "Champion = most Main last-standing points; earlier first point wins ties"
-        },
-        "mainRoundPoints": {
-          "dz": 3,
-          "cl": 4,
-          "ee": 3,
-          "la": 4,
-          "bt": 5,
-          "ec": 11,
-          "ge": 4,
-          "gy": 8,
-          "om": 2,
-          "li": 1,
-          "ls": 7,
-          "pt": 5,
-          "ng": 6,
-          "lu": 5,
-          "co": 4,
-          "mc": 5,
-          "id": 3,
-          "bz": 2,
-          "sv": 5,
-          "bs": 6,
-          "is": 3,
-          "cz": 6,
-          "au": 3,
-          "lk": 3,
-          "mx": 1,
-          "mh": 2,
-          "no": 3,
-          "hr": 3,
-          "se": 5,
-          "mn": 4,
-          "tl": 3,
-          "ua": 4,
-          "lv": 5,
-          "at": 3,
-          "mw": 3,
-          "ao": 4,
-          "et": 5,
-          "gq": 4,
-          "th": 3,
-          "ug": 3,
-          "mg": 2,
-          "ie": 1,
-          "bg": 4,
-          "vn": 4,
-          "mu": 4,
-          "by": 1,
-          "kh": 4,
-          "rw": 3,
-          "gr": 2,
-          "ga": 3,
-          "gh": 4,
-          "ke": 4,
-          "ca": 4,
-          "it": 2,
-          "ss": 3,
-          "il": 2,
-          "ci": 3,
-          "be": 3,
-          "nl": 2,
-          "mt": 3,
-          "bi": 3,
-          "sn": 2,
-          "pa": 5,
-          "uz": 5,
-          "sm": 7,
-          "pk": 2,
-          "py": 4,
-          "fr": 4,
-          "sg": 3,
-          "mk": 1,
-          "np": 6,
-          "cr": 3,
-          "mv": 3,
-          "rs": 7,
-          "sb": 1,
-          "ae": 4,
-          "mz": 1,
-          "lr": 3,
-          "ad": 4,
-          "ro": 3,
-          "ma": 5,
-          "er": 5,
-          "mm": 2,
-          "hu": 6,
-          "ml": 2,
-          "do": 2,
-          "gb": 3,
-          "tm": 3,
-          "kn": 4,
-          "fm": 4,
-          "gw": 5,
-          "fi": 3,
-          "sr": 4,
-          "uy": 5,
-          "tg": 3,
-          "az": 1,
-          "st": 3,
-          "dk": 5,
-          "pl": 3,
-          "my": 6,
-          "bj": 4,
-          "sl": 2,
-          "lt": 4,
-          "br": 4,
-          "cu": 1,
-          "vc": 1,
-          "cf": 2,
-          "bo": 1,
-          "ye": 3,
-          "in": 3,
-          "zw": 3,
-          "pw": 2,
-          "dj": 8,
-          "us": 2,
-          "cn": 3,
-          "iq": 3,
-          "sc": 2,
-          "mr": 3,
-          "am": 6,
-          "ly": 3,
-          "ne": 9,
-          "gn": 5,
-          "ag": 1,
-          "dm": 2,
-          "bf": 4,
-          "pe": 2,
-          "sk": 3,
-          "tn": 2,
-          "sz": 6,
-          "qa": 5,
-          "lc": 7,
-          "ph": 4,
-          "ch": 2,
-          "ve": 4,
-          "md": 1,
-          "es": 2,
-          "va": 2,
-          "tz": 1,
-          "tv": 2,
-          "bh": 3,
-          "ws": 3,
-          "vu": 1,
-          "me": 2,
-          "sy": 1,
-          "eg": 2,
-          "cg": 2,
-          "de": 1,
-          "bn": 4,
-          "kz": 1,
-          "so": 1,
-          "gt": 1,
-          "gd": 3,
-          "pg": 2,
-          "cd": 2,
-          "nr": 4,
-          "ki": 1,
-          "kr": 1,
-          "za": 3,
-          "bb": 2,
-          "kg": 2,
-          "jo": 4,
-          "jm": 2,
-          "ht": 1,
-          "nz": 2,
-          "kw": 3,
-          "ar": 2,
-          "kp": 2,
-          "jp": 2,
-          "cy": 2,
-          "td": 4,
-          "bd": 1,
-          "zm": 2,
-          "ni": 1,
-          "tt": 2,
-          "tr": 2,
-          "lb": 1,
-          "hn": 1,
-          "bw": 3,
-          "al": 2,
-          "cv": 1,
-          "sa": 1,
-          "cm": 1,
-          "af": 1,
-          "fj": 1,
-          "sd": 1
-        },
-        "pollPlaces": [
-          {
-            "rank": 1,
-            "code": "af",
-            "name": "Afghanistan",
-            "img": "https://flagcdn.com/w80/af.png",
-            "votes": 0,
-            "points": 10
-          },
-          {
-            "rank": 2,
-            "code": "al",
-            "name": "Albania",
-            "img": "https://flagcdn.com/w80/al.png",
-            "votes": 0,
-            "points": 5
-          },
-          {
-            "rank": 3,
-            "code": "dz",
-            "name": "Algeria",
-            "img": "https://flagcdn.com/w80/dz.png",
-            "votes": 0,
-            "points": 3
-          },
-          {
-            "rank": 4,
-            "code": "ad",
-            "name": "Andorra",
-            "img": "https://flagcdn.com/w80/ad.png",
-            "votes": 0,
-            "points": 2
-          },
-          {
-            "rank": 5,
-            "code": "ao",
-            "name": "Angola",
-            "img": "https://flagcdn.com/w80/ao.png",
-            "votes": 0,
-            "points": 1
-          }
-        ],
-        "heldAt": "2026-08-23T04:56:04.501Z"
-      },
-      "qualified": [],
-      "winner": {
-        "code": "ec",
-        "name": "Ecuador",
-        "img": "https://flagcdn.com/w80/ec.png"
-      },
-      "sourceStreamId": null,
-      "format": "opening_main_invasion",
-      "mainRoundPoints": {
-        "dz": 3,
-        "cl": 4,
-        "ee": 3,
-        "la": 4,
-        "bt": 5,
-        "ec": 11,
-        "ge": 4,
-        "gy": 8,
-        "om": 2,
-        "li": 1,
-        "ls": 7,
-        "pt": 5,
-        "ng": 6,
-        "lu": 5,
-        "co": 4,
-        "mc": 5,
-        "id": 3,
-        "bz": 2,
-        "sv": 5,
-        "bs": 6,
-        "is": 3,
-        "cz": 6,
-        "au": 3,
-        "lk": 3,
-        "mx": 1,
-        "mh": 2,
-        "no": 3,
-        "hr": 3,
-        "se": 5,
-        "mn": 4,
-        "tl": 3,
-        "ua": 4,
-        "lv": 5,
-        "at": 3,
-        "mw": 3,
-        "ao": 4,
-        "et": 5,
-        "gq": 4,
-        "th": 3,
-        "ug": 3,
-        "mg": 2,
-        "ie": 1,
-        "bg": 4,
-        "vn": 4,
-        "mu": 4,
-        "by": 1,
-        "kh": 4,
-        "rw": 3,
-        "gr": 2,
-        "ga": 3,
-        "gh": 4,
-        "ke": 4,
-        "ca": 4,
-        "it": 2,
-        "ss": 3,
-        "il": 2,
-        "ci": 3,
-        "be": 3,
-        "nl": 2,
-        "mt": 3,
-        "bi": 3,
-        "sn": 2,
-        "pa": 5,
-        "uz": 5,
-        "sm": 7,
-        "pk": 2,
-        "py": 4,
-        "fr": 4,
-        "sg": 3,
-        "mk": 1,
-        "np": 6,
-        "cr": 3,
-        "mv": 3,
-        "rs": 7,
-        "sb": 1,
-        "ae": 4,
-        "mz": 1,
-        "lr": 3,
-        "ad": 4,
-        "ro": 3,
-        "ma": 5,
-        "er": 5,
-        "mm": 2,
-        "hu": 6,
-        "ml": 2,
-        "do": 2,
-        "gb": 3,
-        "tm": 3,
-        "kn": 4,
-        "fm": 4,
-        "gw": 5,
-        "fi": 3,
-        "sr": 4,
-        "uy": 5,
-        "tg": 3,
-        "az": 1,
-        "st": 3,
-        "dk": 5,
-        "pl": 3,
-        "my": 6,
-        "bj": 4,
-        "sl": 2,
-        "lt": 4,
-        "br": 4,
-        "cu": 1,
-        "vc": 1,
-        "cf": 2,
-        "bo": 1,
-        "ye": 3,
-        "in": 3,
-        "zw": 3,
-        "pw": 2,
-        "dj": 8,
-        "us": 2,
-        "cn": 3,
-        "iq": 3,
-        "sc": 2,
-        "mr": 3,
-        "am": 6,
-        "ly": 3,
-        "ne": 9,
-        "gn": 5,
-        "ag": 1,
-        "dm": 2,
-        "bf": 4,
-        "pe": 2,
-        "sk": 3,
-        "tn": 2,
-        "sz": 6,
-        "qa": 5,
-        "lc": 7,
-        "ph": 4,
-        "ch": 2,
-        "ve": 4,
-        "md": 1,
-        "es": 2,
-        "va": 2,
-        "tz": 1,
-        "tv": 2,
-        "bh": 3,
-        "ws": 3,
-        "vu": 1,
-        "me": 2,
-        "sy": 1,
-        "eg": 2,
-        "cg": 2,
-        "de": 1,
-        "bn": 4,
-        "kz": 1,
-        "so": 1,
-        "gt": 1,
-        "gd": 3,
-        "pg": 2,
-        "cd": 2,
-        "nr": 4,
-        "ki": 1,
-        "kr": 1,
-        "za": 3,
-        "bb": 2,
-        "kg": 2,
-        "jo": 4,
-        "jm": 2,
-        "ht": 1,
-        "nz": 2,
-        "kw": 3,
-        "ar": 2,
-        "kp": 2,
-        "jp": 2,
-        "cy": 2,
-        "td": 4,
-        "bd": 1,
-        "zm": 2,
-        "ni": 1,
-        "tt": 2,
-        "tr": 2,
-        "lb": 1,
-        "hn": 1,
-        "bw": 3,
-        "al": 2,
-        "cv": 1,
-        "sa": 1,
-        "cm": 1,
-        "af": 1,
-        "fj": 1,
-        "sd": 1
-      },
-      "mainPointAt": {
-        "dz": "2026-08-23T01:16:39.223Z",
-        "cl": "2026-08-23T01:17:00.660Z",
-        "ee": "2026-08-23T01:17:25.566Z",
-        "la": "2026-08-23T01:17:55.600Z",
-        "bt": "2026-08-23T01:18:12.997Z",
-        "ec": "2026-08-23T01:18:33.531Z",
-        "ge": "2026-08-23T01:19:12.701Z",
-        "gy": "2026-08-23T01:19:37.619Z",
-        "om": "2026-08-23T01:19:55.020Z",
-        "li": "2026-08-23T01:20:24.429Z",
-        "ls": "2026-08-23T01:20:56.414Z",
-        "pt": "2026-08-23T01:21:18.030Z",
-        "ng": "2026-08-23T01:21:38.786Z",
-        "lu": "2026-08-23T01:22:01.154Z",
-        "co": "2026-08-23T01:22:45.793Z",
-        "mc": "2026-08-23T01:23:11.039Z",
-        "id": "2026-08-23T01:23:27.191Z",
-        "bz": "2026-08-23T01:24:21.255Z",
-        "sv": "2026-08-23T01:24:38.963Z",
-        "bs": "2026-08-23T01:24:57.224Z",
-        "is": "2026-08-23T01:25:37.157Z",
-        "cz": "2026-08-23T01:25:58.225Z",
-        "au": "2026-08-23T01:26:09.922Z",
-        "lk": "2026-08-23T01:26:29.814Z",
-        "mx": "2026-08-23T01:26:47.843Z",
-        "mh": "2026-08-23T01:27:23.261Z",
-        "no": "2026-08-23T01:27:43.948Z",
-        "hr": "2026-08-23T01:28:33.864Z",
-        "se": "2026-08-23T01:28:53.923Z",
-        "mn": "2026-08-23T01:30:05.495Z",
-        "tl": "2026-08-23T01:30:39.961Z",
-        "ua": "2026-08-23T01:30:54.412Z",
-        "lv": "2026-08-23T01:31:17.051Z",
-        "at": "2026-08-23T01:31:36.484Z",
-        "mw": "2026-08-23T01:32:33.985Z",
-        "ao": "2026-08-23T01:33:02.597Z",
-        "et": "2026-08-23T01:33:26.791Z",
-        "gq": "2026-08-23T01:34:19.493Z",
-        "th": "2026-08-23T01:35:03.337Z",
-        "ug": "2026-08-23T01:35:28.289Z",
-        "mg": "2026-08-23T01:35:51.294Z",
-        "ie": "2026-08-23T01:36:22.906Z",
-        "bg": "2026-08-23T01:36:45.007Z",
-        "vn": "2026-08-23T01:37:12.397Z",
-        "mu": "2026-08-23T01:37:31.341Z",
-        "by": "2026-08-23T01:37:46.263Z",
-        "kh": "2026-08-23T01:38:08.494Z",
-        "rw": "2026-08-23T01:38:41.085Z",
-        "gr": "2026-08-23T01:39:10.955Z",
-        "ga": "2026-08-23T01:39:27.122Z",
-        "gh": "2026-08-23T01:39:58.469Z",
-        "ke": "2026-08-23T01:40:57.703Z",
-        "ca": "2026-08-23T01:41:13.047Z",
-        "it": "2026-08-23T01:41:25.224Z",
-        "ss": "2026-08-23T01:42:16.433Z",
-        "il": "2026-08-23T01:42:48.057Z",
-        "ci": "2026-08-23T01:43:17.097Z",
-        "be": "2026-08-23T01:43:39.624Z",
-        "nl": "2026-08-23T01:43:56.507Z",
-        "mt": "2026-08-23T01:44:37.951Z",
-        "bi": "2026-08-23T01:44:57.659Z",
-        "sn": "2026-08-23T01:46:29.468Z",
-        "pa": "2026-08-23T01:46:48.877Z",
-        "uz": "2026-08-23T01:47:08.704Z",
-        "sm": "2026-08-23T01:48:08.524Z",
-        "pk": "2026-08-23T01:49:04.850Z",
-        "py": "2026-08-23T01:49:52.349Z",
-        "fr": "2026-08-23T01:50:41.542Z",
-        "sg": "2026-08-23T01:51:13.373Z",
-        "mk": "2026-08-23T01:51:31.664Z",
-        "np": "2026-08-23T01:52:17.267Z",
-        "cr": "2026-08-23T01:53:13.880Z",
-        "mv": "2026-08-23T01:53:33.229Z",
-        "rs": "2026-08-23T01:54:16.683Z",
-        "sb": "2026-08-23T01:54:33.779Z",
-        "ae": "2026-08-23T01:54:56.708Z",
-        "mz": "2026-08-23T01:56:02.428Z",
-        "lr": "2026-08-23T01:56:33.174Z",
-        "ad": "2026-08-23T01:57:03.567Z",
-        "ro": "2026-08-23T01:57:27.581Z",
-        "ma": "2026-08-23T01:58:15.554Z",
-        "er": "2026-08-23T01:58:34.124Z",
-        "mm": "2026-08-23T01:58:57.289Z",
-        "hu": "2026-08-23T01:59:39.472Z",
-        "ml": "2026-08-23T02:00:26.952Z",
-        "do": "2026-08-23T02:01:05.718Z",
-        "gb": "2026-08-23T02:02:07.515Z",
-        "tm": "2026-08-23T02:02:33.074Z",
-        "kn": "2026-08-23T02:03:19.216Z",
-        "fm": "2026-08-23T02:03:35.770Z",
-        "gw": "2026-08-23T02:03:56.357Z",
-        "fi": "2026-08-23T02:05:53.060Z",
-        "sr": "2026-08-23T02:06:11.925Z",
-        "uy": "2026-08-23T02:07:00.542Z",
-        "tg": "2026-08-23T02:07:47.774Z",
-        "az": "2026-08-23T02:08:21.008Z",
-        "st": "2026-08-23T02:08:43.080Z",
-        "dk": "2026-08-23T02:09:14.667Z",
-        "pl": "2026-08-23T02:10:03.558Z",
-        "my": "2026-08-23T02:10:45.640Z",
-        "bj": "2026-08-23T02:11:05.378Z",
-        "sl": "2026-08-23T02:11:27.695Z",
-        "lt": "2026-08-23T02:11:52.304Z",
-        "br": "2026-08-23T02:12:17.056Z",
-        "cu": "2026-08-23T02:14:35.703Z",
-        "vc": "2026-08-23T02:15:06.195Z",
-        "cf": "2026-08-23T02:15:29.342Z",
-        "bo": "2026-08-23T02:15:48.981Z",
-        "ye": "2026-08-23T02:16:00.650Z",
-        "in": "2026-08-23T02:16:13.916Z",
-        "zw": "2026-08-23T02:16:37.722Z",
-        "pw": "2026-08-23T02:18:36.087Z",
-        "dj": "2026-08-23T02:18:53.435Z",
-        "us": "2026-08-23T02:20:16.815Z",
-        "cn": "2026-08-23T02:20:59.413Z",
-        "iq": "2026-08-23T02:21:46.434Z",
-        "sc": "2026-08-23T02:22:07.583Z",
-        "mr": "2026-08-23T02:24:31.778Z",
-        "am": "2026-08-23T02:25:18.841Z",
-        "ly": "2026-08-23T02:27:00.965Z",
-        "ne": "2026-08-23T02:27:22.594Z",
-        "gn": "2026-08-23T02:27:44.420Z",
-        "ag": "2026-08-23T02:28:33.817Z",
-        "dm": "2026-08-23T02:30:25.734Z",
-        "bf": "2026-08-23T02:30:53.164Z",
-        "pe": "2026-08-23T02:31:23.234Z",
-        "sk": "2026-08-23T02:32:30.042Z",
-        "tn": "2026-08-23T02:35:16.584Z",
-        "sz": "2026-08-23T02:36:13.582Z",
-        "qa": "2026-08-23T02:37:15.131Z",
-        "lc": "2026-08-23T02:37:33.799Z",
-        "ph": "2026-08-23T02:37:54.899Z",
-        "ch": "2026-08-23T02:38:24.082Z",
-        "ve": "2026-08-23T02:39:24.382Z",
-        "md": "2026-08-23T02:39:38.212Z",
-        "es": "2026-08-23T02:41:38.651Z",
-        "va": "2026-08-23T02:43:07.217Z",
-        "tz": "2026-08-23T02:43:27.263Z",
-        "tv": "2026-08-23T02:44:49.121Z",
-        "bh": "2026-08-23T02:45:36.882Z",
-        "ws": "2026-08-23T02:46:02.174Z",
-        "vu": "2026-08-23T02:46:49.407Z",
-        "me": "2026-08-23T02:47:15.295Z",
-        "sy": "2026-08-23T02:50:09.101Z",
-        "eg": "2026-08-23T02:55:28.505Z",
-        "cg": "2026-08-23T02:55:52.532Z",
-        "de": "2026-08-23T02:56:58.505Z",
-        "bn": "2026-08-23T02:59:31.481Z",
-        "kz": "2026-08-23T03:02:51.116Z",
-        "so": "2026-08-23T03:03:54.250Z",
-        "gt": "2026-08-23T03:08:45.679Z",
-        "gd": "2026-08-23T03:09:06.024Z",
-        "pg": "2026-08-23T03:09:43.971Z",
-        "cd": "2026-08-23T03:14:44.696Z",
-        "nr": "2026-08-23T03:15:05.185Z",
-        "ki": "2026-08-23T03:17:24.054Z",
-        "kr": "2026-08-23T03:17:42.031Z",
-        "za": "2026-08-23T03:19:43.825Z",
-        "bb": "2026-08-23T03:20:56.298Z",
-        "kg": "2026-08-23T03:21:17.086Z",
-        "jo": "2026-08-23T03:21:37.452Z",
-        "jm": "2026-08-23T03:22:21.985Z",
-        "ht": "2026-08-23T03:24:47.155Z",
-        "nz": "2026-08-23T03:26:23.797Z",
-        "kw": "2026-08-23T03:29:25.634Z",
-        "ar": "2026-08-23T03:33:18.324Z",
-        "kp": "2026-08-23T03:34:20.111Z",
-        "jp": "2026-08-23T03:35:09.699Z",
-        "cy": "2026-08-23T03:36:17.061Z",
-        "td": "2026-08-23T03:44:38.890Z",
-        "bd": "2026-08-23T03:46:22.420Z",
-        "zm": "2026-08-23T03:47:41.242Z",
-        "ni": "2026-08-23T03:48:27.355Z",
-        "tt": "2026-08-23T03:51:40.418Z",
-        "tr": "2026-08-23T03:54:10.791Z",
-        "lb": "2026-08-23T03:56:44.442Z",
-        "hn": "2026-08-23T04:03:46.531Z",
-        "bw": "2026-08-23T04:08:01.585Z",
-        "al": "2026-08-23T04:16:40.671Z",
-        "cv": "2026-08-23T04:30:14.500Z",
-        "sa": "2026-08-23T04:48:46.287Z",
-        "cm": "2026-08-23T04:51:09.541Z",
-        "af": "2026-08-23T04:52:37.705Z",
-        "fj": "2026-08-23T04:53:45.660Z",
-        "sd": "2026-08-23T04:54:13.887Z"
-      },
-      "recentMainWins": [
-        {
-          "code": "iq",
-          "name": "Iraq",
-          "img": "https://flagcdn.com/w80/iq.png",
-          "at": 1787460878961,
-          "points": 3
-        },
-        {
-          "code": "sd",
-          "name": "Sudan",
-          "img": "https://flagcdn.com/w80/sd.png",
-          "at": 1787460853887,
-          "points": 1
-        },
-        {
-          "code": "fj",
-          "name": "Fiji",
-          "img": "https://flagcdn.com/w80/fj.png",
-          "at": 1787460825660,
-          "points": 1
-        },
-        {
-          "code": "lc",
-          "name": "Saint Lucia",
-          "img": "https://flagcdn.com/w80/lc.png",
-          "at": 1787460806285,
-          "points": 7
-        },
-        {
-          "code": "bs",
-          "name": "Bahamas",
-          "img": "https://flagcdn.com/w80/bs.png",
-          "at": 1787460781242,
-          "points": 6
-        },
-        {
-          "code": "af",
-          "name": "Afghanistan",
-          "img": "https://flagcdn.com/w80/af.png",
-          "at": 1787460757705,
-          "points": 1
-        },
-        {
-          "code": "ng",
-          "name": "Nigeria",
-          "img": "https://flagcdn.com/w80/ng.png",
-          "at": 1787460741087,
-          "points": 6
-        },
-        {
-          "code": "sz",
-          "name": "Eswatini",
-          "img": "https://flagcdn.com/w80/sz.png",
-          "at": 1787460710094,
-          "points": 6
-        },
-        {
-          "code": "pl",
-          "name": "Poland",
-          "img": "https://flagcdn.com/w80/pl.png",
-          "at": 1787460692503,
-          "points": 3
-        },
-        {
-          "code": "cm",
-          "name": "Cameroon",
-          "img": "https://flagcdn.com/w80/cm.png",
-          "at": 1787460669541,
-          "points": 1
-        },
-        {
-          "code": "td",
-          "name": "Chad",
-          "img": "https://flagcdn.com/w80/td.png",
-          "at": 1787460650059,
-          "points": 4
-        },
-        {
-          "code": "kh",
-          "name": "Cambodia",
-          "img": "https://flagcdn.com/w80/kh.png",
-          "at": 1787460631642,
-          "points": 4
-        },
-        {
-          "code": "ar",
-          "name": "Argentina",
-          "img": "https://flagcdn.com/w80/ar.png",
-          "at": 1787460614322,
-          "points": 2
-        },
-        {
-          "code": "uz",
-          "name": "Uzbekistan",
-          "img": "https://flagcdn.com/w80/uz.png",
-          "at": 1787460593310,
-          "points": 5
-        },
-        {
-          "code": "my",
-          "name": "Malaysia",
-          "img": "https://flagcdn.com/w80/my.png",
-          "at": 1787460568201,
-          "points": 6
-        },
-        {
-          "code": "bs",
-          "name": "Bahamas",
-          "img": "https://flagcdn.com/w80/bs.png",
-          "at": 1787460546849,
-          "points": 5
-        }
-      ]
     }
   ],
-  "api": "https://realtors-elvis-hon-practices.trycloudflare.com",
-  "updatedAt": 1788598866915
+  "api": null,
+  "updatedAt": 1788620438037
 }
