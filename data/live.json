@@ -21,9 +21,9 @@
       "name": "Benin",
       "img": "https://flagcdn.com/w80/bj.png"
     },
-    "streamStatus": "winner_hold",
-    "endedAt": null,
-    "winnerHoldRemainingMs": 1388.0999999996275,
+    "streamStatus": "finished",
+    "endedAt": "2026-09-05T20:58:36.816Z",
+    "winnerHoldRemainingMs": 0,
     "qualifyingRemainingMs": 0,
     "sprintRemainingMs": 0,
     "mainRemainingMs": 0,
@@ -306,7 +306,7 @@
       }
     ],
     "finalLiveAt": null,
-    "updatedAt": 1788641915389
+    "updatedAt": 1788641916818
   },
   "streams": [
     {
@@ -62347,5 +62347,5 @@
     }
   ],
   "api": "https://luxury-asia-sciences-imagination.trycloudflare.com",
-  "updatedAt": 1788641916976
+  "updatedAt": 1788641917099
 }
