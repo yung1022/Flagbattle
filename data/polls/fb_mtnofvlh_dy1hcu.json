@@ -1027,7 +1027,7 @@
     "eg": 0,
     "sv": 0,
     "gq": 0,
-    "er": 0,
+    "er": 1,
     "ee": 0,
     "sz": 0,
     "et": 0,
@@ -1171,11 +1171,12 @@
   "voters": {
     "yt:UC2U83ROZc-MX282S-PzT1Yg": "si",
     "yt:UCUSLASMNNYAro9shlGz4a_Q": "ru",
-    "yt:UCT9slSA-TegFbcPNsOkk_yg": "uy"
+    "yt:UCT9slSA-TegFbcPNsOkk_yg": "uy",
+    "yt:UC1zedMrBm7MUJxsKftUYT4g": "er"
   },
   "closed": false,
   "closedAt": null,
-  "updatedAt": 1788575572304,
+  "updatedAt": 1788582416503,
   "voterStats": {
     "yt:UC2U83ROZc-MX282S-PzT1Yg": {
       "name": "@nauru-ph",
@@ -1194,9 +1195,24 @@
       "avatar": "https://yt4.ggpht.com/Z12U4GVJP6odZWyPGG8quiDksgkUKAic7MQarxlbpcLxdxRK0giylhBAeaAG1MGFbJ6P_vmnuA=s64-c-k-c0x00ffffff-no-rj",
       "count": 1,
       "lastAt": 1788575572304
+    },
+    "yt:UC1zedMrBm7MUJxsKftUYT4g": {
+      "name": "@michaeldebas2014",
+      "avatar": "https://yt4.ggpht.com/RpT4jfcnh5K7jJ9Hgfw8fup0t3hwyow-KE95uDtGIHFfJsTf-rBIzZuePkr1BKrkBgQf5g3i=s64-c-k-c0x00ffffff-no-rj",
+      "count": 1,
+      "lastAt": 1788582416503
     }
   },
   "recentVotes": [
+    {
+      "voter": "@michaeldebas2014",
+      "voterId": "yt:UC1zedMrBm7MUJxsKftUYT4g",
+      "code": "er",
+      "name": "Eritrea",
+      "img": "https://flagcdn.com/w40/er.png",
+      "avatar": "https://yt4.ggpht.com/RpT4jfcnh5K7jJ9Hgfw8fup0t3hwyow-KE95uDtGIHFfJsTf-rBIzZuePkr1BKrkBgQf5g3i=s64-c-k-c0x00ffffff-no-rj",
+      "at": 1788582416503
+    },
     {
       "voter": "@gadm-n3x",
       "voterId": "yt:UCT9slSA-TegFbcPNsOkk_yg",
@@ -1232,15 +1248,6 @@
       "img": "https://flagcdn.com/w40/ro.png",
       "avatar": "https://yt4.ggpht.com/DLtj-F5cAOKtzgbrm6Mm1FtM6v7-HrkR04657gjpE7lHUNGYlPp72m_f6HRqt3quXQEZeaGY=s64-c-k-c0x00ffffff-no-rj",
       "at": 1788572158759
-    },
-    {
-      "voter": "@nauru-ph",
-      "voterId": "yt:UC2U83ROZc-MX282S-PzT1Yg",
-      "code": "ro",
-      "name": "Romania",
-      "img": "https://flagcdn.com/w40/ro.png",
-      "avatar": "https://yt4.ggpht.com/DLtj-F5cAOKtzgbrm6Mm1FtM6v7-HrkR04657gjpE7lHUNGYlPp72m_f6HRqt3quXQEZeaGY=s64-c-k-c0x00ffffff-no-rj",
-      "at": 1788572138532
     }
   ]
 }
