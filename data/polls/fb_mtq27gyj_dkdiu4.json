@@ -989,12 +989,12 @@
     "bd": 0,
     "bb": 0,
     "by": 0,
-    "be": 5,
+    "be": 8,
     "bz": 0,
     "bj": 0,
     "bt": 0,
     "bo": 0,
-    "ba": 0,
+    "ba": 1,
     "bw": 0,
     "br": 0,
     "bn": 0,
@@ -1169,20 +1169,63 @@
     "zw": 0
   },
   "voters": {
-    "yt:UCMsCuoX8sZ7MDf285Ze6Mwg": "be"
+    "yt:UCMsCuoX8sZ7MDf285Ze6Mwg": "be",
+    "yt:UCaPZ3JLFuf2R1eALPtCMLpQ": "be"
   },
   "closed": false,
   "closedAt": null,
-  "updatedAt": 1788717842350,
+  "updatedAt": 1788729624763,
   "voterStats": {
     "yt:UCMsCuoX8sZ7MDf285Ze6Mwg": {
       "name": "@Countryballs.com67",
       "avatar": "https://yt4.ggpht.com/znuxpeAnGyEgdHn6m3iRFriE_Z_Gk1Xt5Im-LmJ7nV38bk9mPi1EuD8T56B3xTtdAWPS0CZG6cI=s64-c-k-c0x00ffffff-no-rj",
       "count": 5,
       "lastAt": 1788717842350
+    },
+    "yt:UCaPZ3JLFuf2R1eALPtCMLpQ": {
+      "name": "@GamingG_45",
+      "avatar": "https://yt4.ggpht.com/ANmBQcErIl_um3I_pBxTWVY4HSYxZj0fvi2_N1PcjEDeoP2Uwt4BeUfTQ3Uk8NEvENF6AFxJ-zU=s64-c-k-c0x00ffffff-no-rj",
+      "count": 4,
+      "lastAt": 1788729624763
     }
   },
   "recentVotes": [
+    {
+      "voter": "@GamingG_45",
+      "voterId": "yt:UCaPZ3JLFuf2R1eALPtCMLpQ",
+      "code": "be",
+      "name": "Belgium",
+      "img": "https://flagcdn.com/w40/be.png",
+      "avatar": "https://yt4.ggpht.com/ANmBQcErIl_um3I_pBxTWVY4HSYxZj0fvi2_N1PcjEDeoP2Uwt4BeUfTQ3Uk8NEvENF6AFxJ-zU=s64-c-k-c0x00ffffff-no-rj",
+      "at": 1788729624763
+    },
+    {
+      "voter": "@GamingG_45",
+      "voterId": "yt:UCaPZ3JLFuf2R1eALPtCMLpQ",
+      "code": "be",
+      "name": "Belgium",
+      "img": "https://flagcdn.com/w40/be.png",
+      "avatar": "https://yt4.ggpht.com/ANmBQcErIl_um3I_pBxTWVY4HSYxZj0fvi2_N1PcjEDeoP2Uwt4BeUfTQ3Uk8NEvENF6AFxJ-zU=s64-c-k-c0x00ffffff-no-rj",
+      "at": 1788729614644
+    },
+    {
+      "voter": "@GamingG_45",
+      "voterId": "yt:UCaPZ3JLFuf2R1eALPtCMLpQ",
+      "code": "be",
+      "name": "Belgium",
+      "img": "https://flagcdn.com/w40/be.png",
+      "avatar": "https://yt4.ggpht.com/ANmBQcErIl_um3I_pBxTWVY4HSYxZj0fvi2_N1PcjEDeoP2Uwt4BeUfTQ3Uk8NEvENF6AFxJ-zU=s64-c-k-c0x00ffffff-no-rj",
+      "at": 1788729604449
+    },
+    {
+      "voter": "@GamingG_45",
+      "voterId": "yt:UCaPZ3JLFuf2R1eALPtCMLpQ",
+      "code": "ba",
+      "name": "Bosnia and Herzegovina",
+      "img": "https://flagcdn.com/w40/ba.png",
+      "avatar": "https://yt4.ggpht.com/ANmBQcErIl_um3I_pBxTWVY4HSYxZj0fvi2_N1PcjEDeoP2Uwt4BeUfTQ3Uk8NEvENF6AFxJ-zU=s64-c-k-c0x00ffffff-no-rj",
+      "at": 1788729574191
+    },
     {
       "voter": "@Countryballs.com67",
       "voterId": "yt:UCMsCuoX8sZ7MDf285Ze6Mwg",
@@ -1191,42 +1234,6 @@
       "img": "https://flagcdn.com/w40/be.png",
       "avatar": "https://yt4.ggpht.com/znuxpeAnGyEgdHn6m3iRFriE_Z_Gk1Xt5Im-LmJ7nV38bk9mPi1EuD8T56B3xTtdAWPS0CZG6cI=s64-c-k-c0x00ffffff-no-rj",
       "at": 1788717842350
-    },
-    {
-      "voter": "@Countryballs.com67",
-      "voterId": "yt:UCMsCuoX8sZ7MDf285Ze6Mwg",
-      "code": "be",
-      "name": "Belgium",
-      "img": "https://flagcdn.com/w40/be.png",
-      "avatar": "https://yt4.ggpht.com/znuxpeAnGyEgdHn6m3iRFriE_Z_Gk1Xt5Im-LmJ7nV38bk9mPi1EuD8T56B3xTtdAWPS0CZG6cI=s64-c-k-c0x00ffffff-no-rj",
-      "at": 1788717832218
-    },
-    {
-      "voter": "@Countryballs.com67",
-      "voterId": "yt:UCMsCuoX8sZ7MDf285Ze6Mwg",
-      "code": "be",
-      "name": "Belgium",
-      "img": "https://flagcdn.com/w40/be.png",
-      "avatar": "https://yt4.ggpht.com/znuxpeAnGyEgdHn6m3iRFriE_Z_Gk1Xt5Im-LmJ7nV38bk9mPi1EuD8T56B3xTtdAWPS0CZG6cI=s64-c-k-c0x00ffffff-no-rj",
-      "at": 1788717822064
-    },
-    {
-      "voter": "@Countryballs.com67",
-      "voterId": "yt:UCMsCuoX8sZ7MDf285Ze6Mwg",
-      "code": "be",
-      "name": "Belgium",
-      "img": "https://flagcdn.com/w40/be.png",
-      "avatar": "https://yt4.ggpht.com/znuxpeAnGyEgdHn6m3iRFriE_Z_Gk1Xt5Im-LmJ7nV38bk9mPi1EuD8T56B3xTtdAWPS0CZG6cI=s64-c-k-c0x00ffffff-no-rj",
-      "at": 1788717761493
-    },
-    {
-      "voter": "@Countryballs.com67",
-      "voterId": "yt:UCMsCuoX8sZ7MDf285Ze6Mwg",
-      "code": "be",
-      "name": "Belgium",
-      "img": "https://flagcdn.com/w40/be.png",
-      "avatar": "https://yt4.ggpht.com/znuxpeAnGyEgdHn6m3iRFriE_Z_Gk1Xt5Im-LmJ7nV38bk9mPi1EuD8T56B3xTtdAWPS0CZG6cI=s64-c-k-c0x00ffffff-no-rj",
-      "at": 1788717620452
     }
   ]
 }
