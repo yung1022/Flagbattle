@@ -1162,7 +1162,7 @@
     "uz": 0,
     "vu": 0,
     "va": 0,
-    "ve": 0,
+    "ve": 1,
     "vn": 1,
     "ye": 0,
     "zm": 0,
@@ -1173,11 +1173,12 @@
     "yt:UCKu-mB_InrhbjchJ9pCuy2g": "br",
     "yt:UCPKT8KTyMSmFu6xzcLycb8A": "ar",
     "yt:UC0XGhNTQC8bYpsp9sZ9Y-QQ": "de",
-    "yt:UCKCo1XxgSkxU7d5DYZLOvzg": "vn"
+    "yt:UCKCo1XxgSkxU7d5DYZLOvzg": "vn",
+    "yt:UCfYcvI8nDVsxalHd6F1SYTA": "ve"
   },
   "closed": false,
   "closedAt": null,
-  "updatedAt": 1788659135032,
+  "updatedAt": 1788664961294,
   "voterStats": {
     "yt:UCahcPMJT_HLhG4PUakir_4g": {
       "name": "@batterylion143",
@@ -1208,9 +1209,24 @@
       "avatar": "https://yt4.ggpht.com/ytc/AIdro_laowbR60Lv85DaL-1gkW1CI1Ge8ed3cejEr3plrfWmaFd8UJx0FOv7bqO0B0l7qqkXLg=s64-c-k-c0x00ffffff-no-rj",
       "count": 1,
       "lastAt": 1788659135032
+    },
+    "yt:UCfYcvI8nDVsxalHd6F1SYTA": {
+      "name": "@aibertgamer",
+      "avatar": "https://yt4.ggpht.com/uocf19kTKHuxi_oFKpcRfTFi9m-keqV8jrvx15eVoFvEvWV2EtN9qs4pCRgqz0ZvwjtI6kh1ig=s64-c-k-c0x00ffffff-no-rj",
+      "count": 1,
+      "lastAt": 1788664961294
     }
   },
   "recentVotes": [
+    {
+      "voter": "@aibertgamer",
+      "voterId": "yt:UCfYcvI8nDVsxalHd6F1SYTA",
+      "code": "ve",
+      "name": "Venezuela",
+      "img": "https://flagcdn.com/w40/ve.png",
+      "avatar": "https://yt4.ggpht.com/uocf19kTKHuxi_oFKpcRfTFi9m-keqV8jrvx15eVoFvEvWV2EtN9qs4pCRgqz0ZvwjtI6kh1ig=s64-c-k-c0x00ffffff-no-rj",
+      "at": 1788664961294
+    },
     {
       "voter": "@TuấnHoàng1",
       "voterId": "yt:UCKCo1XxgSkxU7d5DYZLOvzg",
@@ -1246,15 +1262,6 @@
       "img": "https://flagcdn.com/w40/br.png",
       "avatar": "https://yt4.ggpht.com/9Ug-AtSwhPlSxlB2DbFHR7DXtrmM7Sre0URvDc_D4dAsEo0unAYK1oHuU2jP6ncGFoBYXMg1=s64-c-k-c0x00ffffff-no-rj",
       "at": 1788658146835
-    },
-    {
-      "voter": "@Colorado-t3n",
-      "voterId": "yt:UCKu-mB_InrhbjchJ9pCuy2g",
-      "code": "uy",
-      "name": "Uruguay",
-      "img": "https://flagcdn.com/w40/uy.png",
-      "avatar": "https://yt4.ggpht.com/9Ug-AtSwhPlSxlB2DbFHR7DXtrmM7Sre0URvDc_D4dAsEo0unAYK1oHuU2jP6ncGFoBYXMg1=s64-c-k-c0x00ffffff-no-rj",
-      "at": 1788658096377
     }
   ]
 }
