@@ -1014,7 +1014,7 @@
     "cg": 0,
     "cd": 0,
     "cr": 0,
-    "ci": 59,
+    "ci": 60,
     "hr": 0,
     "cu": 0,
     "cy": 0,
@@ -1175,7 +1175,7 @@
   },
   "closed": false,
   "closedAt": null,
-  "updatedAt": 1788691404360,
+  "updatedAt": 1788691535564,
   "voterStats": {
     "yt:UC3pDg5gW0FJV6WjVONx66Zg": {
       "name": "@JanelleBelarmino-r7m",
@@ -1192,11 +1192,20 @@
     "yt:UCEE1RlIBaPsjtvUG-ksSS-w": {
       "name": "@GelatinshouldhavewonBFB",
       "avatar": "https://yt4.ggpht.com/NbdFNidqnE-nkjalmU2UQah-dPE12ov1GsdgHIrJ0IqBClDaMHBVz1A2Ie93pl3eztVT3tugoA=s64-c-k-c0x00ffffff-no-rj",
-      "count": 59,
-      "lastAt": 1788691404360
+      "count": 60,
+      "lastAt": 1788691535564
     }
   },
   "recentVotes": [
+    {
+      "voter": "@GelatinshouldhavewonBFB",
+      "voterId": "yt:UCEE1RlIBaPsjtvUG-ksSS-w",
+      "code": "ci",
+      "name": "Côte d'Ivoire",
+      "img": "https://flagcdn.com/w40/ci.png",
+      "avatar": "https://yt4.ggpht.com/NbdFNidqnE-nkjalmU2UQah-dPE12ov1GsdgHIrJ0IqBClDaMHBVz1A2Ie93pl3eztVT3tugoA=s64-c-k-c0x00ffffff-no-rj",
+      "at": 1788691535564
+    },
     {
       "voter": "@GelatinshouldhavewonBFB",
       "voterId": "yt:UCEE1RlIBaPsjtvUG-ksSS-w",
@@ -1232,15 +1241,6 @@
       "img": "https://flagcdn.com/w40/ci.png",
       "avatar": "https://yt4.ggpht.com/NbdFNidqnE-nkjalmU2UQah-dPE12ov1GsdgHIrJ0IqBClDaMHBVz1A2Ie93pl3eztVT3tugoA=s64-c-k-c0x00ffffff-no-rj",
       "at": 1788691293245
-    },
-    {
-      "voter": "@GelatinshouldhavewonBFB",
-      "voterId": "yt:UCEE1RlIBaPsjtvUG-ksSS-w",
-      "code": "ci",
-      "name": "Côte d'Ivoire",
-      "img": "https://flagcdn.com/w40/ci.png",
-      "avatar": "https://yt4.ggpht.com/NbdFNidqnE-nkjalmU2UQah-dPE12ov1GsdgHIrJ0IqBClDaMHBVz1A2Ie93pl3eztVT3tugoA=s64-c-k-c0x00ffffff-no-rj",
-      "at": 1788691283130
     }
   ]
 }
