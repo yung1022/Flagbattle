@@ -21,9 +21,9 @@
       "name": "Qatar",
       "img": "https://flagcdn.com/w80/qa.png"
     },
-    "streamStatus": "winner_hold",
-    "endedAt": null,
-    "winnerHoldRemainingMs": 1311.7000000011176,
+    "streamStatus": "finished",
+    "endedAt": "2026-09-07T04:54:56.468Z",
+    "winnerHoldRemainingMs": 0,
     "qualifyingRemainingMs": 0,
     "sprintRemainingMs": 0,
     "mainRemainingMs": 0,
@@ -293,7 +293,7 @@
       }
     ],
     "finalLiveAt": null,
-    "updatedAt": 1788756895138
+    "updatedAt": 1788756896470
   },
   "streams": [
     {
@@ -57494,5 +57494,5 @@
     }
   ],
   "api": "https://doubt-attach-julia-basketball.trycloudflare.com",
-  "updatedAt": 1788756896595
+  "updatedAt": 1788756896714
 }
