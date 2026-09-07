@@ -21,9 +21,9 @@
       "name": "Vanuatu",
       "img": "https://flagcdn.com/w80/vu.png"
     },
-    "streamStatus": "winner_hold",
-    "endedAt": null,
-    "winnerHoldRemainingMs": 1368,
+    "streamStatus": "finished",
+    "endedAt": "2026-09-07T12:48:55.406Z",
+    "winnerHoldRemainingMs": 0,
     "qualifyingRemainingMs": 0,
     "sprintRemainingMs": 0,
     "mainRemainingMs": 0,
@@ -299,7 +299,7 @@
       }
     ],
     "finalLiveAt": null,
-    "updatedAt": 1788785334006
+    "updatedAt": 1788785335408
   },
   "streams": [
     {
@@ -57440,5 +57440,5 @@
     }
   ],
   "api": "https://embassy-cleaners-functions-participating.trycloudflare.com",
-  "updatedAt": 1788785335573
+  "updatedAt": 1788785335695
 }
