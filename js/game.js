@@ -2963,41 +2963,33 @@ export class FlagBattleGame {
 
   /** After the champion hold: freeze poll, mark stream ended, stop the loop. */
   _completeWinnerHold() {
-    if (this._winnerHoldDone || this._winnerHoldCompleting) return;
-    this._winnerHoldCompleting = true;
+    this._winnerHoldDone = true;
     this._winnerHoldUntil = 0;
     this.rankReveal = null;
     this._winRevealUntil = 0;
-    try {
-      if (this.stream && this.winner) {
-        const poll = getLocalPoll(this.stream.id);
-        const pollPlaces = rankPollPlaces(poll);
-        closeLocalPoll(this.stream.id);
-        this.stream.status = "finished";
-        this.stream.endedAt = new Date().toISOString();
-        if (this.stream.final) {
-          this.stream.final.pollPlaces = pollPlaces;
-          this.stream.final.heldAt = this.stream.endedAt;
-        }
-        saveStream(this.stream);
-        this._publishLive();
-        if (pollPlaces.length) {
-          const top = pollPlaces
-            .map((p) => `${p.rank}.${p.name}(+${p.points})`)
-            .join(" · ");
-          this._emit("phase", `Poll bonus locked — ${top}`);
-        }
+    if (this.stream && this.winner) {
+      const poll = getLocalPoll(this.stream.id);
+      const pollPlaces = rankPollPlaces(poll);
+      closeLocalPoll(this.stream.id);
+      this.stream.status = "finished";
+      this.stream.endedAt = new Date().toISOString();
+      if (this.stream.final) {
+        this.stream.final.pollPlaces = pollPlaces;
+        this.stream.final.heldAt = this.stream.endedAt;
       }
-      this._emit("phase", "Stream ending — thanks for watching!");
-      this._winnerHoldDone = true;
-      this._uiDirty = true;
-      this._flushUi(true);
-      this.stopLoop();
-    } catch (err) {
-      console.error("Stream finalization failed; will retry", err);
-      this._winnerHoldCompleting = false;
-      this._winnerHoldUntil = performance.now() + 1000;
+      saveStream(this.stream);
+      this._publishLive();
+      if (pollPlaces.length) {
+        const top = pollPlaces
+          .map((p) => `${p.rank}.${p.name}(+${p.points})`)
+          .join(" · ");
+        this._emit("phase", `Poll bonus locked — ${top}`);
+      }
     }
+    this._emit("phase", "Stream ending — thanks for watching!");
+    this._uiDirty = true;
+    this._flushUi(true);
+    this.stopLoop();
   }
 
   _qualify(flag) {
