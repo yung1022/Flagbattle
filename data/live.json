@@ -21,9 +21,9 @@
       "name": "Morocco",
       "img": "https://flagcdn.com/w80/ma.png"
     },
-    "streamStatus": "winner_hold",
-    "endedAt": null,
-    "winnerHoldRemainingMs": 1503.3999999985099,
+    "streamStatus": "finished",
+    "endedAt": "2026-09-07T20:50:10.476Z",
+    "winnerHoldRemainingMs": 0,
     "qualifyingRemainingMs": 0,
     "sprintRemainingMs": 0,
     "mainRemainingMs": 0,
@@ -307,7 +307,7 @@
       }
     ],
     "finalLiveAt": null,
-    "updatedAt": 1788814208958
+    "updatedAt": 1788814210477
   },
   "streams": [
     {
@@ -57424,5 +57424,5 @@
     }
   ],
   "api": "https://for-phone-amazing-anatomy.trycloudflare.com",
-  "updatedAt": 1788814210619
+  "updatedAt": 1788814210682
 }
