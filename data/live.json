@@ -21,9 +21,9 @@
       "name": "Bahamas",
       "img": "https://flagcdn.com/w80/bs.png"
     },
-    "streamStatus": "winner_hold",
-    "endedAt": null,
-    "winnerHoldRemainingMs": 1401.800000000745,
+    "streamStatus": "finished",
+    "endedAt": "2026-09-09T04:58:21.016Z",
+    "winnerHoldRemainingMs": 0,
     "qualifyingRemainingMs": 0,
     "sprintRemainingMs": 0,
     "mainRemainingMs": 0,
@@ -305,7 +305,7 @@
       }
     ],
     "finalLiveAt": null,
-    "updatedAt": 1788929899604
+    "updatedAt": 1788929901018
   },
   "streams": [
     {
@@ -54346,5 +54346,5 @@
     }
   ],
   "api": "https://figures-pending-buddy-smell.trycloudflare.com",
-  "updatedAt": 1788929901136
+  "updatedAt": 1788929901250
 }
