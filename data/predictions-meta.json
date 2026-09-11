@@ -1,7 +1,82 @@
 {
-  "updatedAt": "2026-09-07T12:48:55.716Z",
-  "api": "https://embassy-cleaners-functions-participating.trycloudflare.com",
+  "updatedAt": "2026-09-09T04:58:21.265Z",
+  "api": "https://figures-pending-buddy-smell.trycloudflare.com",
   "streams": [
+    {
+      "id": "fb_mtte7dz3_u0to70",
+      "mode": "final",
+      "startedAt": "2026-09-09T01:01:16.287Z",
+      "endedAt": "2026-09-09T04:58:21.016Z",
+      "winner": {
+        "code": "bs",
+        "name": "Bahamas",
+        "img": "https://flagcdn.com/w80/bs.png"
+      },
+      "qualified": [],
+      "rounds": [],
+      "final": {
+        "at": "2026-09-09T04:57:21.006Z",
+        "ranking": [
+          {}
+        ],
+        "winner": {
+          "code": "bs",
+          "name": "Bahamas",
+          "img": "https://flagcdn.com/w80/bs.png"
+        }
+      }
+    },
+    {
+      "id": "fb_mtsx3yb8_cfjuoa",
+      "mode": "final",
+      "startedAt": "2026-09-08T17:02:42.548Z",
+      "endedAt": null,
+      "winner": null,
+      "qualified": [],
+      "rounds": []
+    },
+    {
+      "id": "fb_mtsfx995_frw3ap",
+      "mode": "final",
+      "startedAt": "2026-09-08T09:01:36.665Z",
+      "endedAt": null,
+      "winner": null,
+      "qualified": [],
+      "rounds": []
+    },
+    {
+      "id": "fb_mtrys3nz_tmoomu",
+      "mode": "final",
+      "startedAt": "2026-09-08T01:01:42.671Z",
+      "endedAt": null,
+      "winner": null,
+      "qualified": [],
+      "rounds": []
+    },
+    {
+      "id": "fb_mtrhmwzu_pzqqlg",
+      "mode": "final",
+      "startedAt": "2026-09-07T17:01:47.274Z",
+      "endedAt": "2026-09-07T20:50:10.476Z",
+      "winner": {
+        "code": "ma",
+        "name": "Morocco",
+        "img": "https://flagcdn.com/w80/ma.png"
+      },
+      "qualified": [],
+      "rounds": [],
+      "final": {
+        "at": "2026-09-07T20:49:10.462Z",
+        "ranking": [
+          {}
+        ],
+        "winner": {
+          "code": "ma",
+          "name": "Morocco",
+          "img": "https://flagcdn.com/w80/ma.png"
+        }
+      }
+    },
     {
       "id": "fb_mtr0h66h_lglw76",
       "mode": "final",
@@ -616,115 +691,10 @@
           "img": "https://flagcdn.com/w80/sd.png"
         }
       }
-    },
-    {
-      "id": "fb_mtaccj72_v0dcbe",
-      "mode": "final",
-      "startedAt": "2026-08-26T17:01:39.758Z",
-      "endedAt": "2026-08-26T20:49:21.358Z",
-      "winner": {
-        "code": "ru",
-        "name": "Russia",
-        "img": "https://flagcdn.com/w80/ru.png"
-      },
-      "qualified": [],
-      "rounds": [],
-      "final": {
-        "at": "2026-08-26T20:48:21.342Z",
-        "ranking": [
-          {}
-        ],
-        "winner": {
-          "code": "ru",
-          "name": "Russia",
-          "img": "https://flagcdn.com/w80/ru.png"
-        }
-      }
-    },
-    {
-      "id": "fb_mt9v6rfm_v51bsl",
-      "mode": "final",
-      "startedAt": "2026-08-26T09:01:17.026Z",
-      "endedAt": null,
-      "winner": null,
-      "qualified": [],
-      "rounds": []
-    },
-    {
-      "id": "fb_mt9e1jkz_kk95d0",
-      "mode": "final",
-      "startedAt": "2026-08-26T01:01:20.099Z",
-      "endedAt": "2026-08-26T04:49:04.817Z",
-      "winner": {
-        "code": "tv",
-        "name": "Tuvalu",
-        "img": "https://flagcdn.com/w80/tv.png"
-      },
-      "qualified": [],
-      "rounds": [],
-      "final": {
-        "at": "2026-08-26T04:48:04.791Z",
-        "ranking": [
-          {}
-        ],
-        "winner": {
-          "code": "tv",
-          "name": "Tuvalu",
-          "img": "https://flagcdn.com/w80/tv.png"
-        }
-      }
-    },
-    {
-      "id": "fb_mt8wwa04_kzl2a5",
-      "mode": "final",
-      "startedAt": "2026-08-25T17:01:20.932Z",
-      "endedAt": "2026-08-25T20:48:22.998Z",
-      "winner": {
-        "code": "nl",
-        "name": "Netherlands",
-        "img": "https://flagcdn.com/w80/nl.png"
-      },
-      "qualified": [],
-      "rounds": [],
-      "final": {
-        "at": "2026-08-25T20:47:22.984Z",
-        "ranking": [
-          {}
-        ],
-        "winner": {
-          "code": "nl",
-          "name": "Netherlands",
-          "img": "https://flagcdn.com/w80/nl.png"
-        }
-      }
-    },
-    {
-      "id": "fb_mt8fs0nk_5y0q5l",
-      "mode": "final",
-      "startedAt": "2026-08-25T09:02:08.720Z",
-      "endedAt": "2026-08-25T13:02:24.422Z",
-      "winner": {
-        "code": "bz",
-        "name": "Belize",
-        "img": "https://flagcdn.com/w80/bz.png"
-      },
-      "qualified": [],
-      "rounds": [],
-      "final": {
-        "at": "2026-08-25T13:01:24.408Z",
-        "ranking": [
-          {}
-        ],
-        "winner": {
-          "code": "bz",
-          "name": "Belize",
-          "img": "https://flagcdn.com/w80/bz.png"
-        }
-      }
     }
   ],
   "live": {
-    "streamId": "fb_mtr0h66h_lglw76",
+    "streamId": "fb_mtte7dz3_u0to70",
     "title": null,
     "mode": "final",
     "phase": "finished",
@@ -732,10 +702,10 @@
     "qualifyingRemainingMs": 0,
     "qualified": [],
     "winner": {
-      "code": "vu",
-      "name": "Vanuatu",
-      "img": "https://flagcdn.com/w80/vu.png"
+      "code": "bs",
+      "name": "Bahamas",
+      "img": "https://flagcdn.com/w80/bs.png"
     },
-    "updatedAt": 1788785335408
+    "updatedAt": 1788929901018
   }
 }
