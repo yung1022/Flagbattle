@@ -1,5 +1,5 @@
 import { FlagBattleGame, CONFIG, flagSizeForCount, IS_TEST_STREAM, TEST_STREAM } from "./game.js";
-import { COUNTRIES } from "./countries.js";
+import { COUNTRIES, flagUrlSvg } from "./countries.js";
 import { fetchPoll, fetchStreamsFromApi, listStreams } from "./store.js";
 import { buildPointsLeaderboard } from "./rankings-stats.js";
 import { siteBase as resolveSiteBase } from "./public.js";
@@ -108,12 +108,41 @@ function ensureFighterEl(f) {
   el.dataset.id = f.id;
   el.innerHTML = `
     <div class="spawn-label" hidden></div>
-    <img alt="${f.name}" src="${f.img}" loading="lazy" decoding="async" />
+    <img alt="${f.name}" decoding="async" />
     <div class="hp-bar" hidden><i></i></div>
   `;
+  const image = el.querySelector("img");
+  setFlagImage(image, f.code, f.img);
   els.arena.appendChild(el);
   fighterEls.set(f.id, el);
   return el;
+}
+
+function setFlagImage(img, code, primaryUrl) {
+  if (!img) return;
+  const flagCode = String(code || "").toLowerCase();
+  const primary = primaryUrl || flagUrlSvg(flagCode);
+  if (
+    img.dataset.flagCode === flagCode &&
+    img.dataset.flagPrimary === primary &&
+    img.getAttribute("src")
+  ) {
+    return;
+  }
+  img.dataset.flagCode = flagCode;
+  img.dataset.flagPrimary = primary;
+  img.dataset.flagFallback = "0";
+  img.onerror = () => {
+    if (img.dataset.flagFallback === "0" && img.dataset.flagCode) {
+      img.dataset.flagFallback = "1";
+      img.src = flagUrlSvg(img.dataset.flagCode);
+      return;
+    }
+    img.onerror = null;
+    img.classList.add("flag-image-failed");
+  };
+  img.classList.remove("flag-image-failed");
+  img.src = primary;
 }
 
 function polar(cx, cy, r, angleRad) {
@@ -586,9 +615,9 @@ function renderBoard() {
     chip.className = "board-chip";
     const img = document.createElement("img");
     img.className = "board-flag";
-    img.src = f.img;
     img.alt = f.name;
     img.title = f.name;
+    setFlagImage(img, f.code, f.img);
     const name = document.createElement("span");
     name.className = "board-chip-name";
     const pts = Number(f.points);
@@ -863,8 +892,8 @@ function renderHud() {
   const showingReveal = Boolean(game.rankReveal && game._winRevealUntil);
   if (game.phase === "finished" && game.winner && !showingReveal) {
     els.winnerBanner.classList.add("show");
-    els.winnerFlag.src = game.winner.img;
     els.winnerFlag.alt = game.winner.name;
+    setFlagImage(els.winnerFlag, game.winner.code, game.winner.img);
     els.winnerName.textContent = game.winner.name;
   } else {
     els.winnerBanner.classList.remove("show");

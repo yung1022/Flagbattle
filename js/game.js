@@ -2963,33 +2963,45 @@ export class FlagBattleGame {
 
   /** After the champion hold: freeze poll, mark stream ended, stop the loop. */
   _completeWinnerHold() {
+    if (this._winnerHoldDone) return;
     this._winnerHoldDone = true;
     this._winnerHoldUntil = 0;
     this.rankReveal = null;
     this._winRevealUntil = 0;
-    if (this.stream && this.winner) {
-      const poll = getLocalPoll(this.stream.id);
-      const pollPlaces = rankPollPlaces(poll);
-      closeLocalPoll(this.stream.id);
-      this.stream.status = "finished";
-      this.stream.endedAt = new Date().toISOString();
-      if (this.stream.final) {
-        this.stream.final.pollPlaces = pollPlaces;
-        this.stream.final.heldAt = this.stream.endedAt;
+    try {
+      if (this.stream && this.winner) {
+        const endedAt = new Date().toISOString();
+        this.stream.status = "finished";
+        this.stream.endedAt = endedAt;
+        let pollPlaces = [];
+        try {
+          const poll = getLocalPoll(this.stream.id);
+          pollPlaces = rankPollPlaces(poll);
+          closeLocalPoll(this.stream.id);
+        } catch (err) {
+          console.error("Could not finalize stream poll", err);
+        }
+        if (this.stream.final) {
+          this.stream.final.pollPlaces = pollPlaces;
+          this.stream.final.heldAt = endedAt;
+        }
+        saveStream(this.stream);
+        this._publishLive();
+        if (pollPlaces.length) {
+          const top = pollPlaces
+            .map((p) => `${p.rank}.${p.name}(+${p.points})`)
+            .join(" · ");
+          this._emit("phase", `Poll bonus locked — ${top}`);
+        }
       }
-      saveStream(this.stream);
-      this._publishLive();
-      if (pollPlaces.length) {
-        const top = pollPlaces
-          .map((p) => `${p.rank}.${p.name}(+${p.points})`)
-          .join(" · ");
-        this._emit("phase", `Poll bonus locked — ${top}`);
-      }
+      this._emit("phase", "Stream ending — thanks for watching!");
+      this._uiDirty = true;
+      this._flushUi(true);
+    } catch (err) {
+      console.error("Could not finalize stream", err);
+    } finally {
+      this.stopLoop();
     }
-    this._emit("phase", "Stream ending — thanks for watching!");
-    this._uiDirty = true;
-    this._flushUi(true);
-    this.stopLoop();
   }
 
   _qualify(flag) {
