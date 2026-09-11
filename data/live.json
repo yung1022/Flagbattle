@@ -21,9 +21,9 @@
       "name": "Mozambique",
       "img": "https://flagcdn.com/w80/mz.png"
     },
-    "streamStatus": "winner_hold",
-    "endedAt": null,
-    "winnerHoldRemainingMs": 1258.199999999255,
+    "streamStatus": "finished",
+    "endedAt": "2026-09-11T21:02:01.279Z",
+    "winnerHoldRemainingMs": 0,
     "qualifyingRemainingMs": 0,
     "sprintRemainingMs": 0,
     "mainRemainingMs": 0,
@@ -303,7 +303,7 @@
       }
     ],
     "finalLiveAt": null,
-    "updatedAt": 1789160519989
+    "updatedAt": 1789160521283
   },
   "streams": [
     {
@@ -54322,5 +54322,5 @@
     }
   ],
   "api": null,
-  "updatedAt": 1789160521427
+  "updatedAt": 1789160528090
 }
