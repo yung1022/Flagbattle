@@ -16,8 +16,24 @@ export function isPersistEnabled() {
   return persistEnabled;
 }
 
-export function newStreamId() {
-  return `fb_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 8)}`;
+export function newStreamId(prefix = "fb") {
+  const base = String(prefix || "fb").replace(/[^a-zA-Z0-9_-]/g, "_");
+  const used = new Set(listStreams().map((stream) => String(stream?.id || "")));
+  try {
+    const liveId = JSON.parse(localStorage.getItem(LIVE_KEY) || "null")?.live?.streamId;
+    if (liveId) used.add(String(liveId));
+  } catch {
+    /* unavailable storage should not block starting a stream */
+  }
+  let candidate = "";
+  do {
+    const random =
+      typeof crypto !== "undefined" && typeof crypto.randomUUID === "function"
+        ? crypto.randomUUID().replace(/-/g, "").slice(0, 12)
+        : Math.random().toString(36).slice(2, 14);
+    candidate = `${base}_${Date.now().toString(36)}_${random}`;
+  } while (used.has(candidate));
+  return candidate;
 }
 
 export function listStreams() {

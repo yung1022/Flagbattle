@@ -614,7 +614,7 @@ export class FlagBattleGame {
         : "final";
     this.streamMode = mode;
     this.stream = {
-      id: `test_${kind}_${Date.now().toString(36)}`,
+      id: newStreamId(`test_${kind}`),
       mode,
       status: "test",
       startedAt: new Date().toISOString(),
